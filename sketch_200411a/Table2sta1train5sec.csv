@@ -1,0 +1,12 @@
+trainId,stationId,type,time,trackId
+0,0,Departure,0,1
+0,1,Arrival,10,2
+0,1,Departure,15,2
+0,0,Arrival,25,1
+0,0,Departure,30,1
+0,1,Passage,37,1
+0,0,Arrival,45,1
+0,0,Departure,50,1
+0,1,Arrival,60,2
+0,1,Departure,65,2
+0,0,Arrival,75,1
