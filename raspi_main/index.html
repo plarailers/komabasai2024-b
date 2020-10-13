@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Master</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+</head>
+<body>
+  <header class="navbar navbar-dark bg-dark">
+    <span class="navbar-brand">Master</span>
+  </header>
+  <div class="container py-3">
+    <form class="form-inline">
+      <button type="button" class="btn btn-primary" id="connect">Connect</button>
+      <button type="button" class="btn btn-secondary ml-2" id="disconnect" disabled>Disconnect</button>
+    </form>
+    <div class="mt-3">
+      <video id="remote"></video>
+    </div>
+  </div>
+  <script src="https://unpkg.com/@open-ayame/ayame-web-sdk@2020.3.0/dist/ayame.min.js"></script>
+  <script>
+    (async () => {
+      const $remote = document.getElementById('remote');
+      const $connect = document.getElementById('connect');
+      const $disconnect = document.getElementById('disconnect');
+      const conn = Ayame.connection('ws://raspberrypi.local:8080/ws', '', {
+        ...Ayame.defaultOptions,
+        audio: { enabled: false },
+        video: { direction: 'recvonly', enabled: true, codec: 'H264' },
+      });
+      let dataChannel = null;
+      const sendData = (data) => {
+        if (dataChannel && dataChannel.readyState === 'open') {
+          dataChannel.send(data);
+        }
+      };
+      window.sendData = sendData;
+      const onMessage = (e) => {
+        console.log(new TextDecoder().decode(e.data));
+      };
+      conn.on('open', async (e) => {
+        dataChannel = await conn.createDataChannel('serial');
+        if (dataChannel) {
+          dataChannel.onmessage = onMessage;
+        }
+      });
+      conn.on('datachannel', (channel) => {
+        if (!dataChannel) {
+          dataChannel = channel;
+          dataChannel.onmessage = onMessage;
+        }
+      });
+      conn.on('disconnect', (e) => {
+        dataChannel = null;
+        $remote.pause();
+      });
+      conn.on('addstream', (e) => {
+        $remote.srcObject = e.stream;
+        $remote.play();
+      });
+      $connect.addEventListener('click', () => {
+        conn.connect(null);
+        $connect.disabled = true;
+        $disconnect.disabled = false;
+      });
+      $disconnect.addEventListener('click', () => {
+        conn.disconnect();
+        $connect.disabled = false;
+        $disconnect.disabled = true;
+      });
+    })();
+  </script>
+</body>
+</html>
