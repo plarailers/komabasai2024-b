@@ -1,7 +1,7 @@
 function doGet(e: GoogleAppsScript.Events.AppsScriptHttpRequestEvent): GoogleAppsScript.Content.TextOutput {
   const peerId = e.parameter['peerId'];
-  const timestamp = Math.floor(Date.now() / 1000);
-  const ttl = 300;
+  const timestamp = Math.floor(Date.now() / 1000) - 300;
+  const ttl = 600;
   const credential = {
     peerId,
     timestamp,
@@ -11,6 +11,7 @@ function doGet(e: GoogleAppsScript.Events.AppsScriptHttpRequestEvent): GoogleApp
   const output = ContentService.createTextOutput();
   output.setMimeType(ContentService.MimeType.JSON);
   const content = JSON.stringify({
+    version: 4,
     code: 0,
     credential,
   });
