@@ -20,11 +20,11 @@ def setup():
     global process_socat, process_momo, port
     print('starting...')
     process_socat = subprocess.Popen(['socat', '-d', '-d', 'pty,raw,echo=0', 'pty,raw,echo=0'], stderr=subprocess.PIPE)
-    port1_name = re.search('N PTY is (\\S+)', process_socat.stderr.readline().decode()).group(1)
-    port2_name = re.search('N PTY is (\\S+)', process_socat.stderr.readline().decode()).group(1)
+    port1_name = re.search(r'N PTY is (\S+)', process_socat.stderr.readline().decode()).group(1)
+    port2_name = re.search(r'N PTY is (\S+)', process_socat.stderr.readline().decode()).group(1)
     process_socat.stderr.readline()
     print('using ports', port1_name, 'and', port2_name)
-    process_momo = subprocess.Popen([MOMO_BIN, '--no-audio-device', '--use-native', '--force-i420', '--serial', port1_name + ',9600', 'test'])
+    process_momo = subprocess.Popen([MOMO_BIN, '--no-audio-device', '--use-native', '--force-i420', '--serial', f'{port1_name},9600', 'test'])
     port = serial.Serial(port2_name, 9600)
     print('started')
     print('running at http://raspberrypi.local:8080/')
@@ -47,7 +47,7 @@ if __name__ == '__main__':
             loop()
             time.sleep(0.01)
     except KeyboardInterrupt:
-        print("interrupted")
+        print('interrupted')
     except Exception as e:
         print(e)
     finally:
