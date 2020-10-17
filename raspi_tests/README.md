@@ -15,5 +15,5 @@
 ## PC から Raspberry Pi へのファイル転送
 
 ```
-scp -r ./raspi_tests pi@raspberrypi.local:~/raspi_tests
+scp -r ./raspi_tests pi@raspberrypi.local:~/
 ```

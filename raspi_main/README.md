@@ -15,7 +15,7 @@ pip3 install pyserial
 ## PC から Raspberry Pi へのファイル転送
 
 ```
-scp -r ./raspi_main pi@raspberrypi.local:~/raspi_main
+scp -r ./raspi_main pi@raspberrypi.local:~/
 ```
 
 ## 実行
