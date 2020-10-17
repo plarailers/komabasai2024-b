@@ -4,17 +4,24 @@ import subprocess
 import re
 import os.path
 import time
-from queue import Queue
+import datetime
+import RPi.GPIO as GPIO
 import serial
+
+MOTOR_PIN = 14
+SENSOR_PIN = 17
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(MOTOR_PIN, GPIO.OUT)
+GPIO.setup(SENSOR_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+motor = GPIO.PWM(MOTOR_PIN, 50)
 
 MOMO_BIN = os.path.expanduser('~/momo-2020.8.1_raspberry-pi-os_armv6/momo')
 
 process_socat = None
 process_momo = None
 port = None
-
-recv_queue = Queue()
-send_queue = Queue()
 
 def setup():
     global process_socat, process_momo, port
@@ -26,19 +33,27 @@ def setup():
     print('using ports', port1_name, 'and', port2_name)
     process_momo = subprocess.Popen([MOMO_BIN, '--no-audio-device', '--use-native', '--force-i420', '--serial', f'{port1_name},9600', 'test'])
     port = serial.Serial(port2_name, 9600)
+    motor.start(0)
+    GPIO.add_event_detect(SENSOR_PIN, GPIO.RISING, callback=on_sensor, bouncetime=300)
     print('started')
+    print('motor:', MOTOR_PIN)
+    print('sensor:', SENSOR_PIN)
     print('running at http://raspberrypi.local:8080/')
-    print('ctrl+c to quit')
+    print('Ctrl+C to quit')
+
+def on_sensor(channel):
+    data = b'o\n'
+    port.write(data)
+    port.flush()
+    print(datetime.datetime.now(), 'send sensor', data)
 
 def loop():
     while port.in_waiting > 0:
         data = port.read()
-        print(data)
-
-    while not send_queue.empty():
-        data = send_queue.get()
-        port.write(data)
-        port.flush()
+        speed = data[0]
+        dc = speed * 100 / 255
+        motor.ChangeDutyCycle(dc)
+        print(datetime.datetime.now(), 'receive speed', speed)
 
 if __name__ == '__main__':
     try:
@@ -51,6 +66,8 @@ if __name__ == '__main__':
     except Exception as e:
         print(e)
     finally:
+        motor.stop()
+        GPIO.cleanup()
         if port:
             port.close()
         if process_momo:
