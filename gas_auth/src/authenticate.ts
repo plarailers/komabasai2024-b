@@ -1,4 +1,4 @@
-const VERSION = 5;
+const VERSION = 6;
 
 const SPREADSHEET_ID = '1J2wfHYgB-JK1mwckb2PYxwZ0fU3SKbnuZhndt9LLiz8';
 const SHEET_NAME = 'Passwords';
@@ -48,45 +48,57 @@ function authenticate(e: GoogleAppsScript.Events.DoGet) {
     };
   }
   const currentTime = Date.now();
-  const found = getPasswords().find((item) => item.password === password);
-  if (!found) {
+  if (peerId === 'master') {
+    if (password === PropertiesService.getScriptProperties().getProperty('MASTER_PASSWORD')) {
+      const timestamp = Math.floor(currentTime / 1000);
+      // ttl must be between 600 and 90000
+      const ttl = 90000;
+      return {
+        code: 0,
+        startTime: timestamp * 1000,
+        endTime: (timestamp + ttl) * 1000,
+        credential: calculateCredential(peerId, timestamp, ttl),
+      };
+    } else {
+      return {
+        ...ERROR.PASSWORD_NOT_EXIST,
+      };
+    }
+  } else {
+    const found = getPasswords().find((item) => item.password === password);
+    if (!found) {
+      return {
+        ...ERROR.PASSWORD_NOT_EXIST,
+      };
+    }
+    const startTime = new Date(found.startTime).getTime();
+    const endTime = new Date(found.endTime).getTime();
+    if (currentTime < startTime) {
+      return {
+        ...ERROR.PASSWORD_NOT_YET_VALID,
+        startTime: found.startTime,
+        endTime: found.endTime,
+      };
+    } else if (endTime < currentTime) {
+      return {
+        ...ERROR.PASSWORD_EXPIRED,
+        startTime: found.startTime,
+        endTime: found.endTime,
+      };
+    }
+    // ttl must be between 600 and 90000
+    const ttl = 90000;
+    const timestamp = Math.min(
+      Math.floor(endTime / 1000) - ttl,
+      Math.floor(currentTime / 1000),
+    );
     return {
-      ...ERROR.PASSWORD_NOT_EXIST,
-    };
-  }
-  const startTime = new Date(found.startTime).getTime();
-  const endTime = new Date(found.endTime).getTime();
-  if (currentTime < startTime) {
-    return {
-      ...ERROR.PASSWORD_NOT_YET_VALID,
+      code: 0,
       startTime: found.startTime,
       endTime: found.endTime,
-    };
-  } else if (endTime < currentTime) {
-    return {
-      ...ERROR.PASSWORD_EXPIRED,
-      startTime: found.startTime,
-      endTime: found.endTime,
+      credential: calculateCredential(peerId, timestamp, ttl),
     };
   }
-  // ttl must be between 600 and 90000
-  const ttl = 90000;
-  const timestamp = Math.min(
-    Math.floor(endTime / 1000) - ttl,
-    Math.floor(currentTime / 1000),
-  );
-  const credential = {
-    peerId,
-    timestamp,
-    ttl,
-    authToken: calculateAuthToken(peerId, timestamp, ttl),
-  };
-  return {
-    code: 0,
-    startTime: found.startTime,
-    endTime: found.endTime,
-    credential,
-  };
 }
 
 function getPasswords() {
@@ -101,8 +113,14 @@ function getPasswords() {
   }));
 }
 
-function calculateAuthToken(peerId: string, timestamp: number, ttl: number): string {
+function calculateCredential(peerId: string, timestamp: number, ttl: number) {
   const secretKey = PropertiesService.getScriptProperties().getProperty('SKYWAY_SECRET_KEY');
   const hash = Utilities.computeHmacSha256Signature(`${timestamp}:${ttl}:${peerId}`, secretKey);
-  return Utilities.base64Encode(hash);
+  const authToken = Utilities.base64Encode(hash);
+  return {
+    peerId,
+    timestamp,
+    ttl,
+    authToken,
+  };
 }
