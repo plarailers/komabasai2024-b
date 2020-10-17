@@ -34,7 +34,7 @@ def setup():
     process_momo = subprocess.Popen([MOMO_BIN, '--no-audio-device', '--use-native', '--force-i420', '--serial', f'{port1_name},9600', 'test'])
     port = serial.Serial(port2_name, 9600)
     motor.start(0)
-    GPIO.add_event_detect(SENSOR_PIN, GPIO.RISING, callback=on_sensor, bouncetime=300)
+    GPIO.add_event_detect(SENSOR_PIN, GPIO.RISING, callback=on_sensor, bouncetime=10)
     print('started')
     print('motor:', MOTOR_PIN)
     print('sensor:', SENSOR_PIN)
