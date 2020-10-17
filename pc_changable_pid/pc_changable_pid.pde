@@ -1,8 +1,7 @@
 import processing.serial.*;
-import websockets.*;
 
 Serial myPort;  // Create object from Serial class
-WebsocketClient wsc;
+String inputText = "";
 double speed_id = 0.0;
 
 String getTime() {
@@ -10,7 +9,7 @@ String getTime() {
 }
 
 void setup() {
-  surface.setVisible(false);
+  size(600, 400);
   String osName = System.getProperty("os.name");
   boolean isMac = osName.startsWith("Mac");
   boolean isWindows = osName.startsWith("Windows");
@@ -31,31 +30,44 @@ void setup() {
     }
   }
   println(getTime(), "Bluetooth connected");
-  wsc = new WebsocketClient(this, "wss://60jt3xl73m.execute-api.ap-northeast-1.amazonaws.com/dev");
-  println(getTime(), "WebSocket connected");
 }
 
 void draw() {
+  background(255);
+  fill(0);
+  textSize(100);
+  textAlign(CENTER);
+  text(inputText, width / 2, height / 2);
   while (myPort.available() > 0) {  // 車輪が1回転した信号が来たら
     int data = myPort.read();
-    println(getTime(), "[Bluetooth:read]", data);
+    println(getTime(), "recieve", data);
     int input = pidCalc(speed_id);  // pid計算
     myPort.write(input);
   }
   stopCheck();
 }
 
-void webSocketEvent(String msg) {
-  println(getTime(), "[WebSocketEvent]", msg);
-  JSONObject json_msg = parseJSONObject(msg);
-  if (!json_msg.isNull("speed")) {
-    int tmp_speed = json_msg.getInt("speed");
-    speed_id = speed_constrain(tmp_speed);
-    println(getTime(), "[WebController:speed_id]", speed_id);
-    if (speed == 0.0) {  // 止まっているときは動かしてあげる
-      int input = INPUT_START;
-      println("input=INPUT_START");
-      myPort.write(input);
+void sendSpeed(int tmp_speed) {
+  speed_id = speed_constrain(tmp_speed);
+  println(getTime(), "send", speed_id);
+  if (speed == 0.0) {  // 止まっているときは動かしてあげる
+    int input = INPUT_START;
+    println("input=INPUT_START");
+    myPort.write(input);
+  }
+}
+
+void keyPressed() {
+  if (keyCode == RETURN || keyCode == ENTER) {
+    sendSpeed(int(inputText));
+    inputText = "";
+  } else if (keyCode == BACKSPACE) {
+    if (inputText.length() >= 1) {
+      inputText = inputText.substring(0, inputText.length() - 1);
+    }
+  } else if ('0' <= key && key <= '9') {
+    if (inputText.length() < 3) {
+      inputText += key;
     }
   }
 }
