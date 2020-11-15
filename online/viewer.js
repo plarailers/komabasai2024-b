@@ -39,8 +39,8 @@ class Viewer {
       this.room.on('open', function () {
         this.onconnect();
       }.bind(this));
-      this.room.on('addstream', function (e) {
-        this.onstream(e.stream);
+      this.room.on('stream', function (stream) {
+        this.onstream(stream);
       }.bind(this));
       this.room.on('data', function (e) {
         if (e.src === 'master') {
@@ -56,7 +56,7 @@ class Viewer {
   }
 
   send(data) {
-    if (this.room && this.room.open) {
+    if (this.room) {
       this.room.send(data);
     }
   }
