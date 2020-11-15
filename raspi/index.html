@@ -69,18 +69,17 @@
         throw new Error('failed to create dataChannel');
       }
 
-      const sendData = (data) => {
+      const sendToMomo = (data) => {
         if (dataChannel && dataChannel.readyState === 'open') {
           dataChannel.send(data);
         }
       };
-      app.sendData = sendData;
+      app.sendToMomo = sendToMomo;
 
-      const onmessage = (e) => {
-        console.log(new TextDecoder().decode(e.data));
-      };
-      app.onmessage = onmessage;
-      dataChannel.onmessage = onmessage;
+      dataChannel.addEventListener('message', (e) => {
+        const text = new TextDecoder().decode(e.data);
+        console.log(text);
+      });
 
       conn.on('disconnect', (e) => {
         console.log('ayame', 'disconnect');
@@ -133,7 +132,19 @@
 
       room.on('data', ({ data, src }) => {
         console.log('room', 'data', data, src);
+        if (data && typeof data.speed === 'number') {
+          if (typeof app.sendToMomo === 'function') {
+            app.sendToMomo(new Uint8Array([data.speed]));
+          }
+        }
       });
+
+      const sendToRoom = (data) => {
+        if (app.room) {
+          app.room.send(data);
+        }
+      };
+      app.sendToRoom = sendToRoom;
 
       disconnectButton.disabled = false;
     });
