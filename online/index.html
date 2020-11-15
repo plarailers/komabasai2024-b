@@ -7,7 +7,6 @@
     <link href="style.css" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
     <link href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" rel="stylesheet">
-    
   </head>
   <body>
     <header>
@@ -40,64 +39,14 @@
         </div>
       </div>
     </div>
-
+    <script src="https://cdn.webrtc.ecl.ntt.com/skyway-latest.min.js"></script>
     <script src="viewer.js"></script>
   </body>
 </html>
 
 <script>
-  var searchParams = new URLSearchParams(location.search);
-  var ws = null;
+  var viewer = new Viewer();
 
-  function sendWebSocket(data) {
-    if (!ws) {  // WebSocketが初期化されていなければ初期化
-      ws = new WebSocket('wss://60jt3xl73m.execute-api.ap-northeast-1.amazonaws.com/dev');  // サーバ通信用のwebsocket
-      ws.addEventListener('message', onWebSocketMessage);
-    }
-    if (ws.readyState === WebSocket.CONNECTING) {  // 接続中なら開始してから送信
-      ws.addEventListener('open', function onOpen() {
-        ws.send(data);
-        ws.removeEventListener('open', onOpen);
-      });
-    } else {  // 接続済みなら直ちに送信
-      ws.send(data);
-    }
-  }
-
-  function closeWebSocket() {
-    if (ws) {  // WebSocketを切断・削除
-      ws.close();
-      ws.removeEventListener('message', onWebSocketMessage);
-      ws = null;
-    }
-  }
-
-  var movie = document.getElementById('movie');
-  var playing = false;
-
-  function startViewer() {
-    if (!playing) {
-      playing = true;
-      stopInstruction();  // 説明動画の停止・非表示
-      viewer.start(movie);  // 通信の確立
-      movie.play();  // 動画の再生
-    }
-  }
-
-  function stopViewer() {
-    if (playing) {
-      playing = false;
-      viewer.stop();  // 通信の終了
-      movie.pause();  // 動画の停止
-    }
-  }
-
-  var viewer = new Viewer({
-    region: 'ap-northeast-1',
-    channelName: 'gogatsusai2020_channel',
-    accessKeyId: searchParams.get('id'),
-    secretAccessKey: searchParams.get('key')
-  });
   var speed = 0;
   const TITLE_NG = "運転するには、列車番号を入力してください";
   const TITLE_OK = "つまみをドラッグすると、プラレールの速度を操作できます";
@@ -112,7 +61,7 @@
     if (isTimerOn == false) {
       timer = setTimeout(function(){
         speed = parseInt(mascon.value);
-        sendWebSocket(JSON.stringify({"password": pw, "speed": speed}));
+        viewer.send({"speed": speed});
         console.log(speed);
         isTimerOn = false;
       }, 400);  // ハンドルを動かした0.4sec後に送信
@@ -128,7 +77,7 @@
     if (!pw) {  // pw空欄の場合はメッセージ表示
       message.innerText = '列車番号欄が空欄です。入力してください。';
     } else {
-      sendWebSocket(JSON.stringify({"password": pw, "userAgent": navigator.userAgent}));  // pw送信
+      viewer.authenticate(pw);  // パスワードを照合
       console.log('{"password": '+pw+'}');
       message.innerText = '列車番号を確認中です。少々お待ちください。';
       loader.style.visibility = 'visible';
@@ -139,12 +88,11 @@
     }
   }
 
-  // サーバからの返答受信
-  function onWebSocketMessage(event) {
-    var response = JSON.parse(event.data);  // pw照合結果受信
+  // パスワードの照合結果を受信したとき
+  viewer.onauthenticate = function (response) {
     clearTimeout(sendTimer);  // タイムアウト解除
     loader.style.visibility = 'hidden';
-    console.log(event.data);
+    console.log(response);
 
     switch (response.code) {
       case 0:  // 列車番号正解
@@ -153,46 +101,55 @@
         mascon.style.pointerEvents = 'all';  // ハンドルの操作を許可
         mascon.title = TITLE_OK;
         message.innerText = '列車番号を確認しました！　' + endTime.getHours() + '時' + endTime.getMinutes() + '分 まで自由に運転できます。映像が映ったら運転をはじめてください。';
-        startViewer();
+        viewer.connect(response.credential);  // ルームに接続
         break;
       case 1:
         message.innerText = 'システムエラーが発生しました。xxまでご連絡ください。エラーコード:1';
         mascon.title = TITLE_NG;
-        closeWebSocket();
-        stopViewer();
         break;
       case 2:
         message.innerText = 'システムエラーが発生しました。xxまでご連絡ください。エラーコード:2';
         mascon.title = TITLE_NG;
-        closeWebSocket();
-        stopViewer();
         break;
       case 3:
         message.innerText = '入力された列車番号が存在しません。誤りがないかもう一度お確かめください。';
         mascon.title = TITLE_NG;
-        closeWebSocket();
-        stopViewer();
         break;
       case 4:
         message.innerText = '有効期限が始まっていないようです。もうしばらくお待ちください。';
         mascon.title = TITLE_NG;
-        closeWebSocket();
-        stopViewer();
         break;
       case 5:
         message.innerText = '列車番号の有効期限が切れているため、運転できません。';
         mascon.title = TITLE_NG;
-        closeWebSocket();
-        stopViewer();
         break;
       default:
         message.innerText = '不明なエラーが発生しました。お手数ですがもう一度お試しください。';
         mascon.title = TITLE_NG;
-        closeWebSocket();
-        stopViewer();
         break;
     }
-  }
+  };
+
+  // ルームへの接続に成功したとき
+  viewer.onconnect = function () {
+    stopInstruction();
+  };
+
+  // 映像が来たとき
+  viewer.onstream = function (stream) {
+    var movie = document.getElementById('movie');
+    movie.srcObject = stream;
+    movie.play();
+  };
+
+  // 期限が切れたとき
+  viewer.onexpire = function () {
+  };
+
+  // データが送られてきたとき
+  viewer.ondata = function (data) {
+    console.log(data);
+  };
 
   //【サイズ調整】
   window.onload = controller_resize;  // ロード時にレイアウトを調整

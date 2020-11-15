@@ -8,8 +8,8 @@ import datetime
 import RPi.GPIO as GPIO
 import serial
 
-MOTOR_PIN = 14
-SENSOR_PIN = 17
+MOTOR_PIN = 10
+SENSOR_PIN = 19
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(MOTOR_PIN, GPIO.OUT)
