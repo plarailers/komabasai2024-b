@@ -21,7 +21,8 @@ class Communication:
         self.trainSignalBuffer = queue.Queue()
         self.sensorSignalBuffer = queue.Queue()
 
-    def setup(self):
+    def setup(self, simulationMode):
+        self.simulationMode = simulationMode
         osName = platform.system()
         isWindows = osName.startswith("Windows")
         if self.simulationMode:

@@ -1,24 +1,16 @@
-import time
-import State
-import SignalSystem
-import ATS
-import DiaController
+from operator import truediv
+from Operation import *
 
-state = State.State()
-signalSystem = SignalSystem.SignalSystem(state)
-ats = ATS.ATS(state, signalSystem, STOPMERGIN = 20.0)
-diaController = DiaController.DiaController(state)
-
+operation = Operation()
+operation.state.communication.setup(simulationMode=True)
 
 def init():
-    state.communication.simulationMode = True
-    state.communication.setup()
+    
     return
 
 def loop():
     while True:
-        state.update()
-        diaController.update()
+        operation.update()
         time.sleep(1)
 
 

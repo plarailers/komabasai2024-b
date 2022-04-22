@@ -37,15 +37,20 @@ class State:
         self.stationList.append(Station(0, "A"))  # A駅を追加
         self.stationList.append(Station(1, "B"))  # B駅を追加
 
-        # station.setTrack(trackId, section, stationPosition)
-        self.getStationById(0).setTrack(1, self.getSectionById(0), State.STRAIGHT_UNIT * 3)  # 駅0の1番線はSection0
-        self.getStationById(1).setTrack(1, self.getSectionById(2), State.STRAIGHT_UNIT * 3)  # 駅1の1番線はsection2
-        self.getStationById(1).setTrack(2, self.getSectionById(3), State.STRAIGHT_UNIT * 3)  # 駅1の2番線はsection3
+        # section.putStation(station, stationPosition)
+        self.getSectionById(0).putStation(self.getStationById(0), State.STRAIGHT_UNIT * 3)  # section0に駅0を追加
+        self.getSectionById(2).putStation(self.getStationById(1), State.STRAIGHT_UNIT * 3)  # section2に駅1を追加
+        self.getSectionById(3).putStation(self.getStationById(1), State.STRAIGHT_UNIT * 3)  # section3に駅1を追加
+
+        # junction.belogStation
+        self.getJunctionById(1).belongStation = self.getStationById(1)
+        self.getJunctionById(2).belongStation = self.getSectionById(1)
 
         # Train(initialSection, initialPosition)
-        self.trainList.append(Train(0, self.getStationById(0).trackDict.get(1), State.STRAIGHT_UNIT * 3))  # 駅0の1番線に配置
+        self.trainList.append(Train(0, self.getSectionById(0), State.STRAIGHT_UNIT * 3))  # 列車0をsection0に配置
+        self.trainList.append(Train(1, self.getSectionById(2), State.STRAIGHT_UNIT * 3))  # 列車1をsection2に配置
 
-    # Stateと現実世界をCommunication経由で同期する. 定期的に実行すること
+    # 現実世界の状態を取得しStateに反映する. 定期的に実行すること
     def update(self):
         # 情報取得
         self.communication.update()
@@ -67,6 +72,8 @@ class State:
             if train != None:
                 train.move(sensor.position - train.mileage)
 
+    # Stateに格納されている状態を現実世界に送信する. 各種計算後に実行すること
+    def sendCommand(self):
         # 車両への指令送信
         for train in self.trainList:
             self.communication.sendInput(train.id, train.targetSpeed)
@@ -88,6 +95,9 @@ class State:
 
     def getStationById(self, id: int) -> Station:
         return list(filter(lambda item: item.id == id, self.stationList))[0]
+    
+    def getStationBySectionId(self, sectionId: int) -> Station:
+        return self.getSectionById(sectionId).station
 
     def getTrainById(self, id: int) -> Train:
         return list(filter(lambda item: item.id == id, self.trainList))[0]
@@ -101,10 +111,20 @@ class State:
             return None
 
     # 線路上のある点からある点までの距離を返す
-    def getDistance(self, s1: Section, mileage1: float, s2: Section, mileage2: float):
+    # 2つの地点が同じsectionに存在する場合、s1>s2だと負の値を返す
+    def getDistance(self, s1: Section, mileage1: float, s2: Section, mileage2: float, originalStartSection: Section=None):
         distance = 0
         testSection = s1
+        if originalStartSection == None:
+            originalStartSection = s1
         while testSection.id != s2.id:
             distance += testSection.length
-            testSection = testSection.targetJunction.getOutSection()
-        return distance + mileage2 - mileage1
+            if testSection.targetJunction.outSectionCurve == None:
+                testSection = testSection.targetJunction.getOutSection()
+            else:
+                distanceFrom2OutJucntionToS2ViaStraight = self.getDistance(testSection.targetJunction.outSectionStraight, 0, s2, mileage2, originalStartSection)
+                distanceFrom2OutJucntionToS2ViaCurve = self.getDistance(testSection.targetJunction.outSectionCurve, 0, s2, mileage2, originalStartSection)
+                return distance - mileage1 + min(distanceFrom2OutJucntionToS2ViaStraight, distanceFrom2OutJucntionToS2ViaCurve)
+            if testSection.id == originalStartSection.id:
+                break  # 1周して戻ってきた場合は終了
+        return distance - mileage1 + mileage2

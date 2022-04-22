@@ -1,19 +1,20 @@
 from enum import Enum
+import string
 
 
 class Section:
     def __init__(self, id: int, sourceJunction: 'Junction', targetJunction: 'Junction', sourceServoState: 'Junction.ServoState', targetServoState: 'Junction.ServoState', length: float):
         self.id = id
         self.length = length
+        self.station = None
+        self.stationPosition = 0
         self.sourceJunction = sourceJunction
         self.sourceJunction.addOutSection(self, sourceServoState)
         self.targetJunction = targetJunction
         self.targetJunction.addInSection(self, targetServoState)
-        self.hasStation = False
-        self.stationPosition = 0
 
-    def putStation(self, stationPosition):
-        self.hasStation = True
+    def putStation(self, station: 'Station', stationPosition: float):
+        self.station = station
         self.stationPosition = stationPosition
 
 
@@ -41,6 +42,7 @@ class Junction:
         self.outSectionCurve = None
         self.inServoState = Junction.ServoState.Straight
         self.outServoState = Junction.ServoState.Straight
+        self.belongStation = None
 
     def addInSection(self, section, servoState):
         if servoState == Junction.ServoState.Straight:
@@ -68,7 +70,7 @@ class Junction:
         elif self.outSectionStraight and self.outSectionCurve:  # OUT側に2本入ってくる分岐点の場合
             self.outServoState = Junction.ServoState.invert(self.outServoState)  # 反転
 
-    def set(self, servoState: ServoState):
+    def setServoState(self, servoState: ServoState):
         if self.inSectionStraight and self.inSectionCurve:  # IN側に2本入ってくる分岐点の場合inServoStateをセット
             self.inServoState = servoState
         if self.outSectionStraight and self.outSectionCurve:  # OUT側に2本入ってくる分岐点の場合outServoStateをセット
@@ -90,33 +92,14 @@ class Junction:
 class Sensor:
     def __init__(self, id: int, belongSection: Section, position: float):
         self.id = id
-        self.belongSection: Section = belongSection
+        self.belongSection = belongSection
         self.position = position
 
 
 class Station:
-    def __init__(self, id: int, name):
+    def __init__(self, id: int, name: string):
         self.id = id
         self.name = name
-        self.trackDict = {}  # 番線とセクションを対応付けるdict. {int: section, int: section, ...}
-
-    def setTrack(self, trackId: int, section: Section, stationPosition: float):
-        section.putStation(stationPosition)  # 駅の追加
-        self.trackDict[trackId] = section  # 番線と紐づけ
-
-    def getTrackIdBySection(self, section) -> int:
-        for track in self.trackDict.values():
-            if track.id == section.id:
-                return track.id
-        return 0
-
-    @staticmethod
-    def getBySection(stationList: list['Station'], section: Section):
-        for s in stationList:
-            for track in s.trackDict.values():
-                if track.id == section.id:
-                    return s
-        return None
 
 
 class Train:
