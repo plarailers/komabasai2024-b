@@ -1,3 +1,4 @@
+from numpy import pi
 from Components import *
 from Communication import *
 
@@ -8,7 +9,6 @@ class State:
 
     # __init__で線路形状と車両の配置を定義する
     def __init__(self):
-        self.communication = Communication()
         self.junctionList: list[Junction] = []
         self.sectionList: list[Section] = []
         self.sensorList: list[Sensor] = []
@@ -46,9 +46,16 @@ class State:
         self.getJunctionById(1).belongStation = self.getStationById(1)
         self.getJunctionById(2).belongStation = self.getSectionById(1)
 
+        # PIDParams(r: float, INPUT_MIN: int, INPUT_MAX: int, INPUT_START: int, kp: float, ki: float, kd: float)
+        pidParam0 = Train.PIDParam(1.12, 34, 128, 40, 0.35, 0, 0)  # Dr. (maxinput: 34 + 0.35*40cm/s = 46)
+        pidParam1 = Train.PIDParam(1.12, 185, 255, 200, 0.8, 0, 0)  # E6 (maxinput: 185 + 0.8*40cm/s= 217)
+
         # Train(initialSection, initialPosition)
-        self.trainList.append(Train(0, self.getSectionById(0), State.STRAIGHT_UNIT * 3))  # 列車0をsection0に配置
-        self.trainList.append(Train(1, self.getSectionById(2), State.STRAIGHT_UNIT * 3))  # 列車1をsection2に配置
+        self.trainList.append(Train(0, self.getSectionById(0), State.STRAIGHT_UNIT * 3, pidParam0))  # 列車0をsection0に配置
+        self.trainList.append(Train(1, self.getSectionById(2), State.STRAIGHT_UNIT * 3, pidParam1))  # 列車1をsection2に配置
+
+        # start communication
+        self.communication = Communication({0: pidParam0, 1: pidParam1})
 
     # 現実世界の状態を取得しStateに反映する. 定期的に実行すること
     def update(self):
@@ -56,12 +63,9 @@ class State:
         self.communication.update()
 
         # 列車位置更新
-        while self.communication.availableTrainSignal() > 0:
-            trainSignal = self.communication.receiveTrainSignal()
-            id = trainSignal.trainId
-            delta = trainSignal.delta
-            trainToMove = self.getTrainById(id)
-            trainToMove.move(delta)
+        for train in self.trainList:
+            delta = self.communication.receiveTrainDelta(train.id)
+            train.move(delta)
 
         # センサによる補正
         while self.communication.availableSensorSignal() > 0:
@@ -76,7 +80,7 @@ class State:
     def sendCommand(self):
         # 車両への指令送信
         for train in self.trainList:
-            self.communication.sendInput(train.id, train.targetSpeed)
+            self.communication.sendSpeed(train.id, train.targetSpeed)
 
         # ポイントへの指令送信
         for junction in self.junctionList:
@@ -95,7 +99,7 @@ class State:
 
     def getStationById(self, id: int) -> Station:
         return list(filter(lambda item: item.id == id, self.stationList))[0]
-    
+
     def getStationBySectionId(self, sectionId: int) -> Station:
         return self.getSectionById(sectionId).station
 
@@ -112,7 +116,7 @@ class State:
 
     # 線路上のある点からある点までの距離を返す
     # 2つの地点が同じsectionに存在する場合、s1>s2だと負の値を返す
-    def getDistance(self, s1: Section, mileage1: float, s2: Section, mileage2: float, originalStartSection: Section=None):
+    def getDistance(self, s1: Section, mileage1: float, s2: Section, mileage2: float, originalStartSection: Section = None) -> float:
         distance = 0
         testSection = s1
         if originalStartSection == None:

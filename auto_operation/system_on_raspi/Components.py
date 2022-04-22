@@ -107,12 +107,23 @@ class Train:
         No = 0
         PassedJunction = 1
         PassedStation = 2
+    
+    class PIDParam:
+        def __init__(self, r: float, INPUT_MIN: int, INPUT_MAX: int, INPUT_START: int, kp: float, ki: float, kd: float):
+            self.r = r
+            self.INPUT_MIN = INPUT_MIN
+            self.INPUT_MAX = INPUT_MAX
+            self.INPUT_START = INPUT_START
+            self.kp = kp
+            self.ki = ki
+            self.kd = kd
 
-    def __init__(self, id: int, initialSection: Section, initialPosition: float):
+    def __init__(self, id: int, initialSection: Section, initialPosition: float, pidParam: PIDParam):
         self.id = id
-        self.targetSpeed = 0
+        self.targetSpeed = 0.0
         self.currentSection = initialSection
         self.mileage = initialPosition
+        self.pidParam = pidParam
 
     # 引数：進んだ距離
     # 返り値：新しい区間に移ったかどうか
@@ -123,7 +134,7 @@ class Train:
             self.mileage = self.mileage - self.currentSection.length
             self.currentSection = self.currentSection.targetJunction.getOutSection()
             return Train.MoveResult.PassedJunction
-        if self.currentSection.hasStation:
+        if self.currentSection.station != None:
             stationPosition = self.currentSection.stationPosition
             if (prevMileage < stationPosition and stationPosition <= self.mileage):  # 駅を通過したとき
                 return Train.MoveResult.PassedStation

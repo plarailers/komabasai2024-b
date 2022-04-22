@@ -14,7 +14,7 @@ class ATS:
             self.__enabled[train.id] = True
 
     # 指定した列車に対して速度を指令する. このとき、衝突しないような速度に変えて送信する
-    def setSpeedCommand(self, trainId: int, speedCommand: int):
+    def setSpeedCommand(self, trainId: int, speedCommand: float):
         if self.__enabled[trainId]:
             train = self.__state.getTrainById(trainId)
             signal = self.__signalSystem.getSignal(train.currentSection.id, train.currentSection.targetJunction.getOutSection().id)

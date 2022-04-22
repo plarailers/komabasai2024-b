@@ -19,7 +19,7 @@ class ATO:
         for train in state.trainList:
             self.__enabled[train.id] = True
             self.__arriveTime[train.id] = 0
-            self.__maxSpeed[train.id] = 255
+            self.__maxSpeed[train.id] = 40
 
     # 列車の出しうる最高速度を指定
     def setMaxSpeed(self, trainId: int, maxSpeed: int):
@@ -42,10 +42,10 @@ class ATO:
                 speedCommand = self.__maxSpeed[train.id]
             # 通過以外のとき、停止点までの距離に応じて速度を適当に調整
             else:
-                if distanceToStation > 50:
+                if distanceToStation > 100:
                     speedCommand = self.__maxSpeed[train.id]
                 elif distanceToStation > 0:
-                    speedCommand = self.__maxSpeed[train.id] * (distanceToStation/50 * 0.9 + 0.1)
+                    speedCommand = distanceToStation/100 * self.__maxSpeed[train.id]
                 else:
                     speedCommand = 0
             # 列車が現在いるsectionに停車駅のある場合
@@ -54,7 +54,7 @@ class ATO:
                 if dia.wait == False and time.time() - self.__arriveTime[train.id] > dia.stopTime:
                     speedCommand = min(train.targetSpeed + self.__maxSpeed[train.id]*dt/5, self.__maxSpeed[train.id])
             # 速度指令値を更新
-            self.__ats.setSpeedCommand(train.id, int(speedCommand))
+            self.__ats.setSpeedCommand(train.id, speedCommand)
 
     # 列車を指定し、その列車の直近の停車駅を取得する(既に列車が駅に停車している場合はその駅を返す)
     def __getNextStation(self, train: Train) -> Station:
