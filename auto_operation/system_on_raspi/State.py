@@ -119,6 +119,11 @@ class State:
     def getDistance(self, s1: Section, mileage1: float, s2: Section, mileage2: float, originalStartSection: Section = None) -> float:
         distance = 0
         testSection = s1
+
+        # 何も見つけられずに最初の地点に戻ってきてしまった場合、終了
+        if originalStartSection != None and s1.id == originalStartSection.id:
+            return s1.length
+
         if originalStartSection == None:
             originalStartSection = s1
         while testSection.id != s2.id:
