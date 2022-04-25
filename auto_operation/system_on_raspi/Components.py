@@ -1,5 +1,4 @@
 from enum import Enum
-import string
 
 
 class Section:
@@ -97,17 +96,12 @@ class Sensor:
 
 
 class Station:
-    def __init__(self, id: int, name: string):
+    def __init__(self, id: int, name: str):
         self.id = id
         self.name = name
 
 
 class Train:
-    class MoveResult(Enum):
-        No = 0
-        PassedJunction = 1
-        PassedStation = 2
-    
     class PIDParam:
         def __init__(self, r: float, INPUT_MIN: int, INPUT_MAX: int, INPUT_START: int, kp: float, ki: float, kd: float):
             self.r = r
@@ -123,19 +117,13 @@ class Train:
         self.targetSpeed = 0.0
         self.currentSection = initialSection
         self.mileage = initialPosition
+        self.prevMileage = initialPosition
         self.pidParam = pidParam
 
     # 引数：進んだ距離
-    # 返り値：新しい区間に移ったかどうか
-    def move(self, delta: float) -> MoveResult:
-        prevMileage = self.mileage
+    def move(self, delta: float):
+        self.prevMileage = self.mileage
         self.mileage += delta
-        if (self.mileage >= self.currentSection.length):  # 分岐点を通過したとき
+        if (self.mileage >= self.currentSection.length):  # junctionを通過したとき
             self.mileage = self.mileage - self.currentSection.length
             self.currentSection = self.currentSection.targetJunction.getOutSection()
-            return Train.MoveResult.PassedJunction
-        if self.currentSection.station != None:
-            stationPosition = self.currentSection.stationPosition
-            if (prevMileage < stationPosition and stationPosition <= self.mileage):  # 駅を通過したとき
-                return Train.MoveResult.PassedStation
-        return Train.MoveResult.No

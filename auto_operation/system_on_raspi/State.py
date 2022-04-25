@@ -52,7 +52,7 @@ class State:
 
         # Train(initialSection, initialPosition)
         self.trainList.append(Train(0, self.getSectionById(0), State.STRAIGHT_UNIT * 3, pidParam0))  # 列車0をsection0に配置
-        self.trainList.append(Train(1, self.getSectionById(2), State.STRAIGHT_UNIT * 3, pidParam1))  # 列車1をsection2に配置
+        self.trainList.append(Train(1, self.getSectionById(3), State.STRAIGHT_UNIT * 3, pidParam1))  # 列車1をsection2に配置
 
         # start communication
         self.communication = Communication({0: pidParam0, 1: pidParam1})

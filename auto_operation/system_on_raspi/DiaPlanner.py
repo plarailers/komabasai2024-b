@@ -3,9 +3,9 @@ from State import *
 # ダイヤを管理、更新する
 # Diaクラスの意味:
 #   { trainId: 0,
-#     stationId: 0,
+#     stationId: 1,
 #     wait: False,
-#     stopTime: 10,
+#     stopTime: 0,
 #     arriveSectionId: 2,
 #     destSectionId: 4 }
 #   -> 列車0は駅1で最低0秒停車=通過. section2に到着しsection4へ出発
@@ -37,9 +37,6 @@ class DiaPlanner:
             for station in self.__state.stationList:
                 self.__diaList.append(Dia(train.id, station.id, False, 10, 0, 0))
 
-        self.__prevDistance = 0  # 直前の列車位置を記録しておく場所
-        self.__nowDistance = 0
-
     # ダイヤ自動更新の初期値を記述
     def setup(self) -> None:
         # 今回は、列車0を追い抜き、列車1を退避として初期値をセット
@@ -50,20 +47,22 @@ class DiaPlanner:
 
     # ダイヤ自動更新のルールを記述. 毎update時によぶ
     def update(self) -> None:
-        # 今回は、列車0と1の順序が入れ替わった(退避に成功した)タイミングで、train0と1の退避フラグを反転させる
-        # 順序が入れ替わったことは、列車0から見た列車1までの距離が非連続に大きく変化したタイミングで検知する
         if self.__autoUpdate:
-            train0 = self.__state.getTrainById(0)
-            train1 = self.__state.getTrainById(1)
-            self.__prevDistance = self.__nowDistance
-            self.__nowDistance = self.__state.getDistance(train0.currentSection, train0.mileage, train1.currentSection, train1.mileage)
-            if abs(self.__nowDistance - self.__prevDistance) > 100:
-                if self.getDia(0, 1).wait == True:  # 列車0は直前まで退避していた
-                    self.setDia(0, 1, False, 0, 2, 4)  # 列車0を追い抜きに
-                    self.setDia(1, 1, True, 10, 3, 4)  # 列車1を退避に
-                else:
-                    self.setDia(0, 1, True, 10, 3, 4)
-                    self.setDia(1, 1, False, 0, 2, 4)
+            # 今回は、駅1の待避線(section3)に退避列車(wait=True)がいる状況でsection4に列車が出て行ったとき、
+            # 追い抜き成功と判断し、train0と1の退避フラグを反転させる
+            waitingTrain = self.__state.getTrainInSection(self.__state.getSectionById(3))  # section3の列車を取得
+            if waitingTrain != None and self.getDia(waitingTrain.id, 1).wait == True:
+                for train in self.__state.trainList:
+                    # sectionが変化した瞬間だけ、mileageがprevmileageより小さくなることを利用し、section4に入った瞬間を検知
+                    if train.currentSection.id == 4 and train.mileage < train.prevMileage:
+                        # 列車0,1のフラグを反転させる
+                        if self.getDia(0, 1).wait == True:  # 列車0は直前まで退避していた
+                            self.setDia(0, 1, False, 0, 2, 4)  # 列車0を追い抜きに
+                            self.setDia(1, 1, True, 10, 3, 4)  # 列車1を退避に
+                        else:
+                            self.setDia(0, 1, True, 10, 3, 4)
+                            self.setDia(1, 1, False, 0, 2, 4)
+                        print("[DiaPlanner.update] wait flag switched!")
 
     # 指定した列車の、指定した駅に対するダイヤを取得
     def getDia(self, trainId: int, stationId: int) -> Dia:
