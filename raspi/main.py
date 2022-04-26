@@ -24,15 +24,17 @@ process_momo = None
 port = None
 
 def setup():
-    global process_socat, process_momo, port
+    global process_socat, process_momo, port, port_bluetooth
     print('starting...')
     process_socat = subprocess.Popen(['socat', '-d', '-d', 'pty,raw,echo=0', 'pty,raw,echo=0'], stderr=subprocess.PIPE)
     port1_name = re.search(r'N PTY is (\S+)', process_socat.stderr.readline().decode()).group(1)
     port2_name = re.search(r'N PTY is (\S+)', process_socat.stderr.readline().decode()).group(1)
+    port3_name = '/dev/tty.Bluetooth-Incoming-Port' #bluetooth
     process_socat.stderr.readline()
-    print('using ports', port1_name, 'and', port2_name)
+    print('using ports', port1_name, 'and', port2_name, 'and', port3_name)
     process_momo = subprocess.Popen([MOMO_BIN, '--no-audio-device', '--use-native', '--force-i420', '--serial', f'{port1_name},9600', 'test'])
     port = serial.Serial(port2_name, 9600)
+    port_bluetooth = serial.Serial(port3_name, 9600)
     motor.start(0)
     GPIO.add_event_detect(SENSOR_PIN, GPIO.RISING, callback=on_sensor, bouncetime=10)
     print('started')
@@ -51,6 +53,9 @@ def loop():
     while port.in_waiting > 0:
         data = port.read()
         speed = data[0]
+        if port_bluetooth.in_waiting > 0:
+            data_bluetooth = port_bluetooth.read()
+            speed = min(speed, data_bluetooth[0])
         dc = speed * 100 / 255
         motor.ChangeDutyCycle(dc)
         print(datetime.datetime.now(), 'receive speed', speed)
