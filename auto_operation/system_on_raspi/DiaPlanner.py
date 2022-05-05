@@ -40,10 +40,10 @@ class DiaPlanner:
     # ダイヤ自動更新の初期値を記述
     def setup(self) -> None:
         # 今回は、列車0を追い抜き、列車1を退避として初期値をセット
-        self.setDia(0, 0, False, 10, 0, 1)
-        self.setDia(1, 0, False, 10, 0, 1)
+        self.setDia(0, 0, False, 5, 0, 1)
+        self.setDia(1, 0, False, 5, 0, 1)
         self.setDia(0, 1, False, 0, 2, 4)
-        self.setDia(1, 1, True, 10, 3, 4)
+        self.setDia(1, 1, True, 5, 3, 4)
 
     # ダイヤ自動更新のルールを記述. 毎update時によぶ
     def update(self) -> None:

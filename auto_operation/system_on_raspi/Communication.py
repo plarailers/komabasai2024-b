@@ -35,7 +35,7 @@ class Communication:
                 self.simulationSpeedMap[1] = 0.0
                 self.deltaMap[0] = 0.0
                 self.deltaMap[1] = 0.0
-                # self.arduino = serial.Serial("COM8", 9600)
+                self.arduino = serial.Serial("COM8", 9600)
             else:
                 self.simulationSpeedMap[0] = 0.0
                 self.simulationSpeedMap[1] = 0.0
@@ -107,7 +107,7 @@ class Communication:
                 self.esp32Map[trainId].write(input.to_bytes(1))
 
     # 指定したポイントに切替命令を送る
-    def sendToggle(self, junctionId: int, servoState: Junction.ServoState):
+    def sendToggle(self, servoId: int, servoState: Junction.ServoState):
         if self.arduino != None:
             servoStateCode = 0
             if servoState == Junction.ServoState.NoServo:
@@ -118,4 +118,6 @@ class Communication:
                 servoStateCode = 1
             else:
                 return
-            self.arduino.write(junctionId.to_bytes(1), servoStateCode.to_bytes(1))
+            self.arduino.write(servoId.to_bytes(1, byteorder='little'))
+            self.arduino.write(servoStateCode.to_bytes(1, byteorder='little'))
+            print(f"[Communication.sendToggle] servoId {servoId} toggle to {servoStateCode}")

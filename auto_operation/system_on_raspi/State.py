@@ -17,8 +17,8 @@ class State:
 
         # Junction(id, servoId)
         self.junctionList.append(Junction(0, -1))
-        self.junctionList.append(Junction(1, -1))
-        self.junctionList.append(Junction(2, 0))
+        self.junctionList.append(Junction(1, 0))
+        self.junctionList.append(Junction(2, -1))
         self.junctionList.append(Junction(3, -1))
 
         # Section(id, sourceJuncction, targetJuncction, sourceServoState, targetServoState, length)
@@ -27,7 +27,6 @@ class State:
         self.sectionList.append(Section(2, self.getJunctionById(1), self.getJunctionById(2), Junction.ServoState.Straight, Junction.ServoState.Straight, State.STRAIGHT_UNIT * 5.5))
         self.sectionList.append(Section(3, self.getJunctionById(1), self.getJunctionById(2), Junction.ServoState.Curve, Junction.ServoState.Curve, State.STRAIGHT_UNIT * 5.5))
         self.sectionList.append(Section(4, self.getJunctionById(2), self.getJunctionById(3), Junction.ServoState.NoServo, Junction.ServoState.NoServo, State.STRAIGHT_UNIT * 3 + State.CURVE_UNIT * 4))
-        # 場合によっては、初回の着発番線に合わせてここにtoggleを挟む必要がある
 
         # Sensor(id, section, position)
         self.sensorList.append(Sensor(0, self.getSectionById(1), State.STRAIGHT_UNIT * 2.5 + State.CURVE_UNIT * 2))
@@ -57,6 +56,10 @@ class State:
         # start communication
         self.communication = Communication({0: pidParam0, 1: pidParam1})
 
+        # 初回の着発番線に合わせてここにtoggleを書く
+        self.communication.sendToggle(self.getJunctionById(0).servoId, Junction.ServoState.Straight)
+        self.communication.sendToggle(self.getJunctionById(1).servoId, Junction.ServoState.Straight)
+
     # 現実世界の状態を取得しStateに反映する. 定期的に実行すること
     def update(self):
         # 情報取得
@@ -84,8 +87,9 @@ class State:
 
         # ポイントへの指令送信
         for junction in self.junctionList:
-            if junction.servoId > -1:
-                self.communication.sendToggle(junction.id, junction.outServoState)
+            if junction.servoId > -1 and junction.toggleRequested == True:
+                self.communication.sendToggle(junction.servoId, junction.outServoState)
+                junction.toggleRequested = False
                 # inServoStateは、実際にはサーボモーターがついていないので送信しない
 
     def getJunctionById(self, id: int) -> Junction:

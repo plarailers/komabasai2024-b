@@ -12,8 +12,8 @@ const int servoSpeed = 100; //1から255。サーボを回転させる速さ。�
 
 // const int servo_angle_straight[num_servo] = {0, 90}; //サーボを直進にする際の角度。適宜いじってください
 // const int servo_angle_curve[num_servo] = {130, 145}; //サーボを曲げる際の角度。適宜いじってください
-const int servo_angle_straight[num_servo] = {17};
-const int servo_angle_curve[num_servo] = {99};
+const int servo_angle_straight[num_servo] = {25};
+const int servo_angle_curve[num_servo] = {75};
 const byte straight = 0;
 const byte curve = 1;
 // byte servo_status[num_servo] = {straight, straight}; //各サーボの状態を格納。初期値は適宜いじってください。

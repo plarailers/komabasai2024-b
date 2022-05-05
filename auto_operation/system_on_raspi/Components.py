@@ -42,6 +42,7 @@ class Junction:
         self.inServoState = Junction.ServoState.Straight
         self.outServoState = Junction.ServoState.Straight
         self.belongStation = None
+        self.toggleRequested = False
 
     def addInSection(self, section, servoState):
         if servoState == Junction.ServoState.Straight:
@@ -66,8 +67,10 @@ class Junction:
     def toggle(self):
         if self.inSectionStraight and self.inSectionCurve:  # IN側に2本入ってくる分岐点の場合
             self.inServoState = Junction.ServoState.invert(self.inServoState)  # 反転
+            self.toggleRequested = True
         elif self.outSectionStraight and self.outSectionCurve:  # OUT側に2本入ってくる分岐点の場合
             self.outServoState = Junction.ServoState.invert(self.outServoState)  # 反転
+            self.toggleRequested = True
 
     def setServoState(self, servoState: ServoState):
         if self.inSectionStraight and self.inSectionCurve:  # IN側に2本入ってくる分岐点の場合inServoStateをセット
