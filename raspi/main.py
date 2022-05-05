@@ -11,8 +11,8 @@ import asyncio
 import websockets
 from collections import deque
 
-MOTOR_PIN = 10
-SENSOR_PIN = 19
+MOTOR_PIN = 19
+SENSOR_PIN = 10
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(MOTOR_PIN, GPIO.OUT)
@@ -27,7 +27,7 @@ process_momo = None
 port = None
 
 def setup():
-    global process_socat, process_momo, port, controlled_speed_queue
+    global process_socat, process_momo, port, handle_speed, controlled_speed_queue
     print('starting...')
     process_socat = subprocess.Popen(['socat', '-d', '-d', 'pty,raw,echo=0', 'pty,raw,echo=0'], stderr=subprocess.PIPE)
     port1_name = re.search(r'N PTY is (\S+)', process_socat.stderr.readline().decode()).group(1)
@@ -38,6 +38,7 @@ def setup():
     port = serial.Serial(port2_name, 9600)
     controlled_speed_queue = deque()
     motor.start(0)
+    handle_speed = 0
     GPIO.add_event_detect(SENSOR_PIN, GPIO.RISING, callback=on_sensor, bouncetime=10)
     print('started')
     print('motor:', MOTOR_PIN)
@@ -51,34 +52,58 @@ def on_sensor(channel):
     port.flush()
     print(datetime.datetime.now(), 'send sensor', data)
 
-async def receive_controlled_speed():
+async def receive_controlled_speed(websocket, path):
     # wsで受信したスピードをqueueに入れる
-    ws_uri = 'ws://localhost:8765'
-    async with websockets.connect(ws_uri) as websocket:
-        speed = await websocket.recv()
-        controlled_speed_queue.append(speed)
+    # raspiがサーバ側
+    async for speed in websocket:
+        controlled_speed_queue.append(int(speed))
+        print(f"controlled speed received: {speed}")
+        # print(f"typeof speed: {type(speed)}")
+
+async def ws_receive():
+    async with websockets.serve(receive_controlled_speed, "raspberrypi.local", 8765):
+        await asyncio.Future()
 
 def loop():
-    while port.in_waiting > 0:
-        data = port.read()
-        speed = data[0]
-        # 制御システムからスピードを受信していれば、運転体験と比較して遅い方を採用
-        if len(controlled_speed_queue):
+    speed = None
+    controlled_speed = None
+    global handle_speed
+
+    if port.in_waiting <= 0 and not len(controlled_speed_queue):
+        return
+
+    if port.in_waiting > 0:
+        while port.in_waiting > 0:
+            data = port.read()
+        handle_speed = data[0]
+
+    if len(controlled_speed_queue):
+        while len(controlled_speed_queue):
             controlled_speed = controlled_speed_queue.popleft()
-            speed = min(speed, controlled_speed)
-        dc = speed * 100 / 255
-        motor.ChangeDutyCycle(dc)
-        print(datetime.datetime.now(), 'receive speed', speed)
+
+    if controlled_speed is None:
+        speed = handle_speed
+    else:
+        speed = min(handle_speed, controlled_speed)
+
+    dc = speed * 100 / 255
+    motor.ChangeDutyCycle(dc)
+    print(datetime.datetime.now(), 'receive speed', speed)
+
+async def async_loop():
+    while True:
+        loop()
+        await asyncio.sleep(0.01)
 
 if __name__ == '__main__':
     try:
         setup()
-        asyn_loop = asyncio.get_event_loop()
-        asyn_loop.call_soon(receive_controlled_speed, asyn_loop)
-        asyn_loop.run_forever()
-        while True:
-            loop()
-            time.sleep(0.01)
+        event_loop = asyncio.get_event_loop()
+        gather = asyncio.gather(
+            async_loop(),
+            ws_receive()
+        )
+        event_loop.run_until_complete(gather)
     except KeyboardInterrupt:
         print('interrupted')
     except Exception as e:
@@ -86,7 +111,6 @@ if __name__ == '__main__':
     finally:
         motor.stop()
         GPIO.cleanup()
-        asyn_loop.close()
         if port:
             port.close()
         if process_momo:
