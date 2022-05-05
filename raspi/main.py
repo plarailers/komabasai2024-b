@@ -53,7 +53,7 @@ def on_sensor(channel):
 
 async def receive_controlled_speed():
     # wsで受信したスピードをqueueに入れる
-    ws_uri = 'ws:' #URIを埋める必要あり
+    ws_uri = 'ws://localhost:8765'
     async with websockets.connect(ws_uri) as websocket:
         speed = await websocket.recv()
         controlled_speed_queue.append(speed)
@@ -73,6 +73,9 @@ def loop():
 if __name__ == '__main__':
     try:
         setup()
+        asyn_loop = asyncio.get_event_loop()
+        asyn_loop.call_soon(receive_controlled_speed, asyn_loop)
+        asyn_loop.run_forever()
         while True:
             loop()
             time.sleep(0.01)
@@ -83,6 +86,7 @@ if __name__ == '__main__':
     finally:
         motor.stop()
         GPIO.cleanup()
+        asyn_loop.close()
         if port:
             port.close()
         if process_momo:
