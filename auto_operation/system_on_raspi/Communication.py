@@ -44,12 +44,18 @@ class Communication:
                 # self.arduino = serial.Serial("/dev/ttyS0", 9600)
         else:
             if isWindows:
-                self.esp32Map[0] = serial.Serial("COM5", 115200)
-                self.esp32Map[1] = serial.Serial("COM6", 115200)
-                self.arduino = serial.Serial("COM8", 9600)
+                self.esp32Map[0] = serial.Serial("COM3", 115200)
+                self.esp32Map[1] = serial.Serial("COM4", 115200)
+                # self.esp32Map[1] = None  #[1]だけ実機がないのでNoneにする 
+                # self.simulationSpeedMap[1] = 0.0  #[1]だけ実機がないのでsimulaitonを更新
+                self.deltaMap[0] = 0.0
+                self.deltaMap[1] = 0.0
+                self.arduino = serial.Serial("COM6", 9600)
             else:
                 self.esp32Map[0] = serial.Serial("/dev/cu.ESP32-ESP32SPP", 115200)
                 self.esp32Map[1] = serial.Serial("/dev/cu.ESP32-ESP32Dr.", 115200)
+                self.deltaMap[0] = 0.0
+                self.deltaMap[1] = 0.0
                 self.arduino = serial.Serial("/dev/ttyS0", 9600)
         self.update()
 
@@ -76,6 +82,9 @@ class Communication:
                         # 同時刻に複数の信号が来る不具合のため、1回のループですべて消費する
                         while esp32.in_waiting > 0:
                             esp32.read()
+                else:  # 実機がない場合はsimulationを更新
+                    self.deltaMap[trainId] += self.simulationSpeedMap[trainId] * dt
+
 
             if self.arduino != None:
                 while self.arduino.in_waiting > 0:
@@ -99,12 +108,14 @@ class Communication:
         else:
             if self.esp32Map[trainId] != None:
                 if speed > 0.1:
-                    INPUT_MIN = self.pidParamMap[trainId]
-                    KP = self.pidParamMap[trainId]
+                    INPUT_MIN = self.pidParamMap[trainId].INPUT_MIN
+                    KP = self.pidParamMap[trainId].kp
                     input = int(INPUT_MIN + speed * KP)  # kp制御のみ
                 else:
                     input = 0
-                self.esp32Map[trainId].write(input.to_bytes(1))
+                self.esp32Map[trainId].write(input.to_bytes(1,'little'))
+            else:  # ESP32の実機がないときはsimulationを更新
+                self.simulationSpeedMap[trainId] = speed
 
     # 指定したポイントに切替命令を送る
     def sendToggle(self, servoId: int, servoState: Junction.ServoState):
@@ -118,6 +129,6 @@ class Communication:
                 servoStateCode = 1
             else:
                 return
-            self.arduino.write(servoId.to_bytes(1, byteorder='little'))
-            self.arduino.write(servoStateCode.to_bytes(1, byteorder='little'))
+            self.arduino.write(servoId.to_bytes(1, 'little'))
+            self.arduino.write(servoStateCode.to_bytes(1, 'little'))
             print(f"[Communication.sendToggle] servoId {servoId} toggle to {servoStateCode}")
