@@ -99,7 +99,8 @@ class State:
         return list(filter(lambda item: item.id == id, self.sectionList))[0]
 
     def getSensorById(self, id: int) -> Sensor:
-        return list(filter(lambda item: item.id == id, self.sensorList))[0]
+        print(int.from_bytes(id,'little'))
+        return list(filter(lambda item: item.id == int.from_bytes(id,'little'), self.sensorList))[0]
 
     def getStationById(self, id: int) -> Station:
         return list(filter(lambda item: item.id == id, self.stationList))[0]
