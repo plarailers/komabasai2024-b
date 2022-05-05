@@ -1,4 +1,3 @@
-from turtle import speed
 from State import *
 from DiaPlanner import *
 from SignalSystem import *
