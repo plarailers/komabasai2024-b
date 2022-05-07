@@ -33,3 +33,4 @@ class Operation:
         self.state.sendCommand()  # 現実世界のデバイスに指令を送信
 
         print(f"[Operation.update] t0.section: {self.state.getTrainById(0).currentSection.id}, t0.mil: {self.state.getTrainById(0).mileage:.2f}, t1.section: {self.state.getTrainById(1).currentSection.id}, t1.mil: {self.state.getTrainById(1).mileage:.2f}")
+        print(self.signalSystem.getSignal(self.state.getTrainById(1).currentSection.id, self.state.getTrainById(1).currentSection.targetJunction.getOutSection().id).value)
