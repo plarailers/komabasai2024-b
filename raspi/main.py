@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 
+from __future__ import annotations
 import subprocess
 import re
 import os.path
-import time
 import datetime
 import RPi.GPIO as GPIO
 import serial
 import asyncio
 import websockets
-from collections import deque
 
 MOTOR_PIN = 19
 SENSOR_PIN = 10
@@ -26,8 +25,13 @@ process_socat = None
 process_momo = None
 port = None
 
+# WebSocketで非同期に送受信したデータを溜めているキュー
+# 中身はbytes
+send_queue: asyncio.Queue[bytes] = asyncio.Queue()
+recv_queue: asyncio.Queue[bytes] = asyncio.Queue()
+
 def setup():
-    global process_socat, process_momo, port, handle_speed, controlled_speed_queue
+    global process_socat, process_momo, port, handle_speed
     print('starting...')
     process_socat = subprocess.Popen(['socat', '-d', '-d', 'pty,raw,echo=0', 'pty,raw,echo=0'], stderr=subprocess.PIPE)
     port1_name = re.search(r'N PTY is (\S+)', process_socat.stderr.readline().decode()).group(1)
@@ -36,7 +40,6 @@ def setup():
     print('using ports', port1_name, 'and', port2_name)
     process_momo = subprocess.Popen([MOMO_BIN, '--no-audio-device', '--use-native', '--force-i420', '--serial', f'{port1_name},9600', 'test'])
     port = serial.Serial(port2_name, 9600)
-    controlled_speed_queue = deque()
     motor.start(0)
     handle_speed = 0
     GPIO.add_event_detect(SENSOR_PIN, GPIO.RISING, callback=on_sensor, bouncetime=10)
@@ -48,20 +51,38 @@ def setup():
 
 def on_sensor(channel):
     data = b'o\n'
-    port.write(data)
-    port.flush()
+    # port.write(data)
+    # port.flush()
+    send_queue.put_nowait(data)
     print(datetime.datetime.now(), 'send sensor', data)
 
-async def receive_controlled_speed(websocket, path):
-    # wsで受信したスピードをqueueに入れる
-    # raspiがサーバ側
-    async for speed in websocket:
-        controlled_speed_queue.append(int(speed))
-        print(f"controlled speed received: {speed}")
-        # print(f"typeof speed: {type(speed)}")
+# WebSocketサーバーを立ててデータを送受信するための定型処理
+# 参考: https://websockets.readthedocs.io/en/stable/howto/patterns.html
+async def websocket_serve():
+    # WebSocketで受信したデータをrecv_queueに入れる
+    async def consumer_handler(websocket):
+        async for message in websocket:
+            await recv_queue.put(message)
 
-async def ws_receive():
-    async with websockets.serve(receive_controlled_speed, "raspberrypi.local", 8765):
+    # send_queueにあるデータをWebSocketで送信する
+    async def producer_handler(websocket):
+        while True:
+            message = await send_queue.get()
+            await websocket.send(message)
+
+    # 受信と送信のどちらかが落ちたときにもう片方も落とす
+    async def handler(websocket):
+        consumer_task = asyncio.create_task(consumer_handler(websocket))
+        producer_task = asyncio.create_task(producer_handler(websocket))
+        done, pending = await asyncio.wait(
+            [consumer_task, producer_task],
+            return_when=asyncio.FIRST_COMPLETED,
+        )
+        for task in pending:
+            task.cancel()
+
+    # WebSocketサーバーを開始する
+    async with websockets.serve(handler, "raspberrypi.local", 8765):
         await asyncio.Future()
 
 def loop():
@@ -69,7 +90,7 @@ def loop():
     controlled_speed = None
     global handle_speed
 
-    if port.in_waiting <= 0 and not len(controlled_speed_queue):
+    if port.in_waiting == 0 and recv_queue.empty():
         return
 
     if port.in_waiting > 0:
@@ -77,9 +98,10 @@ def loop():
             data = port.read()
         handle_speed = data[0]
 
-    if len(controlled_speed_queue):
-        while len(controlled_speed_queue):
-            controlled_speed = controlled_speed_queue.popleft()
+    if not recv_queue.empty():
+        while not recv_queue.empty():
+            data = recv_queue.get_nowait()
+        controlled_speed = int(data)
 
     if controlled_speed is None:
         speed = handle_speed
@@ -95,13 +117,13 @@ async def async_loop():
         loop()
         await asyncio.sleep(0.01)
 
-if __name__ == '__main__':
+def main():
     try:
         setup()
         event_loop = asyncio.get_event_loop()
         gather = asyncio.gather(
             async_loop(),
-            ws_receive()
+            websocket_serve(),
         )
         event_loop.run_until_complete(gather)
     except KeyboardInterrupt:
@@ -117,3 +139,6 @@ if __name__ == '__main__':
             process_momo.terminate()
         if process_socat:
             process_socat.terminate()
+
+if __name__ == '__main__':
+    main()
