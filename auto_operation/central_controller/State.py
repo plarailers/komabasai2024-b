@@ -46,8 +46,8 @@ class State:
         self.getJunctionById(2).belongStation = self.getSectionById(1)
 
         # PIDParams(r: float, INPUT_MIN: int, INPUT_MAX: int, INPUT_START: int, kp: float, ki: float, kd: float)
-        pidParam0 = Train.PIDParam(1.12, 34, 128, 40, 0.35, 0, 0)  # Dr. (maxinput: 34 + 0.35*40cm/s = 46)
-        pidParam1 = Train.PIDParam(1.12, 185, 255, 200, 0.8, 0, 0)  # E6 (maxinput: 185 + 0.8*40cm/s= 217)
+        pidParam0 = Train.PIDParam(1.12, 34, 46, 40, 0.35, 0, 0)  # Dr. (maxinput: 34 + 0.35*40cm/s = 46)
+        pidParam1 = Train.PIDParam(1.12, 30, 46, 35, 0.40, 0, 0)  # Raspi (maxinput: 30 + 0.40*40cm/s= 46)
 
         # Train(initialSection, initialPosition)
         self.trainList.append(Train(0, self.getSectionById(0), State.STRAIGHT_UNIT * 3, pidParam0))  # 列車0をsection0に配置
