@@ -27,7 +27,7 @@ def send_signal_to_browser():
         
         # websocketで送信
         socketio.emit('signal_taiken', {
-            'signal': signal
+            'signal': signal.value
         })
 
 @app.route('/')

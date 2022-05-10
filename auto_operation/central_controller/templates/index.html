@@ -22,7 +22,7 @@
     <div id="message_area">
       <i id="message_icon" class="fas fa-info-circle"></i>
       <p id="message">指定された時間になったら、列車番号を入力し「運転をはじめる」を押してください。</p>
-      <div class="loader" id="loader">  
+      <div class="loader" id="loader">
         <div class="loader-inner ball-pulse">
           <div></div>
           <div></div>
@@ -34,12 +34,18 @@
       <div id="controller">
         <video id="movie" playsinline></video>
         <iframe id="instruction" src="https://www.youtube.com/embed/4wzDQppkze4?enablejsapi=1" frameborder="0"></iframe>
+        <div id="signal_area">
+          <img id="signal_img" src="static/img/G.svg">
+        </div>
         <div id="mascon_area">
           <input type="range" id="mascon" value="0" min="0" max="255" step="1" title="運転するには、列車番号を入力してください">
         </div>
       </div>
     </div>
     <script src="https://unpkg.com/@open-ayame/ayame-web-sdk@2020.3.0/dist/ayame.min.js"></script>
+    <!-- websocketを扱うjavascript -->
+    <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script> -->
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js" integrity="sha384-7EyYLQZgWBi67fBtVxw60/OWl1kjsfrPFcaU0pp0nAh+i8FD068QogUvg85Ewy1k" crossorigin="anonymous"></script>
     <script type="module" src="static/script.js"></script>
   </body>
 </html>
