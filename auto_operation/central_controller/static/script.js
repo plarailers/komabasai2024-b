@@ -87,10 +87,10 @@ var socket = io();
 socket.on('signal_taiken', function (data) {
   if (data['signal'] === 'R') {
     // 赤を表示
-    document.getElementById("signal_img").src = "img/R.svg";
+    document.getElementById("signal_img").src = "static/img/R.svg";
   } else if (data['signal'] === 'G') {
     // 緑を表示
-    document.getElementById("signal_img").src = "img/G.svg";
+    document.getElementById("signal_img").src = "static/img/G.svg";
   } else {
     // エラー処理
     console.log(`不正なソケット通信: ${data['signal']}を受信しました`);
