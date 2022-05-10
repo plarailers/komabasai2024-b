@@ -90,7 +90,7 @@ async def websocket_serve():
 def loop():
     speed = None
     controlled_speed = None
-    global handle_speed, sensor_value
+    global handle_speed, prev_sensor_value, sensor_value
 
     if port.in_waiting == 0 and recv_queue.empty():
         return
