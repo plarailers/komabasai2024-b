@@ -85,10 +85,10 @@ var socket = io();
 
 // サーバからデータを受信
 socket.on('signal_taiken', function (data) {
-  if (data['signal'] === 'r') {
+  if (data['signal'] === 'R') {
     // 赤を表示
     document.getElementById("signal_img").src = "img/R.svg";
-  } else if (data['signal'] === 'g') {
+  } else if (data['signal'] === 'G') {
     // 緑を表示
     document.getElementById("signal_img").src = "img/G.svg";
   } else {
