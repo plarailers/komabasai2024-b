@@ -24,7 +24,7 @@ class WebSocketHandler:
         # raspberrypi.local だとエラーになる場合があるので、IP アドレスに変換する。
         raspi_ipaddr = socket.gethostbyname(hostname)
         process = subprocess.Popen(
-            ["websocat", f"ws://{raspi_ipaddr}:{port}"],
+            ["websocat", "-v", f"ws://{raspi_ipaddr}:{port}"],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             # stderr=subprocess.PIPE,
