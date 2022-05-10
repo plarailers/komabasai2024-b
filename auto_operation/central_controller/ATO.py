@@ -55,7 +55,7 @@ class ATO:
                 # 駅到着より前の場合
                 else:
                     # 次の停車駅を取得
-                    nextStation = self.__getNextStation(train)
+                    nextStation = self.getNextStation(train)
                     diaOfNextStation = self.__diaPlanner.getDia(train.id, nextStation.id)
                     nextStationSection = self.__state.getSectionById(diaOfNextStation.arriveSectionId)
                     distanceToStation = self.__state.getDistance(train.currentSection, train.mileage, nextStationSection, nextStationSection.stationPosition)
@@ -76,7 +76,7 @@ class ATO:
                 self.__ats.setSpeedCommand(train.id, speedCommand)
 
     # 列車を指定し、その列車の直近の停車駅を取得する(既に列車が駅に停車している場合はその駅を返す)
-    def __getNextStation(self, train: Train) -> Station:
+    def getNextStation(self, train: Train) -> Station:
         testSection = train.currentSection
         while True:
             # 現在のセクションに駅がある
