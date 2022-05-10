@@ -35,7 +35,7 @@ def index():
     # ブラウザへデータを送信するタスクの開始
     socketio.start_background_task(target=send_signal_to_browser)
     # ブラウザにwebページのデータを返す
-    return Response(response='central_controller の Flask ウェブサーバは正常に稼働しています', status=200)
+    return render_template('index.html')
 
 if __name__ == "__main__":
     thread1 = threading.Thread(target=operation_loop, daemon=True)
