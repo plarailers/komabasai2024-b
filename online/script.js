@@ -12,9 +12,9 @@ if (sessionStorage.getItem("pw")) {
 // 【スピードをサーバに送信】0.4secおきに送信する
 var timer;
 var isTimerOn = false;
-mascon.addEventListener('input', function(){
+mascon.addEventListener('input', function () {
   if (isTimerOn == false) {
-    timer = setTimeout(function(){
+    timer = setTimeout(function () {
       speed = parseInt(mascon.value);
       raspi.send(new Uint8Array([speed]));
       console.log(speed);
@@ -25,7 +25,7 @@ mascon.addEventListener('input', function(){
 });
 
 //【PW照合関係】
-pw_send.onclick = function() {
+pw_send.onclick = function () {
   mascon.style.pointerEvents = 'all';  // ハンドルの操作を許可
   mascon.title = TITLE_OK;
   message.innerText = '列車番号を確認しました！　--時--分 まで自由に運転できます。映像が映ったら運転をはじめてください。';
@@ -49,15 +49,15 @@ function controller_resize() {
   var content_width = document.getElementById('content').clientWidth;
   var content_height = document.getElementById('content').clientHeight;
   var controller = document.getElementById('controller')
-  if ( content_width / content_height > 64/27 ) {  // controllerより横長の表示領域
+  if (content_width / content_height > 64 / 27) {  // controllerより横長の表示領域
     controller.style.height = '100%';
-    controller.style.width = content_height * 64/27 + 'px';
+    controller.style.width = content_height * 64 / 27 + 'px';
   } else {  // controllerより縦長の表示領域
     controller.style.width = '100%';
-    controller.style.height = content_width * 27/64 + 'px';
+    controller.style.height = content_width * 27 / 64 + 'px';
   }
   // マスコンハンドルのサイズ調整
-  var area_width  = document.getElementById('mascon_area').clientWidth;
+  var area_width = document.getElementById('mascon_area').clientWidth;
   var area_height = document.getElementById('mascon_area').clientHeight;
   mascon.style.width = area_height * 0.667 + 'px';  // 長さ
   mascon.style.marginTop = area_height * 0.5 - 5 + 'px';  // 縦位置を調整
@@ -77,3 +77,20 @@ function stopInstruction() {
     instruction.remove();
   }
 }
+
+
+// websocket経由で信号を受け取って、信号の表示を切り替える。
+/* ------サーバーとの通信関係------- */
+var socket = io();
+
+// サーバからデータを受信
+socket.on('send_data', function (data) {
+  if (data['signal'] === 'r') {
+    // 赤を表示
+  } else if (data['signal'] === 'g') {
+    // 緑を表示
+  } else {
+    // エラー処理
+  }
+})
+
