@@ -15,11 +15,11 @@ SENSOR_PIN = 10
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(MOTOR_PIN, GPIO.OUT)
-GPIO.setup(SENSOR_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(SENSOR_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 motor = GPIO.PWM(MOTOR_PIN, 50)
-sensor_value = False
-prev_sensor_value = False
+sensor_value = GPIO.LOW
+prev_sensor_value = GPIO.HIGH
 
 MOMO_BIN = os.path.expanduser('~/momo-2020.8.1_raspberry-pi-os_armv6/momo')
 
@@ -90,7 +90,7 @@ async def websocket_serve():
 def loop():
     speed = None
     controlled_speed = None
-    global handle_speed
+    global handle_speed, sensor_value
 
     if port.in_waiting == 0 and recv_queue.empty():
         return
@@ -119,8 +119,8 @@ def loop():
     # ホール検出ごとにPCに信号を送る
     prev_sensor_value = sensor_value
     sensor_value = GPIO.input(SENSOR_PIN)
-    if prev_sensor_value == False and sensor_value == True:
-        on_sensor()
+    if prev_sensor_value == GPIO.LOW and sensor_value == GPIO.HIGH:
+        on_sensor(None)
 
 async def async_loop():
     while True:
