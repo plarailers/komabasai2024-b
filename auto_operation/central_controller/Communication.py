@@ -37,7 +37,7 @@ class Communication:
                 self.simulationSpeedMap[1] = 0.0
                 self.deltaMap[0] = 0.0
                 self.deltaMap[1] = 0.0
-                self.arduino = serial.Serial("COM8", 9600)
+                # self.arduino = serial.Serial("COM8", 9600)
             else:
                 self.simulationSpeedMap[0] = 0.0
                 self.simulationSpeedMap[1] = 0.0
