@@ -1,13 +1,12 @@
 from typing import Union
 import platform
-import subprocess
-import socket
 import serial
 import queue
 import time
 from numpy import pi
 from Components import Junction
 from Components import Train
+from WebSocketHandler import *
 
 # ESP32 や Arduino との通信をまとめる。
 # シミュレーションモードを使うと接続が無くてもある程度動作確認できる。
@@ -24,7 +23,7 @@ class Communication:
         self.pidParamMap = pidParamMap
         self.prevUpdate = 0.0
         self.arduino = None
-        self.esp32Map: dict[int, Union[serial.Serial, subprocess.Popen]] = {}
+        self.esp32Map: dict[int, Union[serial.Serial, WebSocketHandler]] = {}
         self.deltaMap: dict[int, float] = {}
         self.sensorSignalBuffer = queue.Queue()
 
@@ -61,7 +60,7 @@ class Communication:
                 self.deltaMap[0] = 0.0
                 self.deltaMap[1] = 0.0
                 self.arduino = serial.Serial("/dev/ttyS0", 9600)
-            self.esp32Map[1] = self.create_websocket()
+            self.esp32Map[1] = WebSocketHandler.connect("raspberrypi.local", 8765)
         self.update()
 
     def update(self):
@@ -87,9 +86,11 @@ class Communication:
                         # 同時刻に複数の信号が来る不具合のため、1回のループですべて消費する
                         while esp32.in_waiting > 0:
                             esp32.read()
-                elif isinstance(esp32, subprocess.Popen):
-                    # ホールセンサ信号の受信は未実装
-                    pass
+                elif isinstance(esp32, WebSocketHandler):
+                    while esp32.available():
+                        # ホールセンサ信号が来たら、車輪0.5回転分deltaを進める
+                        self.deltaMap[trainId] += 2 * pi * self.pidParamMap[trainId].r / 2
+                        esp32.readline()
                 else:  # 実機がない場合はsimulationを更新
                     self.deltaMap[trainId] += self.simulationSpeedMap[trainId] * dt
 
@@ -124,9 +125,8 @@ class Communication:
                     input = 0
                 if isinstance(esp32, serial.Serial):
                     esp32.write(input.to_bytes(1,'little'))
-                elif isinstance(esp32, subprocess.Popen):
-                    esp32.stdin.write(f"{input}\n".encode())
-                    esp32.stdin.flush()
+                elif isinstance(esp32, WebSocketHandler):
+                    esp32.write(f"{input}".encode())
             else:  # ESP32の実機がないときはsimulationを更新
                 self.simulationSpeedMap[trainId] = speed
 
@@ -145,15 +145,3 @@ class Communication:
             self.arduino.write(servoId.to_bytes(1, 'little'))
             self.arduino.write(servoStateCode.to_bytes(1, 'little'))
             print(f"[Communication.sendToggle] servoId {servoId} toggle to {servoStateCode}")
-
-    # WebSocket で Raspberry Pi と通信する。websocat が必要。
-    def create_websocket(self):
-        # raspberrypi.local だとエラーになる場合があるので、IP アドレスに変換する。
-        raspi_ipaddr = socket.gethostbyname("raspberrypi.local")
-        process = subprocess.Popen(
-            ["websocat", f"ws://{raspi_ipaddr}:8765", "--async-stdio"],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            # stderr=subprocess.PIPE,
-        )
-        return process
