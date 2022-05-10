@@ -97,11 +97,13 @@ def loop():
         while port.in_waiting > 0:
             data = port.read()
         handle_speed = data[0]
+        print(datetime.datetime.now(), 'receive user speed    ', handle_speed)
 
     if not recv_queue.empty():
         while not recv_queue.empty():
             data = recv_queue.get_nowait()
         controlled_speed = int(data)
+        print(datetime.datetime.now(), 'receive operator speed', controlled_speed)
 
     if controlled_speed is None:
         speed = handle_speed
@@ -110,7 +112,7 @@ def loop():
 
     dc = speed * 100 / 255
     motor.ChangeDutyCycle(dc)
-    print(datetime.datetime.now(), 'receive speed', speed)
+    print(datetime.datetime.now(), 'calculated speed      ', speed)
 
 async def async_loop():
     while True:
