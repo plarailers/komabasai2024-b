@@ -84,7 +84,7 @@ function stopInstruction() {
 var socket = io();
 
 // サーバからデータを受信
-socket.on('send_data', function (data) {
+socket.on('signal_taiken', function (data) {
   if (data['signal'] === 'r') {
     // 赤を表示
     document.getElementById("signal_img").src = "img/R.svg";
