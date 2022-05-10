@@ -31,14 +31,14 @@ python3 main.py
   - シリアル通信で junctionId を受け取り、ポイントを切り替える。
   - CdSが車両の通過を検知したとき、通過したCdSの sensorId を送る。
 
-### system_on_raspi
+### central_controller
 自動運転システム
 
 - templates
-  - 列車の現在地等を表示するウェブページのCSSが入っている
+  - 運転体験ウェブページのCSSが入っている
 
 - static
-  - 列車の現在地等を表示するウェブページのHTMLが入っている
+  - 運転体験ウェブページのHTMLが入っている
 
 - Communication.py (三浦)
   - ESP32およびArduinoとの通信プログラム。
