@@ -18,6 +18,8 @@ GPIO.setup(MOTOR_PIN, GPIO.OUT)
 GPIO.setup(SENSOR_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 motor = GPIO.PWM(MOTOR_PIN, 50)
+sensor_value = False
+prev_sensor_value = False
 
 MOMO_BIN = os.path.expanduser('~/momo-2020.8.1_raspberry-pi-os_armv6/momo')
 
@@ -42,7 +44,7 @@ def setup():
     port = serial.Serial(port2_name, 9600)
     motor.start(0)
     handle_speed = 0
-    GPIO.add_event_detect(SENSOR_PIN, GPIO.RISING, callback=on_sensor, bouncetime=10)
+    # GPIO.add_event_detect(SENSOR_PIN, GPIO.RISING, callback=on_sensor, bouncetime=10)
     print('started')
     print('motor:', MOTOR_PIN)
     print('sensor:', SENSOR_PIN)
@@ -113,6 +115,12 @@ def loop():
     dc = speed * 100 / 255
     motor.ChangeDutyCycle(dc)
     print(datetime.datetime.now(), 'calculated speed      ', speed)
+
+    # ホール検出ごとにPCに信号を送る
+    prev_sensor_value = sensor_value
+    sensor_value = GPIO.input(SENSOR_PIN)
+    if prev_sensor_value == False and sensor_value == True:
+        on_sensor()
 
 async def async_loop():
     while True:
