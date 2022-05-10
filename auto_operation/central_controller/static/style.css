@@ -186,10 +186,11 @@ iframe {
   width: 75%;
 }
 
-#signal_area {
+#signal_img {
   display: block;
-  float: left;
-  width: 3%;
+  position: absolute;
+  left: 70%;
+  width: 5%
 }
 
 #mascon_area {
