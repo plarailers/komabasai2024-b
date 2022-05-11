@@ -8,7 +8,6 @@ from State import *
 
 
 class Operation:
-    STOPMERGIN = 30
     TRAINLENGTH = 43
     MAXSPEED = 40
 
@@ -16,14 +15,12 @@ class Operation:
         self.state = State()
         self.diaPlanner = DiaPlanner(self.state)
         self.signalSystem = SignalSystem(self.state)
-        self.ats = ATS(self.state, self.signalSystem, Operation.STOPMERGIN)
+        self.ats = ATS(self.state, self.signalSystem, Operation.MAXSPEED)
         self.pointInterlock = PointInterlock(self.state, Operation.TRAINLENGTH)
         self.pointSwitcher = PointSwitcher(self.state, self.diaPlanner, self.pointInterlock)
-        self.ato = ATO(self.state, self.signalSystem, self.ats, self.diaPlanner)
+        self.ato = ATO(self.state, self.signalSystem, self.ats, self.diaPlanner, Operation.MAXSPEED)
         
         self.diaPlanner.setup()
-        self.ato.setMaxSpeed(0, Operation.MAXSPEED)
-        self.ato.setMaxSpeed(1, Operation.MAXSPEED)
 
     def update(self) -> None:
         self.state.update()  # 現実世界のデバイスから状態を取得

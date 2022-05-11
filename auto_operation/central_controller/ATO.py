@@ -8,25 +8,21 @@ import time
 
 
 class ATO:
-    def __init__(self, state: State, signalSystem: SignalSystem, ats: ATS, diaPlanner: DiaPlanner, MERGIN: float=30) -> None:
+    def __init__(self, state: State, signalSystem: SignalSystem, ats: ATS, diaPlanner: DiaPlanner, MAXSPEED: float, MERGIN: float=30) -> None:
         self.__ats = ats
         self.__signalSystem = signalSystem
         self.__state = state
         self.__diaPlanner = diaPlanner
-        self.__prevUpdate = 0
+        self.__prevUpdate = 0.0
         self.__enabled = {}  # 各列車の、ATO有効,無効が入る辞書. key=trainId, valued=enabled
         self.__arriveTime = {}  # 各列車が、直近に駅に到着した時刻を記録する辞書. key=trainId, value=float
-        self.__maxSpeed = {}  # 各列車の最高速度[cm/s]
         self.__speedCommand = {}  # ATOで計算した各列車の指令速度[cm/s]. key=trainId, value=float
+        self.__MAXSPEED = MAXSPEED
         self.__MERGIN = MERGIN
         for train in state.trainList:
             self.__enabled[train.id] = True
-            self.__arriveTime[train.id] = 0
-            self.__maxSpeed[train.id] = 0
-
-    # 列車の出しうる最高速度を指定
-    def setMaxSpeed(self, trainId: int, maxSpeed: int):
-        self.__maxSpeed[trainId] = maxSpeed
+            self.__arriveTime[train.id] = 0.0
+            self.__speedCommand[train.id] = 0.0
 
     # ダイヤ情報をもとに、速度指令を自動的に更新する
     def update(self) -> None:
@@ -41,21 +37,21 @@ class ATO:
                 if (train.prevMileage < stationPosition and stationPosition <= train.mileage):
                     self.__arriveTime[train.id] = now
 
-            # 【信号にそった速度計算】停止点までの距離から、出せるスピードを計算する
-            distance = self.getDistanceUntilStop(train)
-            if distance > 100:
-                speedLimit = self.__maxSpeed[train.id]
-            elif distance > 0:
-                speedLimit = (0.9 * distance/100 + 0.1) * self.__maxSpeed[train.id]
-            else:
-                speedLimit = 0
-            
-            # 加速時は緩やかに加速する(5秒で最高速度に到達)
-            self.__speedCommand[train.id] = min(train.targetSpeed + self.__maxSpeed[train.id]*dt/5, speedLimit)
-
-            # ATO有効時、計算した速度指令値をATSに送信
+            # ATO有効時、速度指令値を計算
             if self.__enabled[train.id]:
-                self.__ats.setSpeedCommand(train.id, self.__speedCommand[train.id])
+                # 停止点までの距離から、出せるスピードを計算する
+                distance = self.getDistanceUntilStop(train)
+                if distance > 100:
+                    speedLimit = self.__MAXSPEED
+                elif distance > 0:
+                    speedLimit = (0.9 * distance/100 + 0.1) * self.__MAXSPEED
+                else:
+                    speedLimit = 0.0
+                # 加速時は緩やかに加速する(5秒で最高速度に到達)
+                self.__speedCommand[train.id] = min(train.targetSpeed + self.__MAXSPEED*dt/5, speedLimit)
+            
+            # 速度指令値をATSにセット
+            self.__ats.setSpeedCommand(train.id, self.__speedCommand[train.id])
     
     # 赤信号・駅など、次に止まるべき点までの距離を取得する
     def getDistanceUntilStop(self, train: Train) -> float:
@@ -98,10 +94,10 @@ class ATO:
                 else:
                     return distance + testSection.length - self.__MERGIN
 
-    # ATO無効の列車に対して、外部から速度を指令する
-    def setInput(self, trainId: int, speedCommand: int) -> None:
+    # ATO無効の列車に対して、外部から速度を指令する. MAXSPEEDの制限のみが効く
+    def setSpeed(self, trainId: int, speedCommand: int) -> None:
         if not self.__enabled[trainId]:
-            self.__ats.setSpeedCommand(trainId, speedCommand)
+            self.__speedCommand[trainId] = min(self.__MAXSPEED, speedCommand)
 
     # ATOの有効/無効を切り替える
     def setEnabled(self, trainId: int, enabled: bool):
