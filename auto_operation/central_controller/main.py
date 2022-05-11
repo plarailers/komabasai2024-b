@@ -16,8 +16,7 @@ socketio = SocketIO(app)
 def operation_loop():
     while True:
         operation.update()
-        train_taiken = operation.state.getTrainById(1)  # ラズパイ体験車(id=1)を取得
-        print(f"[Operation.update] t0.section: {operation.state.getTrainById(0).currentSection.id}, t0.mil: {operation.state.getTrainById(0).mileage:.2f}, t1.section: {operation.state.getTrainById(1).currentSection.id}, t1.mil: {operation.state.getTrainById(1).mileage:.2f}, ATO.getDistanceToStopPoint = {operation.ato.getDistanceUntilStop(train_taiken):.2f}")
+        print(f"[Operation.update] t0.section: {operation.state.getTrainById(0).currentSection.id}, t0.mil: {operation.state.getTrainById(0).mileage:.2f}, t1.section: {operation.state.getTrainById(1).currentSection.id}, t1.mil: {operation.state.getTrainById(1).mileage:.2f}, junctionIN={operation.state.getJunctionById(1).getOutSection().id}, junctionOUT={operation.state.getJunctionById(2).getInSection().id}")
         time.sleep(0.1)
 
 # ブラウザにwebsocketで0.1secおきに信号を送る関数

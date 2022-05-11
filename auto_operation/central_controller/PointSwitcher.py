@@ -25,14 +25,14 @@ class PointSwitcher:
                 dia = self.__diaPlanner.getDia(train.id, junction.belongStation.id)  # このjunctionが存在する駅のダイヤ情報を取得
                 if dia.arriveSectionId != junction.getOutSection().id:
                     self.__pointInterlock.requestToggle(junction.id)
-                    print(f"[PointSwitcher.update] junction {junction.id} toggle requested to section {dia.arriveSectionId}")
+                    # print(f"[PointSwitcher.update] junction {junction.id} toggle requested to section {dia.arriveSectionId}")
             # in2->out1 という分岐器の場合、in側を出発列車の存在する番線に合わせる
             elif junction.inSectionCurve != None and junction.outSectionCurve == None:
                 train = self.__getNearestTrain(junction)  # junctionを一番先に通る列車を取得
                 dia = self.__diaPlanner.getDia(train.id, junction.belongStation.id)  # このjunctionが存在する駅のダイヤ情報を取得
                 if dia.arriveSectionId != junction.getInSection().id:
                     self.__pointInterlock.requestToggle(junction.id)
-                    print(f"[PointSwitcher.update] junction {junction.id} toggle requested to section {dia.arriveSectionId}")
+                    # print(f"[PointSwitcher.update] junction {junction.id} toggle requested to section {dia.arriveSectionId}")
 
     # 指定したjunctionに一番先に到着する列車を取得する
     def __getNearestTrain(self, junction: Junction) -> Train:
