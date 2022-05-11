@@ -95,5 +95,6 @@ socket.on('signal_taiken', function (data) {
     // エラー処理
     console.log(`不正なソケット通信: ${data['signal']}を受信しました`);
   }
+  document.getElementById("distance_value").innerText = data['distance'] + " cm";
 })
 

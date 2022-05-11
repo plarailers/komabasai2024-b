@@ -8,7 +8,7 @@ import time
 
 
 class ATO:
-    def __init__(self, state: State, signalSystem: SignalSystem, ats: ATS, diaPlanner: DiaPlanner) -> None:
+    def __init__(self, state: State, signalSystem: SignalSystem, ats: ATS, diaPlanner: DiaPlanner, MERGIN: float=30) -> None:
         self.__ats = ats
         self.__signalSystem = signalSystem
         self.__state = state
@@ -16,7 +16,9 @@ class ATO:
         self.__prevUpdate = 0
         self.__enabled = {}  # 各列車の、ATO有効,無効が入る辞書. key=trainId, valued=enabled
         self.__arriveTime = {}  # 各列車が、直近に駅に到着した時刻を記録する辞書. key=trainId, value=float
-        self.__maxSpeed = {}  # 各列車の最高速度
+        self.__maxSpeed = {}  # 各列車の最高速度[cm/s]
+        self.__speedCommand = {}  # ATOで計算した各列車の指令速度[cm/s]. key=trainId, value=float
+        self.__MERGIN = MERGIN
         for train in state.trainList:
             self.__enabled[train.id] = True
             self.__arriveTime[train.id] = 0
@@ -33,60 +35,68 @@ class ATO:
         self.__prevUpdate = now
 
         for train in self.__state.trainList:
+            # 【到着判定】停止位置をまたいだとき、駅に到着or通過したと判定し、arriveTimeを更新する
+            if train.currentSection.station != None:
+                stationPosition = train.currentSection.stationPosition
+                if (train.prevMileage < stationPosition and stationPosition <= train.mileage):
+                    self.__arriveTime[train.id] = now
+
+            # 【信号にそった速度計算】停止点までの距離から、出せるスピードを計算する
+            distance = self.getDistanceUntilStop(train)
+            if distance > 100:
+                speedLimit = self.__maxSpeed[train.id]
+            elif distance > 0:
+                speedLimit = (0.9 * distance/100 + 0.1) * self.__maxSpeed[train.id]
+            else:
+                speedLimit = 0
+            
+            # 加速時は緩やかに加速する(5秒で最高速度に到達)
+            self.__speedCommand[train.id] = min(train.targetSpeed + self.__maxSpeed[train.id]*dt/5, speedLimit)
+
+            # ATO有効時、計算した速度指令値をATSに送信
             if self.__enabled[train.id]:
-                # 停止位置をまたいだとき、駅に到着or通過したと判定し、arriveTimeを更新する
-                if train.currentSection.station != None:
-                    stationPosition = train.currentSection.stationPosition
-                    if (train.prevMileage < stationPosition and stationPosition <= train.mileage):
-                        self.__arriveTime[train.id] = now
-
-                # 通過/停車に関わらずなんらかの駅に到着した後の場合
-                if train.currentSection.station != None and train.mileage >= train.currentSection.stationPosition:
-                    diaOfCurrentStation = self.__diaPlanner.getDia(train.id, train.currentSection.station.id)
-                    stopDuration = time.time() - self.__arriveTime[train.id]  # 停車からの経過時間
-                    departSignal = self.__signalSystem.getSignal(train.currentSection.id, train.currentSection.targetJunction.getOutSection().id)  # 出発信号機
-                    # 到着した駅が退避駅でない & 最低停車時間を過ぎた & 信号が青 なら出発してよい
-                    if diaOfCurrentStation.wait == False and stopDuration > diaOfCurrentStation.stopTime and departSignal.value == 'G':
-                        speedCommand = min(train.targetSpeed + self.__maxSpeed[train.id]*dt/5, self.__maxSpeed[train.id])
-                    # それ以外のときは出発しない
-                    else:
-                        speedCommand = 0
-
-                # 駅到着より前の場合
-                else:
-                    # 次の停車駅を取得
-                    nextStation = self.getNextStation(train)
-                    diaOfNextStation = self.__diaPlanner.getDia(train.id, nextStation.id)
-                    nextStationSection = self.__state.getSectionById(diaOfNextStation.arriveSectionId)
-                    distanceToStation = self.__state.getDistance(train.currentSection, train.mileage, nextStationSection, nextStationSection.stationPosition)
-
-                    # 通過の場合は最高速度
-                    if diaOfNextStation.wait == False and diaOfNextStation.stopTime < 1:
-                        speedCommand = self.__maxSpeed[train.id]
-                    # 通過以外のとき、停止位置までの距離に応じて速度を適当に調整
-                    else:
-                        if distanceToStation > 100:
-                            speedCommand = self.__maxSpeed[train.id]
-                        elif distanceToStation > 0:
-                            speedCommand = (0.9 * distanceToStation/100 + 0.1) * self.__maxSpeed[train.id]
-                        else:
-                            speedCommand = 0
-
-                # 速度指令値を更新
-                self.__ats.setSpeedCommand(train.id, speedCommand)
-
-    # 列車を指定し、その列車の直近の停車駅を取得する(既に列車が駅に停車している場合はその駅を返す)
-    def getNextStation(self, train: Train) -> Station:
+                self.__ats.setSpeedCommand(train.id, self.__speedCommand[train.id])
+    
+    # 赤信号・駅など、次に止まるべき点までの距離を取得する
+    def getDistanceUntilStop(self, train: Train) -> float:
+        distance = - train.mileage
         testSection = train.currentSection
         while True:
             # 現在のセクションに駅がある
             if testSection.station != None:
-                stopTimeOnThisStation = self.__diaPlanner.getDia(train.id, testSection.station.id).stopTime
-                # 当該駅で停車する
-                if stopTimeOnThisStation > 1:
-                    return testSection.station
-            # 上記以外は次の駅へ
-            testSection = testSection.targetJunction.getOutSection()
+                diaOfThisStation = self.__diaPlanner.getDia(train.id, testSection.station.id)  # ダイヤ
+                # 当該駅に列車がすでに到着/通過済みの場合
+                if train.currentSection.id == testSection.id and train.mileage >= testSection.stationPosition:
+                    stopDuration = time.time() - self.__arriveTime[train.id]  # 停車からの経過時間
+                    departSignal = self.__signalSystem.getSignal(train.currentSection.id, train.currentSection.targetJunction.getOutSection().id)  # 出発信号機
+                    # print(f"trainId={train.id}, stopDuration={stopDuration}, departSignal={departSignal.value}")
+                    # 到着した駅が退避駅でない & 最低停車時間を過ぎた & 信号が青 なら次のセクションへ進む
+                    if diaOfThisStation.wait == False and stopDuration >= diaOfThisStation.stopTime and departSignal.value == 'G':
+                        distance += testSection.length
+                        testSection = testSection.targetJunction.getOutSection()
+                    # それ以外のときは現在のセクションにある駅までの距離が求める距離となる
+                    else:
+                        return distance + testSection.stationPosition
+                
+                # まだ当該駅に到着/通過していない場合
+                else:
+                    # 当該駅で退避または1秒以上停車するなら、当該駅までの距離を返す
+                    if diaOfThisStation.wait == True or diaOfThisStation.stopTime > 1:
+                        return distance + testSection.stationPosition
+                    # 当該駅が通過駅なら次のセクションへ進む
+                    else:
+                        distance += testSection.length
+                        testSection = testSection.targetJunction.getOutSection()
+
+            # 現在のセクションに駅がない
+            else:
+                # 青信号なら次のセクションへ
+                if self.__signalSystem.getSignal(testSection.id, testSection.targetJunction.getOutSection().id).value == 'G':
+                    distance += testSection.length
+                    testSection = testSection.targetJunction.getOutSection()
+                # 赤信号ならこのセクションの終わりまでの距離(停止余裕距離を引く)
+                else:
+                    return distance + testSection.length - self.__MERGIN
 
     # ATO無効の列車に対して、外部から速度を指令する
     def setInput(self, trainId: int, speedCommand: int) -> None:

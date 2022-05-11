@@ -16,18 +16,22 @@ socketio = SocketIO(app)
 def operation_loop():
     while True:
         operation.update()
+        train_taiken = operation.state.getTrainById(1)  # ラズパイ体験車(id=1)を取得
+        print(f"[Operation.update] t0.section: {operation.state.getTrainById(0).currentSection.id}, t0.mil: {operation.state.getTrainById(0).mileage:.2f}, t1.section: {operation.state.getTrainById(1).currentSection.id}, t1.mil: {operation.state.getTrainById(1).mileage:.2f}, ATO.getDistanceToStopPoint = {operation.ato.getDistanceUntilStop(train_taiken):.2f}")
         time.sleep(0.1)
 
 # ブラウザにwebsocketで0.1secおきに信号を送る関数
 def send_signal_to_browser():
     while True:
         socketio.sleep(0.1)
-        train_taiken = operation.state.getTrainById(1)
-        signal = operation.signalSystem.getSignal(train_taiken.currentSection.id, train_taiken.currentSection.targetJunction.getOutSection().id)
-        
+        train_taiken = operation.state.getTrainById(1)  # ラズパイ体験車(id=1)を取得
+        signal = operation.signalSystem.getSignal(train_taiken.currentSection.id, train_taiken.currentSection.targetJunction.getOutSection().id)  # 体験車から見た信号機を取得
+        distance = operation.ato.getDistanceUntilStop(train_taiken)  # 停止位置までの距離を取得
+
         # websocketで送信
         socketio.emit('signal_taiken', {
-            'signal': signal.value
+            'signal': signal.value,
+            'distance': int(distance)
         })
 
 @app.route('/')

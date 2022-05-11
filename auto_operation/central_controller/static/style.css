@@ -193,6 +193,25 @@ iframe {
   width: 5%
 }
 
+#distance_area {
+  display: block;
+  position: absolute;
+  top: 30%;
+  right: 25%;
+  padding: 3px;
+  color: white;
+  background-color: black;
+}
+
+#distance_text {
+  text-align: right;
+  font-size: 10px;
+}
+#distance_value {
+  text-align: right;
+  font-size: 12px;
+}
+
 #mascon_area {
   display: block;
   float: left;

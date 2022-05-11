@@ -31,5 +31,3 @@ class Operation:
         self.pointSwitcher.update()  # ダイヤに従ってポイント切り替え
         self.ato.update()  # ダイヤに従って列車の速度を更新
         self.state.sendCommand()  # 現実世界のデバイスに指令を送信
-
-        print(f"[Operation.update] t0.section: {self.state.getTrainById(0).currentSection.id}, t0.mil: {self.state.getTrainById(0).mileage:.2f}, t1.section: {self.state.getTrainById(1).currentSection.id}, t1.mil: {self.state.getTrainById(1).mileage:.2f}")
