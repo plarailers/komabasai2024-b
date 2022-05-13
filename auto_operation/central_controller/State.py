@@ -30,7 +30,7 @@ class State:
 
         # Sensor(id, section, position)
         self.sensorList.append(Sensor(0, self.getSectionById(1), State.STRAIGHT_UNIT * 2.5 + State.CURVE_UNIT * 2))
-        self.sensorList.append(Sensor(1, self.getSectionById(4), State.STRAIGHT_UNIT * 1.5 + State.CURVE_UNIT * 2))
+        self.sensorList.append(Sensor(1, self.getSectionById(4), State.STRAIGHT_UNIT * 2.5 + State.CURVE_UNIT * 2))
 
         # Station(id, name)
         self.stationList.append(Station(0, "A"))  # A駅を追加
