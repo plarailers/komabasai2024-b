@@ -26,7 +26,7 @@ class State:
         self.sectionList.append(Section(1, self.getJunctionById(0), self.getJunctionById(1), Junction.ServoState.NoServo, Junction.ServoState.NoServo, State.STRAIGHT_UNIT * 5 + State.CURVE_UNIT * 4))
         self.sectionList.append(Section(2, self.getJunctionById(1), self.getJunctionById(2), Junction.ServoState.Straight, Junction.ServoState.Straight, State.STRAIGHT_UNIT * 5.5))
         self.sectionList.append(Section(3, self.getJunctionById(1), self.getJunctionById(2), Junction.ServoState.Curve, Junction.ServoState.Curve, State.STRAIGHT_UNIT * 5.5))
-        self.sectionList.append(Section(4, self.getJunctionById(2), self.getJunctionById(3), Junction.ServoState.NoServo, Junction.ServoState.NoServo, State.STRAIGHT_UNIT * 3 + State.CURVE_UNIT * 4))
+        self.sectionList.append(Section(4, self.getJunctionById(2), self.getJunctionById(3), Junction.ServoState.NoServo, Junction.ServoState.NoServo, State.STRAIGHT_UNIT * 5 + State.CURVE_UNIT * 4))
 
         # Sensor(id, section, position)
         self.sensorList.append(Sensor(0, self.getSectionById(1), State.STRAIGHT_UNIT * 2.5 + State.CURVE_UNIT * 2))
