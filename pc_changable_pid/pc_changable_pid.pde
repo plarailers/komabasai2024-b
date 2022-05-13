@@ -42,9 +42,9 @@ void draw() {
     int data = myPort.read();
     println(getTime(), "recieve", data);
     int input = pidCalc(speed_id);  // pid計算
-    myPort.write(input);
+    // myPort.write(input);
   }
-  stopCheck();
+  // stopCheck();
 }
 
 void sendSpeed(int tmp_speed) {
