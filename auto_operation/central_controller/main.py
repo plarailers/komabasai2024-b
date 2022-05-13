@@ -5,7 +5,7 @@ import threading
 
 # 自動運転システムの初期化
 operation = Operation()
-operation.state.communication.setup(simulationMode=True)
+operation.state.communication.setup(simulationMode=False)
 
 # Flaskウェブサーバの初期化
 app = Flask(__name__)
