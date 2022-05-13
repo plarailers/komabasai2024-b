@@ -33,7 +33,7 @@ send_queue: asyncio.Queue[bytes] = asyncio.Queue()
 recv_queue: asyncio.Queue[bytes] = asyncio.Queue()
 
 def setup():
-    global process_socat, process_momo, port, handle_speed
+    global process_socat, process_momo, port, handle_speed, controlled_speed
     print('starting...')
     process_socat = subprocess.Popen(['socat', '-d', '-d', 'pty,raw,echo=0', 'pty,raw,echo=0'], stderr=subprocess.PIPE)
     port1_name = re.search(r'N PTY is (\S+)', process_socat.stderr.readline().decode()).group(1)
@@ -44,6 +44,7 @@ def setup():
     port = serial.Serial(port2_name, 9600)
     motor.start(0)
     handle_speed = 0
+    controlled_speed = 0
     # GPIO.add_event_detect(SENSOR_PIN, GPIO.RISING, callback=on_sensor, bouncetime=10)
     print('started')
     print('motor:', MOTOR_PIN)
@@ -89,29 +90,27 @@ async def websocket_serve():
 
 def loop():
     speed = None
-    controlled_speed = None
-    global handle_speed, prev_sensor_value, sensor_value
+    global handle_speed, controlled_speed, prev_sensor_value, sensor_value
 
     if port.in_waiting > 0:
         while port.in_waiting > 0:
             data = port.read()
         handle_speed = data[0]
-        print(datetime.datetime.now(), 'receive user speed    ', handle_speed)
 
     if not recv_queue.empty():
         while not recv_queue.empty():
             data = recv_queue.get_nowait()
         controlled_speed = int(data)
-        print(datetime.datetime.now(), 'receive operator speed', controlled_speed)
 
     if controlled_speed is None:
         speed = handle_speed
     else:
         speed = min(handle_speed, controlled_speed)
+    print(f"handle_speed={handle_speed}, controlled_speed={controlled_speed}")
 
     dc = speed * 100 / 255
     motor.ChangeDutyCycle(dc)
-    print(datetime.datetime.now(), 'calculated speed      ', speed)
+    # print(datetime.datetime.now(), 'calculated speed      ', speed)
 
     # ホール検出ごとにPCに信号を送る
     prev_sensor_value = sensor_value
