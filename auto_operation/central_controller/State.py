@@ -26,11 +26,11 @@ class State:
         self.sectionList.append(Section(1, self.getJunctionById(0), self.getJunctionById(1), Junction.ServoState.NoServo, Junction.ServoState.NoServo, State.STRAIGHT_UNIT * 5 + State.CURVE_UNIT * 4))
         self.sectionList.append(Section(2, self.getJunctionById(1), self.getJunctionById(2), Junction.ServoState.Straight, Junction.ServoState.Straight, State.STRAIGHT_UNIT * 5.5))
         self.sectionList.append(Section(3, self.getJunctionById(1), self.getJunctionById(2), Junction.ServoState.Curve, Junction.ServoState.Curve, State.STRAIGHT_UNIT * 5.5))
-        self.sectionList.append(Section(4, self.getJunctionById(2), self.getJunctionById(3), Junction.ServoState.NoServo, Junction.ServoState.NoServo, State.STRAIGHT_UNIT * 3 + State.CURVE_UNIT * 4))
+        self.sectionList.append(Section(4, self.getJunctionById(2), self.getJunctionById(3), Junction.ServoState.NoServo, Junction.ServoState.NoServo, State.STRAIGHT_UNIT * 5 + State.CURVE_UNIT * 4))
 
         # Sensor(id, section, position)
         self.sensorList.append(Sensor(0, self.getSectionById(1), State.STRAIGHT_UNIT * 2.5 + State.CURVE_UNIT * 2))
-        self.sensorList.append(Sensor(1, self.getSectionById(4), State.STRAIGHT_UNIT * 1.5 + State.CURVE_UNIT * 2))
+        self.sensorList.append(Sensor(1, self.getSectionById(4), State.STRAIGHT_UNIT * 2.5 + State.CURVE_UNIT * 2))
 
         # Station(id, name)
         self.stationList.append(Station(0, "A"))  # A駅を追加
@@ -38,8 +38,8 @@ class State:
 
         # section.putStation(station, stationPosition)
         self.getSectionById(0).putStation(self.getStationById(0), State.STRAIGHT_UNIT * 3)  # section0に駅0を追加
-        self.getSectionById(2).putStation(self.getStationById(1), State.STRAIGHT_UNIT * 3)  # section2に駅1を追加
-        self.getSectionById(3).putStation(self.getStationById(1), State.STRAIGHT_UNIT * 3)  # section3に駅1を追加
+        self.getSectionById(2).putStation(self.getStationById(1), State.STRAIGHT_UNIT * 3.5)  # section2に駅1を追加
+        self.getSectionById(3).putStation(self.getStationById(1), State.STRAIGHT_UNIT * 3.5)  # section3に駅1を追加
 
         # junction.belogStation
         self.getJunctionById(1).belongStation = self.getStationById(1)
@@ -78,6 +78,9 @@ class State:
             train = self.getTrainInSection(sensor.belongSection)
             if train != None:
                 train.move(sensor.position - train.mileage)
+                print(f"[State.update] sensor {sensor.id}: train{train.id} position calibrated")
+            else:
+                print(f"[State.update] sensor {sensor.id}: train is not detected")
 
     # Stateに格納されている状態を現実世界に送信する. 各種計算後に実行すること
     def sendCommand(self):
@@ -99,7 +102,6 @@ class State:
         return list(filter(lambda item: item.id == id, self.sectionList))[0]
 
     def getSensorById(self, id: int) -> Sensor:
-        print(int.from_bytes(id,'little'))
         return list(filter(lambda item: item.id == int.from_bytes(id,'little'), self.sensorList))[0]
 
     def getStationById(self, id: int) -> Station:

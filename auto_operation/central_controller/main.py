@@ -5,7 +5,7 @@ import threading
 
 # 自動運転システムの初期化
 operation = Operation()
-operation.state.communication.setup(simulationMode=True)
+operation.state.communication.setup(simulationMode=False)
 
 # Flaskウェブサーバの初期化
 app = Flask(__name__)
@@ -16,8 +16,9 @@ socketio = SocketIO(app)
 def operation_loop():
     while True:
         operation.update()
-        print(f"[Operation.update] t0.section: {operation.state.getTrainById(0).currentSection.id}, t0.mil: {operation.state.getTrainById(0).mileage:.2f}, t1.section: {operation.state.getTrainById(1).currentSection.id}, t1.mil: {operation.state.getTrainById(1).mileage:.2f}, junctionIN={operation.state.getJunctionById(1).getOutSection().id}, junctionOUT={operation.state.getJunctionById(2).getInSection().id}")
-        time.sleep(0.1)
+        train_taiken = operation.state.getTrainById(1)  # ラズパイ体験車(id=1)を取得
+        print(f"[main.operation_loop] t0.section: {operation.state.getTrainById(0).currentSection.id}, t0.mil: {operation.state.getTrainById(0).mileage:.2f}, t0.spd: {operation.state.getTrainById(0).targetSpeed:.2f}, t1.section: {operation.state.getTrainById(1).currentSection.id}, t1.mil: {operation.state.getTrainById(1).mileage:.2f}, t1.spd: {operation.state.getTrainById(1).targetSpeed:.2f}")
+        time.sleep(0.01)
 
 # ブラウザにwebsocketで0.1secおきに信号を送る関数
 def send_signal_to_browser():
