@@ -38,8 +38,8 @@ class State:
 
         # section.putStation(station, stationPosition)
         self.getSectionById(0).putStation(self.getStationById(0), State.STRAIGHT_UNIT * 3)  # section0に駅0を追加
-        self.getSectionById(2).putStation(self.getStationById(1), State.STRAIGHT_UNIT * 3)  # section2に駅1を追加
-        self.getSectionById(3).putStation(self.getStationById(1), State.STRAIGHT_UNIT * 3)  # section3に駅1を追加
+        self.getSectionById(2).putStation(self.getStationById(1), State.STRAIGHT_UNIT * 3.5)  # section2に駅1を追加
+        self.getSectionById(3).putStation(self.getStationById(1), State.STRAIGHT_UNIT * 3.5)  # section3に駅1を追加
 
         # junction.belogStation
         self.getJunctionById(1).belongStation = self.getStationById(1)
@@ -78,6 +78,9 @@ class State:
             train = self.getTrainInSection(sensor.belongSection)
             if train != None:
                 train.move(sensor.position - train.mileage)
+                print(f"[State.update] sensor {sensor.id}: train{train.id} position calibrated")
+            else:
+                print(f"[State.update] sensor {sensor.id}: train is not detected")
 
     # Stateに格納されている状態を現実世界に送信する. 各種計算後に実行すること
     def sendCommand(self):
@@ -99,7 +102,6 @@ class State:
         return list(filter(lambda item: item.id == id, self.sectionList))[0]
 
     def getSensorById(self, id: int) -> Sensor:
-        print(int.from_bytes(id,'little'))
         return list(filter(lambda item: item.id == int.from_bytes(id,'little'), self.sensorList))[0]
 
     def getStationById(self, id: int) -> Station:

@@ -13,4 +13,5 @@ class PointInterlock:
         trainOnJunction = self.__state.getTrainInSection(junction.getOutSection())
         if trainOnJunction == None or trainOnJunction.mileage > self.__TRAINLENGTH:
             junction.toggle()
+            print(f"[PointInterlock.requestToggle] junction {junction.id} toggled!")
             
