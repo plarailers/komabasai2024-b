@@ -92,9 +92,6 @@ def loop():
     controlled_speed = None
     global handle_speed, prev_sensor_value, sensor_value
 
-    if port.in_waiting == 0 and recv_queue.empty():
-        return
-
     if port.in_waiting > 0:
         while port.in_waiting > 0:
             data = port.read()
