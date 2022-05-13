@@ -32,5 +32,6 @@ void loop(){
   sensor_value = digitalRead(SENSOR_PIN);
   if (prev_sensor_value == LOW && sensor_value == HIGH) {
     SerialBT.write('o');
+    delay(3); //低速運転時のチャタリングを防止。
   }
 }
