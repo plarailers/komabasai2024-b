@@ -8,6 +8,7 @@ body {
   background-color: #E6E6E6;
   padding: 0;
   margin: 0;
+  touch-action: none;
 }
 
 p {
@@ -205,11 +206,11 @@ iframe {
 
 #distance_text {
   text-align: right;
-  font-size: 10px;
+  font-size: 12px;
 }
 #distance_value {
   text-align: right;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 #mascon_area {
