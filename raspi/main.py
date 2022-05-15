@@ -40,7 +40,14 @@ def setup():
     port2_name = re.search(r'N PTY is (\S+)', process_socat.stderr.readline().decode()).group(1)
     process_socat.stderr.readline()
     print('using ports', port1_name, 'and', port2_name)
-    process_momo = subprocess.Popen([MOMO_BIN, '--no-audio-device', '--use-native', '--force-i420', '--serial', f'{port1_name},9600', 'test'])
+    process_momo = subprocess.Popen([
+        MOMO_BIN,
+        '--no-audio-device',
+        '--use-native',
+        '--force-i420',
+        '--serial', f'{port1_name},9600',
+        'test',
+    ])
     port = serial.Serial(port2_name, 9600)
     motor.start(0)
     handle_speed = 0
@@ -96,17 +103,19 @@ def loop():
         while port.in_waiting > 0:
             data = port.read()
         handle_speed = data[0]
+        print(f"{datetime.datetime.now()} receive user speed. user_speed={handle_speed}, operator_speed={controlled_speed}")
 
     if not recv_queue.empty():
         while not recv_queue.empty():
             data = recv_queue.get_nowait()
         controlled_speed = int(data)
+        print(f"{datetime.datetime.now()} receive operator speed. user_speed={handle_speed}, operator_speed={controlled_speed}")
 
     if controlled_speed is None:
         speed = handle_speed
     else:
         speed = min(handle_speed, controlled_speed)
-    print(f"handle_speed={handle_speed}, controlled_speed={controlled_speed}")
+    # print(f"handle_speed={handle_speed}, controlled_speed={controlled_speed}")
 
     dc = speed * 100 / 255
     motor.ChangeDutyCycle(dc)
