@@ -2,18 +2,18 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Document</title>
+  <title>EPE-EYE Camera Viewer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-  <img id="view"/>
+  <img id="view" />
   <input type="text" id="url">
-  <button id="go">Start</button>
+  <button id="start">Start</button>
   <script>
     const view = document.getElementById("view");
     const urlInput = document.getElementById("url");
-    const goButton = document.getElementById("go");
-    goButton.addEventListener("click", () => {
+    const startButton = document.getElementById("start");
+    startButton.addEventListener("click", () => {
       const url = urlInput.value;
       if (!/^https?:\/\//.test(url)) {
         alert("invalid URL");
