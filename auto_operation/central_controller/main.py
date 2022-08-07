@@ -7,7 +7,8 @@ ESP_EYE_IP_ADDR = "192.168.137.87"
 
 # 自動運転システムの初期化
 operation = Operation()
-operation.state.communication.setup(simulationMode=False)
+operation.state.communication.setup(simulationMode=True)
+operation.ato.setEnabled(1, False)
 
 # Flaskウェブサーバの初期化
 app = Flask(__name__)
