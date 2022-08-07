@@ -2,6 +2,13 @@ import { RemoteControl } from "./remote.js";
 
 const raspi = new RemoteControl();
 
+const ESP_EYE_IP_ADDR = document.querySelector("meta[name='esp-eye-ip-addr']").content;
+console.log({ ESP_EYE_IP_ADDR });
+
+function getStreamURL() {
+  return `http://${ESP_EYE_IP_ADDR}:81/stream`;
+}
+
 var speed = 0;
 const TITLE_NG = "運転するには、列車番号を入力してください";
 const TITLE_OK = "つまみをドラッグすると、プラレールの速度を操作できます";
@@ -31,7 +38,7 @@ pw_send.onclick = function () {
   message.innerText = '列車番号を確認しました！　--時--分 まで自由に運転できます。映像が映ったら運転をはじめてください。';
 
   var movie = document.getElementById('movie');
-  raspi.connect(movie);  // ルームに接続
+  movie.src = getStreamURL();
   stopInstruction();
 }
 
