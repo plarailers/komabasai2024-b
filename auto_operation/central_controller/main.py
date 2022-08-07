@@ -35,7 +35,7 @@ def send_signal_to_browser():
         })
 
 # ブラウザからwebsocketで速度指令を受け取って、体験車の速度を変更する関数
-@socketio.on('json')
+@socketio.on('speed')
 def receive_speed_from_browser(json):
     # 体験車のID:1, 受け取ったspeed: json['speed']で速度制御
     operation.ato.setSpeed(1, json['speed'])
