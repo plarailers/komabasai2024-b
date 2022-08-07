@@ -34,6 +34,12 @@ def send_signal_to_browser():
             'distance': int(distance)
         })
 
+# ブラウザからwebsocketで速度指令を受け取る関数
+@socketio.on('message')
+def receive_speed_from_browser(data):
+    pass
+
+
 @app.route('/')
 def index():
     # ブラウザへデータを送信するタスクの開始
