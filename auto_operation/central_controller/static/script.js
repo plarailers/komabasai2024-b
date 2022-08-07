@@ -1,7 +1,3 @@
-import { RemoteControl } from "./remote.js";
-
-const raspi = new RemoteControl();
-
 const ESP_EYE_IP_ADDR = document.querySelector("meta[name='esp-eye-ip-addr']").content;
 console.log({ ESP_EYE_IP_ADDR });
 
@@ -41,12 +37,6 @@ pw_send.onclick = function () {
   movie.src = getStreamURL();
   stopInstruction();
 }
-
-// データが送られてきたとき
-raspi.subscribe((data) => {
-  const text = new TextDecoder().decode(data);
-  console.log(text);
-});
 
 //【サイズ調整】
 window.onload = controller_resize;  // ロード時にレイアウトを調整
