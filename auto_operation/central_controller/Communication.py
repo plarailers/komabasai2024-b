@@ -6,7 +6,6 @@ import time
 from numpy import pi
 from Components import Junction
 from Components import Train
-from WebSocketHandler import *
 
 # ESP32 や Arduino との通信をまとめる。
 # シミュレーションモードを使うと接続が無くてもある程度動作確認できる。
@@ -23,7 +22,7 @@ class Communication:
         self.pidParamMap = pidParamMap
         self.prevUpdate = 0.0
         self.arduino = None
-        self.esp32Map: dict[int, Union[serial.Serial, WebSocketHandler]] = {}
+        self.esp32Map: dict[int, serial.Serial] = {}
         self.deltaMap: dict[int, float] = {}
         self.sensorSignalBuffer = queue.Queue()
 
@@ -47,7 +46,7 @@ class Communication:
         else:
             if isWindows:
                 self.esp32Map[0] = serial.Serial("COM5", 115200)
-                # self.esp32Map[1] = serial.Serial("COM4", 115200)
+                self.esp32Map[1] = serial.Serial("???", 115200)
                 # self.esp32Map[1] = None  #[1]だけ実機がないのでNoneにする
                 # self.simulationSpeedMap[1] = 0.0  #[1]だけ実機がないのでsimulaitonを更新
                 self.deltaMap[0] = 0.0
@@ -55,12 +54,12 @@ class Communication:
                 self.arduino = serial.Serial("COM8", 9600)
             else:
                 self.esp32Map[0] = serial.Serial("/dev/cu.ESP32-Dr", 115200)
+                self.esp32Map[0] = serial.Serial("/dev/cu.???", 115200)
                 # self.esp32Map[1] = None  #[1]だけ実機がないのでNoneにする
                 # self.simulationSpeedMap[1] = 0.0  #[1]だけ実機がないのでsimulaitonを更新
                 self.deltaMap[0] = 0.0
                 self.deltaMap[1] = 0.0
                 self.arduino = serial.Serial("/dev/ttyS0", 9600)
-            self.esp32Map[1] = WebSocketHandler.connect("raspberrypi.local", 8765)
         self.update()
 
     def update(self):
@@ -79,18 +78,13 @@ class Communication:
         else:
             for trainId in self.esp32Map.keys():
                 esp32 = self.esp32Map[trainId]
-                if isinstance(esp32, serial.Serial):
+                if esp32 != None:
                     while esp32.in_waiting > 0:
                         # ホールセンサ信号が来たら、車輪0.5回転分deltaを進める
                         self.deltaMap[trainId] += 2 * pi * self.pidParamMap[trainId].r / 2
                         # 同時刻に複数の信号が来る不具合のため、1回のループですべて消費する
                         while esp32.in_waiting > 0:
                             esp32.read()
-                elif isinstance(esp32, WebSocketHandler):
-                    while esp32.available():
-                        # ホールセンサ信号が来たら、車輪0.5回転分deltaを進める
-                        self.deltaMap[trainId] += 2 * pi * self.pidParamMap[trainId].r / 2
-                        esp32.readline()
                 else:  # 実機がない場合はsimulationを更新
                     self.deltaMap[trainId] += self.simulationSpeedMap[trainId] * dt
 
@@ -123,10 +117,8 @@ class Communication:
                     input = int(INPUT_MIN + speed * KP)  # kp制御のみ
                 else:
                     input = 0
-                if isinstance(esp32, serial.Serial):
+                if esp32 != None:
                     esp32.write(input.to_bytes(1,'little'))
-                elif isinstance(esp32, WebSocketHandler):
-                    esp32.write(f"{input}".encode())
             else:  # ESP32の実機がないときはsimulationを更新
                 self.simulationSpeedMap[trainId] = speed
 
