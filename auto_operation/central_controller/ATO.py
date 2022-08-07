@@ -96,8 +96,7 @@ class ATO:
 
     # ATO無効の列車に対して、外部から速度を指令する. MAXSPEEDの制限のみが効く
     def setSpeed(self, trainId: int, speedCommand: int) -> None:
-        if not self.__enabled[trainId]:
-            self.__speedCommand[trainId] = min(self.__MAXSPEED, speedCommand)
+        self.__speedCommand[trainId] = min(self.__MAXSPEED, speedCommand)
 
     # ATOの有効/無効を切り替える
     def setEnabled(self, trainId: int, enabled: bool):
