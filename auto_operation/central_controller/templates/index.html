@@ -8,6 +8,7 @@
     <link href="static/style.css" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
     <link href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" rel="stylesheet">
+    <meta name="esp-eye-ip-addr" content="{{ esp_eye_ip_addr }}" />
   </head>
   <body>
     <header>
@@ -33,7 +34,8 @@
     </div>
     <div id="content">
       <div id="controller">
-        <video id="movie" playsinline></video>
+        <img id="movie" />
+        <!-- <video id="movie" playsinline></video> -->
         <iframe id="instruction" src="https://www.youtube.com/embed/4wzDQppkze4?enablejsapi=1" frameborder="0"></iframe>
         <div id="signal_area">
           <img id="signal_img" src="static/img/G.svg">

@@ -3,6 +3,8 @@ from flask import Flask, render_template, Response
 from flask_socketio import SocketIO
 import threading
 
+ESP_EYE_IP_ADDR = "192.168.137.87"
+
 # 自動運転システムの初期化
 operation = Operation()
 operation.state.communication.setup(simulationMode=False)
@@ -46,7 +48,7 @@ def index():
     # ブラウザへデータを送信するタスクの開始
     socketio.start_background_task(target=send_signal_to_browser)
     # ブラウザにwebページのデータを返す
-    return render_template('index.html')
+    return render_template('index.html', esp_eye_ip_addr=ESP_EYE_IP_ADDR)
 
 if __name__ == "__main__":
     thread1 = threading.Thread(target=operation_loop, daemon=True)

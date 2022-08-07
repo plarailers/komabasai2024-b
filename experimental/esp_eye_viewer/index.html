@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>EPE-EYE Camera Viewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <img id="view" />
+  <input type="text" id="url">
+  <button id="start">Start</button>
+  <script>
+    const view = document.getElementById("view");
+    const urlInput = document.getElementById("url");
+    const startButton = document.getElementById("start");
+    startButton.addEventListener("click", () => {
+      const url = urlInput.value;
+      if (!/^https?:\/\//.test(url)) {
+        alert("invalid URL");
+        return;
+      }
+      const streamUrl = `${url.replace(/\/$/, "")}:81/stream`;
+      view.src = streamUrl;
+    });
+  </script>
+</body>
+</html>
