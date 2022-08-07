@@ -23,8 +23,8 @@ mascon.addEventListener('input', function () {
   if (isTimerOn == false) {
     timer = setTimeout(function () {
       speed = parseInt(mascon.value);
-      raspi.send(new Uint8Array([speed]));
-      console.log(speed);
+      socket.emit("speed", { speed });
+      console.log({ speed });
       isTimerOn = false;
     }, 400);  // ハンドルを動かした0.4sec後に送信
     isTimerOn = true;
