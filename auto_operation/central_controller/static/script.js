@@ -1,7 +1,3 @@
-import { RemoteControl } from "./remote.js";
-
-const raspi = new RemoteControl();
-
 const ESP_EYE_IP_ADDR = document.querySelector("meta[name='esp-eye-ip-addr']").content;
 console.log({ ESP_EYE_IP_ADDR });
 
@@ -23,8 +19,8 @@ mascon.addEventListener('input', function () {
   if (isTimerOn == false) {
     timer = setTimeout(function () {
       speed = parseInt(mascon.value);
-      raspi.send(new Uint8Array([speed]));
-      console.log(speed);
+      socket.emit("speed", { speed });
+      console.log({ speed });
       isTimerOn = false;
     }, 400);  // ハンドルを動かした0.4sec後に送信
     isTimerOn = true;
@@ -41,12 +37,6 @@ pw_send.onclick = function () {
   movie.src = getStreamURL();
   stopInstruction();
 }
-
-// データが送られてきたとき
-raspi.subscribe((data) => {
-  const text = new TextDecoder().decode(data);
-  console.log(text);
-});
 
 //【サイズ調整】
 window.onload = controller_resize;  // ロード時にレイアウトを調整
