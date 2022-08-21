@@ -49,7 +49,11 @@ def index():
     # ブラウザへデータを送信するタスクの開始
     socketio.start_background_task(target=send_signal_to_browser)
     # ブラウザにwebページのデータを返す
-    return render_template('index.html', esp_eye_ip_addr=ESP_EYE_IP_ADDR)
+    return render_template(
+        'index.html',
+        esp_eye_ip_addr=ESP_EYE_IP_ADDR,
+        max_speed=Operation.MAXSPEED,
+    )
 
 if __name__ == "__main__":
     thread1 = threading.Thread(target=operation_loop, daemon=True)
