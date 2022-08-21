@@ -46,14 +46,19 @@ def receive_speed_from_browser(json):
 
 @app.route('/')
 def index():
-    # ブラウザへデータを送信するタスクの開始
-    socketio.start_background_task(target=send_signal_to_browser)
     # ブラウザにwebページのデータを返す
     return render_template(
         'index.html',
         esp_eye_ip_addr=ESP_EYE_IP_ADDR,
         max_speed=Operation.MAXSPEED,
     )
+
+
+@app.before_first_request
+def before_first_request():
+    # ブラウザへデータを送信するタスクの開始
+    socketio.start_background_task(target=send_signal_to_browser)
+
 
 if __name__ == "__main__":
     thread1 = threading.Thread(target=operation_loop, daemon=True)
