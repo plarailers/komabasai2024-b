@@ -173,6 +173,9 @@ p#message {
   width: 75%;
   height: 100%;
   padding: 0;
+  -webkit-transform: rotate(180deg);
+  transform: rotate(180deg);
+  /* ESP-EYEの映像の向きを合わせる */
 }
 
 iframe {
