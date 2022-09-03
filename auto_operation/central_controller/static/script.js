@@ -35,7 +35,6 @@ pw_send.onclick = function () {
 
   var movie = document.getElementById('movie');
   movie.src = getStreamURL();
-  stopInstruction();
 }
 
 //【サイズ調整】
@@ -59,20 +58,6 @@ function controller_resize() {
   mascon.style.width = area_height * 0.667 + 'px';  // 長さ
   mascon.style.marginTop = area_height * 0.5 - 5 + 'px';  // 縦位置を調整
   mascon.style.marginLeft = - (mascon.clientWidth - area_width) / 2 + 'px';  // 横位置ははみ出している分左へ
-}
-
-// 説明動画の停止・非表示
-function stopInstruction() {
-  var instruction = document.getElementById('instruction');
-  if (instruction) {
-    if (instruction.contentWindow.postMessage) {
-      instruction.contentWindow.postMessage(JSON.stringify({
-        event: 'command',
-        func: 'stopVideo'
-      }), '*');
-    }
-    instruction.remove();
-  }
 }
 
 
