@@ -47,7 +47,7 @@ class State:
 
         # PIDParams(r: float, INPUT_MIN: int, INPUT_MAX: int, INPUT_START: int, kp: float, ki: float, kd: float)
         pidParam0 = Train.PIDParam(1.12, 40, 60, 68, 0.70, 0, 0)  # Dr. (maxinput: 40 + 0.70*40cm/s = 68)
-        pidParam1 = Train.PIDParam(1.12, 19, 42, 35, 0.40, 0, 0)  # Raspi (maxinput: 19 + 0.40*40cm/s= 35)
+        pidParam1 = Train.PIDParam(1.12, 50, 70, 60, 0.40, 0, 0)  # Raspi (maxinput: 50 + 0.50*40cm/s= 70)
 
         # Train(initialSection, initialPosition)
         self.trainList.append(Train(0, self.getSectionById(0), State.STRAIGHT_UNIT * 3, pidParam0))  # 列車0をsection0に配置
