@@ -50,12 +50,15 @@ int value;
 //CdSセンサーのデータを元に車両が来ているかいないか判定してPCにその情報を送る関数。引数は読み取りたいセンサーのid
 void CdS_process(int sensor_id){
   value = analogRead(sensorPin[sensor_id]);  //CdSセンサーで明るさを計測
-
+//  Serial.print("sensor_id: ");
+//  Serial.print(sensor_id);
+//  Serial.print("value: ");
+//  Serial.println(value);
   //絶対値バージョン
   if (value < sensor_baseline[sensor_id]) { //基準を下回る明るさだったら通過と判定
     time = millis();
     if (before_passing_time[sensor_id] == 0 || time-before_passing_time[sensor_id] > time_for_passing){//一度も車両が通過していないか前回通過時から一定時間経っていれば通過と判定。
-      //Serial.print(sensor_id); //シリアルモニタを見てデバッグ等したい時用
+//      Serial.print(sensor_id); //シリアルモニタを見てデバッグ等したい時用
       Serial.write((byte)sensor_id); //実際に使う用
       before_passing_time[sensor_id] = time;
     }
