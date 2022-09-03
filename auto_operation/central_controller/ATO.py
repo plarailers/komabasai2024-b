@@ -8,7 +8,7 @@ import time
 
 
 class ATO:
-    def __init__(self, state: State, signalSystem: SignalSystem, ats: ATS, diaPlanner: DiaPlanner, MAXSPEED: float, MERGIN: float=30) -> None:
+    def __init__(self, state: State, signalSystem: SignalSystem, ats: ATS, diaPlanner: DiaPlanner, MAXSPEED: float, MERGIN: float=35) -> None:
         self.__ats = ats
         self.__signalSystem = signalSystem
         self.__state = state

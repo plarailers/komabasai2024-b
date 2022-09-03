@@ -36,7 +36,7 @@ class Communication:
                 self.simulationSpeedMap[1] = 0.0
                 self.deltaMap[0] = 0.0
                 self.deltaMap[1] = 0.0
-                # self.arduino = serial.Serial("COM8", 9600)
+                self.arduino = serial.Serial("COM11", 9600)
             else:
                 self.simulationSpeedMap[0] = 0.0
                 self.simulationSpeedMap[1] = 0.0
@@ -45,13 +45,13 @@ class Communication:
                 # self.arduino = serial.Serial("/dev/ttyS0", 9600)
         else:
             if isWindows:
-                self.esp32Map[0] = serial.Serial("COM5", 115200)
-                self.esp32Map[1] = serial.Serial("???", 115200)
+                self.esp32Map[0] = serial.Serial("COM6", 115200)
+                self.esp32Map[1] = serial.Serial("COM8", 115200)
                 # self.esp32Map[1] = None  #[1]だけ実機がないのでNoneにする
                 # self.simulationSpeedMap[1] = 0.0  #[1]だけ実機がないのでsimulaitonを更新
                 self.deltaMap[0] = 0.0
                 self.deltaMap[1] = 0.0
-                self.arduino = serial.Serial("COM8", 9600)
+                self.arduino = serial.Serial("COM11", 9600)
             else:
                 self.esp32Map[0] = serial.Serial("/dev/cu.ESP32-Dr", 115200)
                 self.esp32Map[0] = serial.Serial("/dev/cu.ESP32-E6", 115200)

@@ -1,14 +1,15 @@
+import atexit
 from Operation import *
 from flask import Flask, render_template, Response
 from flask_socketio import SocketIO
 import threading
 
-ESP_EYE_IP_ADDR = "192.168.137.87"
+ESP_EYE_IP_ADDR = "esp32-1D31E4.mshome.net"
 
 # 自動運転システムの初期化
 operation = Operation()
-operation.state.communication.setup(simulationMode=True)
-operation.ato.setEnabled(1, False)
+operation.state.communication.setup(simulationMode=False)
+operation.ato.setEnabled(1, True)
 
 # Flaskウェブサーバの初期化
 app = Flask(__name__)
@@ -58,6 +59,16 @@ def index():
 def before_first_request():
     # ブラウザへデータを送信するタスクの開始
     socketio.start_background_task(target=send_signal_to_browser)
+
+
+@atexit.register
+def reset():
+    state = operation.state
+    state.communication.sendToggle(0, Junction.ServoState.Straight)
+    state.communication.sendToggle(1, Junction.ServoState.Straight)
+    state.communication.sendSpeed(0, 0)
+    state.communication.sendSpeed(1, 0)
+    print("successfully reset")
 
 
 if __name__ == "__main__":
