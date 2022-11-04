@@ -1,6 +1,9 @@
-import { RemoteControl } from "./remote.js";
+const ESP_EYE_IP_ADDR = document.querySelector("meta[name='esp-eye-ip-addr']").content;
+console.log({ ESP_EYE_IP_ADDR });
 
-const raspi = new RemoteControl();
+function getStreamURL() {
+  return `http://${ESP_EYE_IP_ADDR}:81/stream`;
+}
 
 var speed = 0;
 const TITLE_NG = "運転するには、列車番号を入力してください";
@@ -16,8 +19,8 @@ mascon.addEventListener('input', function () {
   if (isTimerOn == false) {
     timer = setTimeout(function () {
       speed = parseInt(mascon.value);
-      raspi.send(new Uint8Array([speed]));
-      console.log(speed);
+      socket.emit("speed", { speed });
+      console.log({ speed });
       isTimerOn = false;
     }, 400);  // ハンドルを動かした0.4sec後に送信
     isTimerOn = true;
@@ -31,15 +34,8 @@ pw_send.onclick = function () {
   message.innerText = '列車番号を確認しました！　--時--分 まで自由に運転できます。映像が映ったら運転をはじめてください。';
 
   var movie = document.getElementById('movie');
-  raspi.connect(movie);  // ルームに接続
-  stopInstruction();
+  movie.src = getStreamURL();
 }
-
-// データが送られてきたとき
-raspi.subscribe((data) => {
-  const text = new TextDecoder().decode(data);
-  console.log(text);
-});
 
 //【サイズ調整】
 window.onload = controller_resize;  // ロード時にレイアウトを調整
@@ -62,20 +58,6 @@ function controller_resize() {
   mascon.style.width = area_height * 0.667 + 'px';  // 長さ
   mascon.style.marginTop = area_height * 0.5 - 5 + 'px';  // 縦位置を調整
   mascon.style.marginLeft = - (mascon.clientWidth - area_width) / 2 + 'px';  // 横位置ははみ出している分左へ
-}
-
-// 説明動画の停止・非表示
-function stopInstruction() {
-  var instruction = document.getElementById('instruction');
-  if (instruction) {
-    if (instruction.contentWindow.postMessage) {
-      instruction.contentWindow.postMessage(JSON.stringify({
-        event: 'command',
-        func: 'stopVideo'
-      }), '*');
-    }
-    instruction.remove();
-  }
 }
 
 

@@ -1,0 +1,6 @@
+eventlet
+flask
+flask-socketio
+gevent-websocket
+numpy
+pyserial

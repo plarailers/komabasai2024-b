@@ -4,7 +4,7 @@ from SignalSystem import *
 
 
 class ATS:
-    def __init__(self, state: State, signalSystem: SignalSystem, MAXSPEED: float, MERGIN: float=15, BREAKING_DISTANCE: float=10):
+    def __init__(self, state: State, signalSystem: SignalSystem, MAXSPEED: float, MERGIN: float=20, BREAKING_DISTANCE: float=10):
         """
         Parameters
         ----------

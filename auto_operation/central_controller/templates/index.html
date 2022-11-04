@@ -6,8 +6,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <link href="static/loaders.min.css" rel="stylesheet">
     <link href="static/style.css" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
-    <link href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" rel="stylesheet">
+    <link href="static/google-fonts/style.css" rel="stylesheet">
+    <link href="static/fontawesome-free-5.15.4-web/css/all.min.css" rel="stylesheet">
+    <meta name="esp-eye-ip-addr" content="{{ esp_eye_ip_addr }}" />
   </head>
   <body>
     <header>
@@ -33,8 +34,7 @@
     </div>
     <div id="content">
       <div id="controller">
-        <video id="movie" playsinline></video>
-        <iframe id="instruction" src="https://www.youtube.com/embed/4wzDQppkze4?enablejsapi=1" frameborder="0"></iframe>
+        <img id="movie" />
         <div id="signal_area">
           <img id="signal_img" src="static/img/G.svg">
         </div>
@@ -43,14 +43,12 @@
           <p id="distance_value">0 cm</p>
         </div>
         <div id="mascon_area">
-          <input type="range" id="mascon" value="0" min="0" max="40" step="1" title="運転するには、列車番号を入力してください">
+          <input type="range" id="mascon" value="0" min="0" max="{{ max_speed }}" step="1" title="運転するには、列車番号を入力してください">
         </div>
       </div>
     </div>
-    <script src="https://unpkg.com/@open-ayame/ayame-web-sdk@2020.3.0/dist/ayame.min.js"></script>
     <!-- websocketを扱うjavascript -->
-    <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script> -->
-    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js" integrity="sha384-7EyYLQZgWBi67fBtVxw60/OWl1kjsfrPFcaU0pp0nAh+i8FD068QogUvg85Ewy1k" crossorigin="anonymous"></script>
+    <script src="static/socket.io-4.5.0/socket.io.min.js"></script>
     <script type="module" src="static/script.js"></script>
   </body>
 </html>
