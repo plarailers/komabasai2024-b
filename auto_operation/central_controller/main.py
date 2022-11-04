@@ -14,7 +14,10 @@ operation.ato.setEnabled(1, True)
 # Flaskウェブサーバの初期化
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app)
+socketio = SocketIO(
+    app,
+    async_mode='gevent'  # WindowsでCtrl-Cが効かない問題への対処
+)
 
 # 自動運転システムが0.1secおきに実行する作業
 def operation_loop():
