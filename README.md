@@ -1,6 +1,6 @@
-# Maker Faire Tokyo 2022
+# 第96回五月祭
 
-開催日：2022年9月3日（土）～4日（日）
+開催日：2023年5月??日～??日
 
 ## 内容
 
@@ -16,5 +16,5 @@
 ## インストール
 
 ```sh
-git clone https://github.com/plarailers/mft2022.git
+git clone https://github.com/plarailers/gogatsusai2023.git
 ```
