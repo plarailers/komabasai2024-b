@@ -12,8 +12,11 @@ api_app.include_router(api_router)
 app.mount("/api", api_app)
 
 # `/` 以下で静的ファイルを配信する
-app.mount("/", StaticFiles(directory="../control-ui/dist", html=True), name="static")
+app.mount("/", StaticFiles(directory="./ptcs_ui/dist", html=True), name="static")
 
 
 def serve() -> None:
-    uvicorn.run("control.server:app", port=5000, log_level="info", reload=True)
+    """
+    列車制御システムを Web サーバーとして起動する。
+    """
+    uvicorn.run("ptcs_server.server:app", port=5000, log_level="info", reload=True)

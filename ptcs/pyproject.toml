@@ -4,10 +4,10 @@ version = "0.1.0"
 description = ""
 authors = ["UTokyo Plarailers <plarailers@gmail.com>"]
 readme = "README.md"
-packages = [{include = "control", from = "src"}]
+packages = [{include = "ptcs_server"}]
 
 [tool.poetry.scripts]
-control = "control.cli:cli"
+server = "ptcs_server.cli:cli"
 
 [tool.poetry.dependencies]
 python = "^3.10"
