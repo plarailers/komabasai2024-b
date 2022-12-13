@@ -1,10 +1,13 @@
 [tool.poetry]
-name = "control"
+name = "ptcs"
 version = "0.1.0"
 description = ""
 authors = ["UTokyo Plarailers <plarailers@gmail.com>"]
 readme = "README.md"
-packages = [{include = "ptcs_server"}]
+packages = [
+    { include = "ptcs_control" },
+    { include = "ptcs_server" },
+]
 
 [tool.poetry.scripts]
 server = "ptcs_server.cli:cli"
