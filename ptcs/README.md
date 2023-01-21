@@ -32,7 +32,7 @@ poetry install
 ### システム起動
 
 ```bash
-poetry run server serve
+poetry run server
 ```
 
 
@@ -51,7 +51,7 @@ npm install
 
 ```bash
 # ptcs_server を起動
-poetry run server serve
+poetry run server
 
 # ptcs_ui を起動
 npm run ui:dev

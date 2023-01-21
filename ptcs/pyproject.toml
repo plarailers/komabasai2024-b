@@ -10,7 +10,7 @@ packages = [
 ]
 
 [tool.poetry.scripts]
-server = "ptcs_server.cli:cli"
+server = "ptcs_server.cli:main"
 
 [tool.poetry.dependencies]
 python = "^3.10"
