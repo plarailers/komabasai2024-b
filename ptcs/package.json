@@ -1,0 +1,10 @@
+{
+  "name": "ptcs",
+  "scripts": {
+    "ui:dev": "npm run --workspace=ptcs_ui dev",
+    "ui:build": "npm run --workspace=ptcs_ui build"
+  },
+  "workspaces": [
+    "ptcs_ui"
+  ]
+}
