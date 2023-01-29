@@ -7,7 +7,7 @@ const Home: React.FC = () => {
   const [time, setTime] = useState<Date>();
 
   useEffect(() => {
-    setInterval(() => {
+    const interval = setInterval(() => {
       fetch("/api/state")
         .then((res) => res.json())
         .then((data) => {
@@ -15,6 +15,9 @@ const Home: React.FC = () => {
           setTime(new Date());
         });
     }, 1000);
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
   return (
