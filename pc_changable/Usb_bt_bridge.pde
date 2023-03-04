@@ -2,6 +2,7 @@
 
 BluetoothSerial SerialBT;
 
+// Bluetooth受信側のMacアドレスを設定する
 String MACadd = "9C:9C:1F:CB:D9:F2";
 uint8_t address[6]  = {0x9C, 0x9C, 0x1F, 0xCB, 0xD9, 0xF2};
 bool connected;
@@ -50,7 +51,7 @@ void loop() {
     line = Serial.readStringUntil('¥n');  
     line_len = line.length();
     key = line.toInt();
-    Serial.println(key);        // 1文字だけ読み込む
+    Serial.println(key);
     SerialBT.write(key);
   }
   delay(20);
