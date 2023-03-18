@@ -12,4 +12,4 @@ class Control:
         self.state = init_state()
 
     def get_state(self) -> dict:
-        return {"state": "a"}
+        return {"state": self.state.to_json()}

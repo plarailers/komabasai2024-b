@@ -1,4 +1,4 @@
-from enum import Enum, auto
+from enum import Enum
 
 
 class Junction:
@@ -66,8 +66,8 @@ class Direction(Enum):
     ```
     """
 
-    STRAIGHT = auto()
-    CURVE = auto()
+    STRAIGHT = "STRAIGHT"
+    CURVE = "CURVE"
 
 
 class Joint(Enum):
@@ -84,6 +84,6 @@ class Joint(Enum):
     NOTE: いい名前を募集中
     """
 
-    THROUGH = auto()
-    DIVERGING = auto()
-    CONVERGING = auto()
+    THROUGH = "THROUGH"
+    DIVERGING = "DIVERGING"
+    CONVERGING = "CONVERGING"

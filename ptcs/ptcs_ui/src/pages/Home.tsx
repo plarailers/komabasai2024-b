@@ -24,7 +24,7 @@ const Home: React.FC = () => {
     <Layout>
       <Container>
         hello
-        <Code block>{JSON.stringify(data)}</Code>
+        <Code block>{JSON.stringify(data, null, 4)}</Code>
         {time?.toLocaleString()}
       </Container>
     </Layout>

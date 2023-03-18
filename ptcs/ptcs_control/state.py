@@ -1,3 +1,4 @@
+from typing import Any
 from .components import Direction, Joint, Junction, Section
 
 
@@ -35,6 +36,13 @@ class State:
                 length=length,
             )
             self.sections[id] = section
+
+    def to_json(self) -> Any:
+        data: Any = {
+            "junctions": dict((id, {"direction": j._direction}) for id, j in self.junctions.items()),
+            "sections": dict((id, {}) for id, s in self.sections.items()),
+        }
+        return data
 
 
 def init_state() -> State:
