@@ -6,33 +6,38 @@ interface SectionProps {
 const Section: React.FC<SectionProps> = ({ id, points }) => {
   const blocked = false;
 
-  const shrinkedPointFirst = {
-    x: points[0].x + Math.sign(points[1].x - points[0].x) * 2,
-    y: points[0].y + Math.sign(points[1].y - points[0].y) * 2,
-  };
+  const shrunkPointFirst = shrink(points[0], points[1], 4);
 
   const n = points.length;
 
-  const shrinkedPointLast = {
-    x: points[n - 1].x + Math.sign(points[n - 2].x - points[n - 1].x) * 2,
-    y: points[n - 1].y + Math.sign(points[n - 2].y - points[n - 1].y) * 2,
-  };
+  const shrunkPointLast = shrink(points[n - 1], points[n - 2], 4);
 
-  const shrinkedPoints = [
-    shrinkedPointFirst,
+  const shrunkPoints = [
+    shrunkPointFirst,
     ...points.slice(1, -1),
-    shrinkedPointLast,
+    shrunkPointLast,
   ];
 
   return (
     <polyline
-      points={shrinkedPoints.map((p) => `${p.x},${p.y}`).join(" ")}
+      points={shrunkPoints.map((p) => `${p.x},${p.y}`).join(" ")}
       fill="none"
       stroke={blocked ? "red" : "white"}
-      strokeWidth={blocked ? 2 : 1}
+      strokeWidth={blocked ? 4 : 2}
       strokeLinecap="square"
     />
   );
+};
+
+const shrink = (
+  p: { x: number; y: number },
+  q: { x: number; y: number },
+  amount: number
+): { x: number; y: number } => {
+  return {
+    x: p.x + ((q.x - p.x) / Math.hypot(q.x - p.x, q.y - p.y)) * amount,
+    y: p.y + ((q.y - p.y) / Math.hypot(q.x - p.x, q.y - p.y)) * amount,
+  };
 };
 
 export default Section;

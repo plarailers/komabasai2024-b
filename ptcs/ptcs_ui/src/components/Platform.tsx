@@ -3,8 +3,8 @@ interface PlatformProps {
 }
 
 const Platform: React.FC<PlatformProps> = ({ position }) => {
-  const width = 30;
-  const height = 10;
+  const width = 60;
+  const height = 20;
   return (
     <rect
       x={position.x - width / 2}
