@@ -1,4 +1,4 @@
-from .direction import Direction
+from .joint import Joint
 from .junction import Junction
 
 
@@ -9,24 +9,24 @@ class Section:
 
     _id: str
     _length: float
-    _source_junction: "Junction"
-    _target_junction: "Junction"
+    _junction_0: "Junction"
+    _junction_1: "Junction"
 
     def __init__(
         self,
         *,
         id: str,
-        source_junction: "Junction",
-        source_direction: "Direction",
-        target_junction: "Junction",
-        target_direction: "Direction",
+        junction_0: "Junction",
+        junction_0_joint: "Joint",
+        junction_1: "Junction",
+        junction_1_joint: "Joint",
         length: float,
     ) -> None:
         self._id = id
         self._length = length
 
-        self._source_junction = source_junction
-        source_junction.add_diverging_section(source_direction, self)
+        self._junction_0 = junction_0
+        junction_0.add_section(junction_0_joint, self)
 
-        self._target_junction = target_junction
-        target_junction.add_converging_section(target_direction, self)
+        self._junction_1 = junction_1
+        junction_1.add_section(junction_1_joint, self)

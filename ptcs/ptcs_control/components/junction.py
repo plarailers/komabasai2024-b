@@ -1,4 +1,5 @@
 from .direction import Direction
+from .joint import Joint
 from .section import Section
 
 
@@ -9,8 +10,7 @@ class Junction:
 
     _id: str
     _direction: "Direction"
-    _converging_sections: dict["Direction", "Section"]
-    _diverging_sections: dict["Direction", "Section"]
+    _sections: dict["Joint", "Section"]
 
     def __init__(
         self,
@@ -20,11 +20,7 @@ class Junction:
     ) -> None:
         self._id = id
         self._direction = initial_direction
-        self._converging_sections = {}
-        self._diverging_sections = {}
+        self._sections = {}
 
-    def add_converging_section(self, direction: "Direction", section: "Section") -> None:
-        self._converging_sections[direction] = section
-
-    def add_diverging_section(self, direction: "Direction", section: "Section") -> None:
-        self._diverging_sections[direction] = section
+    def add_section(self, joint: "Joint", section: "Section") -> None:
+        self._sections[joint] = section

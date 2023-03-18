@@ -3,7 +3,14 @@ from enum import Enum, auto
 
 class Direction(Enum):
     """
-    分岐・合流点やサーボモーターの方向
+    サーボモーターの方向
+
+    ```
+    _______________
+    ______  _______ STRAIGHT
+          \ \______
+           \_______ CURVE
+    ```
     """
 
     STRAIGHT = auto()
