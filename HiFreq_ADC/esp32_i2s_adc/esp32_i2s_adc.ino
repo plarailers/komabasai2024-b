@@ -7,6 +7,7 @@
  * シリアルの速度は 1000000bps ないと読み取り速度に追い付けないので注意
  */
 
+#include <arduinoFFT.h>
 #include <BluetoothSerial.h>
 #include <driver/i2s.h>
 #include <soc/syscon_reg.h>
@@ -14,22 +15,58 @@
 #define I2S_SAMPLE_RATE 10000  // サンプリングレート[Hz]/2. 10000以上でないとうまく動かない
 #define ADC_INPUT ADC1_CHANNEL_4 //pin 32
 #define MEM_SIDE 2
-#define MEM_LENGTH 10000
+#define MEM_LENGTH 1024
+#define N_MEDIAN 5
 
 #define SERIAL_BUF_LEN 16
+
+arduinoFFT FFT;
+BluetoothSerial SerialBT;
+
 const int PWM_PIN = 25;
 const int PWM_CHANNEL = 0;
 const uint32_t PWM_FREQ = 20000;
 
 int pwm_duty = 0;
 
-BluetoothSerial SerialBT;
-
 uint8_t flag_read_done = 0;
 uint8_t mem_side = 0;
 uint16_t buffer[MEM_SIDE][MEM_LENGTH];
-uint16_t buffer_for_print[MEM_LENGTH];
 uint32_t sequence_num = 0;
+
+double vec_real[MEM_LENGTH];     // Real part of Vector
+double vec_imag[MEM_LENGTH];     // Imaginal part of Vector
+
+double vec_current[N_MEDIAN];
+double vec_freq[N_MEDIAN];
+int i_median = 0;
+
+double median(double* vec) {
+  // 渡された配列vecをコピー
+  double data[N_MEDIAN];
+  for (int i=0; i<N_MEDIAN; i++) {
+    data[i] = vec[i];
+  }
+
+  // データを大きさの順に並べ替え
+  double tmp;
+  for(int i=1; i<N_MEDIAN; i++) {
+    for(int j=0; j<N_MEDIAN - i; j++) {
+      if(data[j] > data[j + 1]) {
+        tmp = data[j];
+        data[j] = data[j + 1];
+        data[j + 1] = tmp;
+      }
+    }
+  }
+
+  // メジアンを求める
+  if(N_MEDIAN % 2 == 1) { // データ数が奇数個の場合
+    return data[(N_MEDIAN - 1) / 2];
+  } else { // データ数が偶数の場合
+    return (data[(N_MEDIAN / 2) - 1] + data[N_MEDIAN / 2]) / 2.0;
+  }
+}
 
 void i2sInit()
 {
@@ -54,12 +91,10 @@ void i2sInit()
 }
 
 void reader(void *pvParameters) {
-  uint32_t read_counter = 0;
-  uint64_t read_sum = 0;
   size_t bytes_read;
   while(1){
     i2s_read(I2S_NUM_0, buffer[mem_side], MEM_LENGTH * sizeof(uint16_t), &bytes_read, portMAX_DELAY);
-    mem_side = (mem_side + 1) & 1;
+    mem_side = (mem_side + 1) % MEM_SIDE;
     flag_read_done = 1;
     sequence_num += 1;
   }
@@ -91,16 +126,42 @@ void loop() {
     flag_read_done = 0;
     
     // copy data stored in the memory
-    uint8_t idle_mem_side = (mem_side + 1) & 1;  // いま書き込み中でないほうのmem_sideを取得
+    uint8_t idle_mem_side = (mem_side + 1) % MEM_SIDE;  // いま書き込み中でないmem_sideを取得
     for (int i=0; i<MEM_LENGTH; i++) {  // コピー
-      buffer_for_print[i] = buffer[idle_mem_side][i] & 0xFFF;
+      vec_real[i] = buffer[idle_mem_side][i] & 0xFFF;
+      vec_imag[i] = 0.0f;
     }
-    
+
     // print value through Serial
     // (serial speed should be 1Mbps or more)
+    /*
     for (int i=0; i<MEM_LENGTH; i++) {
-      Serial.println(buffer_for_print[i]);
+      Serial.println(vec_real[i]);
     }
+    */
+
+    // Average current
+    double mean = 0.0f;
+    for (int i=0; i<MEM_LENGTH; i++) {
+      mean += vec_real[i];
+    }
+    mean /= MEM_LENGTH;
+
+    // Fourier transform (apply Hamming windowing)
+    FFT = arduinoFFT(vec_real, vec_imag, MEM_LENGTH, I2S_SAMPLE_RATE * 2);
+    FFT.Windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD);
+    FFT.Compute(FFT_FORWARD); // calculate FT
+    FFT.ComplexToMagnitude(); // mag. to vR 1st half
+    double peak = FFT.MajorPeak(); // get peak freq
+
+    // median
+    vec_current[i_median] = mean;
+    vec_freq[i_median] = peak;
+    i_median = (i_median + 1) % N_MEDIAN;
+    
+    Serial.print(median(vec_freq));
+    Serial.print(",");
+    Serial.println(median(vec_current));
   }
 
   // ------------------------------------
@@ -119,7 +180,7 @@ void loop() {
       }
     }
     sscanf((char*)buf, "%d", &pwm_duty);
-    Serial.println(pwm_duty);
+//    Serial.println(pwm_duty);
     ledcWrite(PWM_CHANNEL, pwm_duty);
   }
   
