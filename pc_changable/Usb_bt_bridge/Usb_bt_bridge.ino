@@ -9,7 +9,7 @@ bool connected;
 
 void setup() {
   Serial.begin(115200);
-  SerialBT.begin("ESP32test", true); 
+  SerialBT.begin("ESP32test(master)", true); 
   Serial.println("The device started in master mode, make sure remote BT device is on!");
   
   // connect(address) is fast (upto 10 secs max), connect(name) is slow (upto 30 secs max) as it needs
@@ -24,6 +24,7 @@ void setup() {
       Serial.println("Failed to connect. Make sure remote device is available and in range, then restart app."); 
     }
   }
+  /*
   // disconnect() may take upto 10 secs max
   if (SerialBT.disconnect()) {
     Serial.println("Disconnected Succesfully!");
@@ -41,6 +42,7 @@ void setup() {
     digitalWrite(2, LOW);
     delay(50);
   }
+  */
 }
 
 void loop() {
