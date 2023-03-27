@@ -10,4 +10,4 @@ def send(message):
     # messageをArduinoに送信する
     ser.write(bytes(str(message),'ascii'))
 if __name__ == "__main__": 
-    send('K')
+    send('K')#適当なメッセージ
