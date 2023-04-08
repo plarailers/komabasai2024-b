@@ -1,62 +1,21 @@
 from enum import Enum
+from typing import NewType
 
 
-class Junction:
-    """
-    線路の分岐・合流点
-    """
+Junction = NewType("Junction", str)
+"""
+線路の分岐・合流点を表す識別子
+"""
 
-    _id: str
-    _direction: "Direction"
-    _sections: dict["Joint", "Section"]
-
-    def __init__(
-        self,
-        *,
-        id: str,
-        initial_direction: "Direction",
-    ) -> None:
-        self._id = id
-        self._direction = initial_direction
-        self._sections = {}
-
-    def add_section(self, joint: "Joint", section: "Section") -> None:
-        self._sections[joint] = section
-
-
-class Section:
-    """
-    線路の区間
-    """
-
-    _id: str
-    _length: float
-    _junction_0: "Junction"
-    _junction_1: "Junction"
-
-    def __init__(
-        self,
-        *,
-        id: str,
-        junction_0: "Junction",
-        junction_0_joint: "Joint",
-        junction_1: "Junction",
-        junction_1_joint: "Joint",
-        length: float,
-    ) -> None:
-        self._id = id
-        self._length = length
-
-        self._junction_0 = junction_0
-        junction_0.add_section(junction_0_joint, self)
-
-        self._junction_1 = junction_1
-        junction_1.add_section(junction_1_joint, self)
+Section = NewType("Section", str)
+"""
+線路の区間を表す識別子
+"""
 
 
 class Direction(Enum):
     """
-    サーボモーターの方向
+    サーボモーターの方向を表す列挙型
 
     ```
     _______________
@@ -72,7 +31,7 @@ class Direction(Enum):
 
 class Joint(Enum):
     """
-    ターンアウトレールにおける分岐・合流の接続のしかた
+    ターンアウトレールにおける分岐・合流の接続のしかたを表す列挙型
 
     ```
                _______________
