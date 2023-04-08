@@ -15,7 +15,7 @@ export class DefaultService {
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static helloApiHelloGet(): CancelablePromise<any> {
+    public static hello(): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/hello',
@@ -27,7 +27,7 @@ export class DefaultService {
      * @returns RailwayConfig Successful Response
      * @throws ApiError
      */
-    public static getConfigApiConfigGet(): CancelablePromise<RailwayConfig> {
+    public static getConfig(): CancelablePromise<RailwayConfig> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/config',
@@ -39,7 +39,7 @@ export class DefaultService {
      * @returns RailwayState Successful Response
      * @throws ApiError
      */
-    public static getStateApiStateGet(): CancelablePromise<RailwayState> {
+    public static getState(): CancelablePromise<RailwayState> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/state',

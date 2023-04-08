@@ -11,7 +11,7 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      DefaultService.getStateApiStateGet().then((state) => {
+      DefaultService.getState().then((state) => {
         setData(state);
         setTime(new Date());
       });

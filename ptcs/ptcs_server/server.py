@@ -7,7 +7,7 @@ from .api import api_router
 
 control = Control()
 
-app = FastAPI()
+app = FastAPI(generate_unique_id_function=lambda route: route.name)
 app.state.control = control
 
 # `/api` 以下で API を呼び出す
