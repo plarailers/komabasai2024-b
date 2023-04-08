@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from ptcs_control import Control
 import uvicorn
-from .api.router import router as api_router
+from .api import api_router
 
 
 control = Control()
