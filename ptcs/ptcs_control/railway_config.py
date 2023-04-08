@@ -1,20 +1,15 @@
-from typing import Any
+from pydantic import BaseModel, Field
 from .components import Joint, Junction, Section, Train
 
 
-class RailwayConfig:
+class RailwayConfig(BaseModel):
     """
     路線の設定
     """
 
-    junctions: dict["Junction", "JunctionConfig"]
-    sections: dict["Section", "SectionConfig"]
-    trains: dict["Train", "TrainConfig"]
-
-    def __init__(self) -> None:
-        self.junctions = {}
-        self.sections = {}
-        self.trains = {}
+    junctions: dict["Junction", "JunctionConfig"] = Field(default_factory=dict)
+    sections: dict["Section", "SectionConfig"] = Field(default_factory=dict)
+    trains: dict["Train", "TrainConfig"] = Field(default_factory=dict)
 
     def define_junctions(self, *junction_tuples: tuple["Junction"]) -> None:
         """
@@ -46,48 +41,22 @@ class RailwayConfig:
         for (train_id,) in train_tuples:
             self.trains[train_id] = TrainConfig()
 
-    def to_json(self) -> Any:
-        data: Any = {
-            "junctions": dict((id, {}) for id, j in self.junctions.items()),
-            "sections": dict((id, {}) for id, s in self.sections.items()),
-        }
-        return data
 
-
-class JunctionConfig:
-    _sections: dict["Joint", "Section"]
-
-    def __init__(
-        self,
-    ) -> None:
-        self._sections = {}
+class JunctionConfig(BaseModel):
+    sections: dict["Joint", "Section"] = Field(default_factory=dict)
 
     def add_section(self, joint: "Joint", section: "Section") -> None:
-        self._sections[joint] = section
+        self.sections[joint] = section
 
 
-class SectionConfig:
-    _length: float
-    _junction_0: "Junction"
-    _junction_1: "Junction"
-
-    def __init__(
-        self,
-        *,
-        junction_0: "Junction",
-        junction_1: "Junction",
-        length: float,
-    ) -> None:
-        self._length = length
-        self._junction_0 = junction_0
-        self._junction_1 = junction_1
+class SectionConfig(BaseModel):
+    junction_0: "Junction"
+    junction_1: "Junction"
+    length: float
 
 
-class TrainConfig:
-    def __init__(
-        self,
-    ) -> None:
-        pass
+class TrainConfig(BaseModel):
+    pass
 
 
 def init_config() -> RailwayConfig:

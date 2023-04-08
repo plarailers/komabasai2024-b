@@ -1,23 +1,15 @@
-from typing import Any
-
-from .railway_config import RailwayConfig
+from pydantic import BaseModel, Field
 from .components import Direction, Junction, Section, Train
 
 
-class RailwayState:
+class RailwayState(BaseModel):
     """
     路線の状態
     """
 
-    config: RailwayConfig
-    junctions: dict["Junction", "JunctionState"]
-    sections: dict["Section", "SectionState"]
-    trains: dict["Train", "TrainState"]
-
-    def __init__(self) -> None:
-        self.junctions = {}
-        self.sections = {}
-        self.trains = {}
+    junctions: dict["Junction", "JunctionState"] = Field(default_factory=dict)
+    sections: dict["Section", "SectionState"] = Field(default_factory=dict)
+    trains: dict["Train", "TrainState"] = Field(default_factory=dict)
 
     def define_junctions(self, *junction_tuples: tuple["Junction", "Direction"]) -> None:
         """
@@ -41,42 +33,18 @@ class RailwayState:
         for (train_id, current_section, mileage) in train_tuples:
             self.trains[train_id] = TrainState(current_section=current_section, mileage=mileage)
 
-    def to_json(self) -> Any:
-        data: Any = {
-            "junctions": dict((id, {"direction": j._direction}) for id, j in self.junctions.items()),
-            "sections": dict((id, {}) for id, s in self.sections.items()),
-            "trains": dict(
-                (id, {"current_section": t._current_section, "mileage": t._mileage}) for id, t in self.trains.items()
-            ),
-        }
-        return data
+
+class JunctionState(BaseModel):
+    direction: "Direction"
 
 
-class JunctionState:
-    _direction: "Direction"
-
-    def __init__(
-        self,
-        *,
-        direction: "Direction",
-    ) -> None:
-        self._direction = direction
+class SectionState(BaseModel):
+    pass
 
 
-class SectionState:
-    def __init__(
-        self,
-    ) -> None:
-        pass
-
-
-class TrainState:
-    _current_section: "Section"
-    _mileage: float
-
-    def __init__(self, *, current_section: "Section", mileage: float) -> None:
-        self._current_section = current_section
-        self._mileage = mileage
+class TrainState(BaseModel):
+    current_section: "Section"
+    mileage: float
 
 
 def init_state() -> RailwayState:

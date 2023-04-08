@@ -14,8 +14,8 @@ class Control:
         self.config = init_config()
         self.state = init_state()
 
-    def get_config(self) -> dict:
-        return {"config": self.config.to_json()}
+    def get_config(self) -> "RailwayConfig":
+        return self.config
 
-    def get_state(self) -> dict:
-        return {"state": self.state.to_json()}
+    def get_state(self) -> "RailwayState":
+        return self.state
