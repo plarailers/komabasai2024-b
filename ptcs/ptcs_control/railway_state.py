@@ -1,7 +1,7 @@
 from typing import Any
 
 from .railway_config import RailwayConfig
-from .components import Direction, Junction, Section
+from .components import Direction, Junction, Section, Train
 
 
 class RailwayState:
@@ -12,10 +12,12 @@ class RailwayState:
     config: RailwayConfig
     junctions: dict["Junction", "JunctionState"]
     sections: dict["Section", "SectionState"]
+    trains: dict["Train", "TrainState"]
 
     def __init__(self) -> None:
         self.junctions = {}
         self.sections = {}
+        self.trains = {}
 
     def define_junctions(self, *junction_tuples: tuple["Junction", "Direction"]) -> None:
         """
@@ -35,10 +37,17 @@ class RailwayState:
         for (section_id,) in section_tuples:
             self.sections[section_id] = SectionState()
 
+    def define_trains(self, *train_tuples: tuple["Train", "Section", float]) -> None:
+        for (train_id, current_section, mileage) in train_tuples:
+            self.trains[train_id] = TrainState(current_section=current_section, mileage=mileage)
+
     def to_json(self) -> Any:
         data: Any = {
             "junctions": dict((id, {"direction": j._direction}) for id, j in self.junctions.items()),
             "sections": dict((id, {}) for id, s in self.sections.items()),
+            "trains": dict(
+                (id, {"current_section": t._current_section, "mileage": t._mileage}) for id, t in self.trains.items()
+            ),
         }
         return data
 
@@ -59,6 +68,15 @@ class SectionState:
         self,
     ) -> None:
         pass
+
+
+class TrainState:
+    _current_section: "Section"
+    _mileage: float
+
+    def __init__(self, *, current_section: "Section", mileage: float) -> None:
+        self._current_section = current_section
+        self._mileage = mileage
 
 
 def init_state() -> RailwayState:
@@ -86,6 +104,9 @@ def init_state() -> RailwayState:
     s10 = Section("s10")
     s11 = Section("s11")
 
+    t0 = Train("t0")
+    t1 = Train("t1")
+
     state.define_junctions(
         (j0a, Direction.STRAIGHT),
         (j0b, Direction.STRAIGHT),
@@ -110,6 +131,11 @@ def init_state() -> RailwayState:
         (s09,),
         (s10,),
         (s11,),
+    )
+
+    state.define_trains(
+        (t0, s00, 0),
+        (t1, s04, 0),
     )
 
     return state

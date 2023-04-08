@@ -12,6 +12,11 @@ Section = NewType("Section", str)
 線路の区間を表す識別子
 """
 
+Train = NewType("Train", str)
+"""
+列車を表す識別子
+"""
+
 
 class Direction(Enum):
     """

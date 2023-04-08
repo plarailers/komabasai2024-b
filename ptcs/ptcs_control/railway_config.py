@@ -1,5 +1,5 @@
 from typing import Any
-from .components import Joint, Junction, Section
+from .components import Joint, Junction, Section, Train
 
 
 class RailwayConfig:
@@ -9,10 +9,12 @@ class RailwayConfig:
 
     junctions: dict["Junction", "JunctionConfig"]
     sections: dict["Section", "SectionConfig"]
+    trains: dict["Train", "TrainConfig"]
 
     def __init__(self) -> None:
         self.junctions = {}
         self.sections = {}
+        self.trains = {}
 
     def define_junctions(self, *junction_tuples: tuple["Junction"]) -> None:
         """
@@ -39,6 +41,10 @@ class RailwayConfig:
                 junction_1=junction_1_id,
                 length=length,
             )
+
+    def define_trains(self, *train_tuples: tuple["Train"]) -> None:
+        for (train_id,) in train_tuples:
+            self.trains[train_id] = TrainConfig()
 
     def to_json(self) -> Any:
         data: Any = {
@@ -77,6 +83,13 @@ class SectionConfig:
         self._junction_1 = junction_1
 
 
+class TrainConfig:
+    def __init__(
+        self,
+    ) -> None:
+        pass
+
+
 def init_config() -> RailwayConfig:
     config = RailwayConfig()
 
@@ -102,6 +115,9 @@ def init_config() -> RailwayConfig:
     s10 = Section("s10")
     s11 = Section("s11")
 
+    t0 = Train("t0")
+    t1 = Train("t1")
+
     config.define_junctions(
         (j0a,),
         (j0b,),
@@ -126,6 +142,11 @@ def init_config() -> RailwayConfig:
         (s09, j1a, Joint.DIVERGING, j1b, Joint.DIVERGING, 100),
         (s10, j2a, Joint.DIVERGING, j2b, Joint.DIVERGING, 100),
         (s11, j3a, Joint.DIVERGING, j3b, Joint.DIVERGING, 100),
+    )
+
+    config.define_trains(
+        (t0,),
+        (t1,),
     )
 
     return config
