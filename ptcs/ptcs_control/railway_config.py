@@ -7,9 +7,11 @@ class RailwayConfig(BaseModel):
     路線の設定
     """
 
-    junctions: dict["Junction", "JunctionConfig"] = Field(default_factory=dict)
-    sections: dict["Section", "SectionConfig"] = Field(default_factory=dict)
-    trains: dict["Train", "TrainConfig"] = Field(default_factory=dict)
+    # NOTE: Junction などを "" で囲むと ForwardRef に関するエラーが起こる
+
+    junctions: dict[Junction, "JunctionConfig"] = Field(default_factory=dict)
+    sections: dict[Section, "SectionConfig"] = Field(default_factory=dict)
+    trains: dict[Train, "TrainConfig"] = Field(default_factory=dict)
 
     def define_junctions(self, *junction_tuples: tuple["Junction"]) -> None:
         """
@@ -65,6 +67,9 @@ class SectionConfig(BaseModel):
 
 class TrainConfig(BaseModel):
     pass
+
+
+RailwayConfig.update_forward_refs()
 
 
 def init_config() -> RailwayConfig:

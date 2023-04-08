@@ -7,9 +7,11 @@ class RailwayState(BaseModel):
     路線の状態
     """
 
-    junctions: dict["Junction", "JunctionState"] = Field(default_factory=dict)
-    sections: dict["Section", "SectionState"] = Field(default_factory=dict)
-    trains: dict["Train", "TrainState"] = Field(default_factory=dict)
+    # NOTE: Junction などを "" で囲むと ForwardRef に関するエラーが起こる
+
+    junctions: dict[Junction, "JunctionState"] = Field(default_factory=dict)
+    sections: dict[Section, "SectionState"] = Field(default_factory=dict)
+    trains: dict[Train, "TrainState"] = Field(default_factory=dict)
 
     def define_junctions(self, *junction_tuples: tuple["Junction", "Direction"]) -> None:
         """
@@ -48,6 +50,9 @@ class TrainState(BaseModel):
     current_section: "Section"
     target_junction: "Junction"
     mileage: float
+
+
+RailwayState.update_forward_refs()
 
 
 def init_state() -> RailwayState:

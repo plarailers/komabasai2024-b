@@ -1,21 +1,20 @@
 import { Code, Container } from "@mantine/core";
+import { DefaultService, RailwayState } from "ptcs_client";
 import { Layout } from "../components/Layout";
 import { useEffect, useState } from "react";
 import Platform from "../components/Platform";
 import Section from "../components/Section";
 
 const Home: React.FC = () => {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<RailwayState | null>(null);
   const [time, setTime] = useState<Date>();
 
   useEffect(() => {
     const interval = setInterval(() => {
-      fetch("/api/state")
-        .then((res) => res.json())
-        .then((data) => {
-          setData(data);
-          setTime(new Date());
-        });
+      DefaultService.getStateApiStateGet().then((state) => {
+        setData(state);
+        setTime(new Date());
+      });
     }, 1000);
     return () => {
       clearInterval(interval);
