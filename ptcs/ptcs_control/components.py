@@ -19,7 +19,7 @@ Train = NewType("Train", str)
 
 
 class Direction(Enum):
-    """
+    r"""
     サーボモーターの方向を表す列挙型
 
     ```
@@ -35,7 +35,7 @@ class Direction(Enum):
 
 
 class Joint(Enum):
-    """
+    r"""
     ターンアウトレールにおける分岐・合流の接続のしかたを表す列挙型
 
     ```
