@@ -54,6 +54,14 @@ class SectionConfig(BaseModel):
     junction_1: "Junction"
     length: float
 
+    def get_opposite_junction(self, junction: "Junction") -> "Junction":
+        if junction == self.junction_0:
+            return self.junction_1
+        elif junction == self.junction_1:
+            return self.junction_0
+        else:
+            raise
+
 
 class TrainConfig(BaseModel):
     pass

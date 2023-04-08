@@ -29,9 +29,11 @@ class RailwayState(BaseModel):
         for (section_id,) in section_tuples:
             self.sections[section_id] = SectionState()
 
-    def define_trains(self, *train_tuples: tuple["Train", "Section", float]) -> None:
-        for (train_id, current_section, mileage) in train_tuples:
-            self.trains[train_id] = TrainState(current_section=current_section, mileage=mileage)
+    def define_trains(self, *train_tuples: tuple["Train", "Section", "Junction", float]) -> None:
+        for (train_id, current_section, target_junction, mileage) in train_tuples:
+            self.trains[train_id] = TrainState(
+                current_section=current_section, target_junction=target_junction, mileage=mileage
+            )
 
 
 class JunctionState(BaseModel):
@@ -44,6 +46,7 @@ class SectionState(BaseModel):
 
 class TrainState(BaseModel):
     current_section: "Section"
+    target_junction: "Junction"
     mileage: float
 
 
@@ -102,8 +105,8 @@ def init_state() -> RailwayState:
     )
 
     state.define_trains(
-        (t0, s00, 0),
-        (t1, s04, 0),
+        (t0, s00, j0b, 0),
+        (t1, s04, j3a, 0),
     )
 
     return state
