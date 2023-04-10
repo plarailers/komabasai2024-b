@@ -1,18 +1,9 @@
 /* 車載統合ソフトウェア */
 /* メインの処理を行う  */
 
-#include <BluetoothSerial.h>
-BluetoothSerial SerialBT;
-#include <Wire.h>
-#include <Adafruit_Sensor.h>
-#include <Adafruit_BNO055.h>
-#include <utility/imumaths.h>
-
-
 #include "train.h"
 
-Train train(115200, "ESP32-Dr.", A18, 4);
-
+Train train(115200, "ESP32-Dr.");
 
 void setup() {
     /* Serial */
@@ -37,17 +28,17 @@ void setup() {
 void loop(){
 
     /* モータ駆動 */
-    int     motorInput      = getMotorInput();
-    moveMotor(motorInput);
+    int     motorInput      = train.getMotorInput();
+    train.moveMotor(motorInput);
 
     /* 積算位置検知(IPS) */
-    double  wheelDistance   = getWheelSpeed();
-    bool    isStopping      = getStopping();
-    double  movingDistance  = getMovingDistance(wheelDistance, isStopping);
-    sendMovingDistance(movingDistance);
+    double  wheelDistance   = train.getWheelSpeed(train.MOTOR_CURRENT_SENSOR_PIN);
+    bool    isStopping      = train.getStopping();
+    double  movingDistance  = train.getMovingDistance(wheelDistance, isStopping);
+    train.sendMovingDistance(movingDistance);
 
     /* 絶対位置検知(APS) */
-    int     positionID      = getPositionID();
-    if (positionID > 0) sendPositionID(positionID);
+    int     positionID      = train.getPositionID();
+    if (positionID > 0) train.sendPositionID(positionID);
     
 }
