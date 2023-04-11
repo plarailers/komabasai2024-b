@@ -7,10 +7,11 @@
  * シリアルの速度は 1000000bps ないと読み取り速度に追い付けないので注意
  */
 
-#include <arduinoFFT.h>
 #include <BluetoothSerial.h>
 #include <driver/i2s.h>
 #include <soc/syscon_reg.h>
+
+#include "src/arduinoFFT/arduinoFFT.h"
 
 #define SAMPLING_RATE 10000  // AD変換のサンプリングレート[Hz]
 #define ADC_N_CHANNEL 2      // AD変換したい信号の数。電圧と電流なので2つ
@@ -38,23 +39,23 @@ uint8_t mem_side = 0;
 uint16_t buffer[MEM_SIDE][I2S_BUF_LENGTH];
 uint32_t sequence_num = 0;
 
-double vec_current_real[MEM_LENGTH];     // Real part of Current Vector
-double vec_current_imag[MEM_LENGTH];     // Imaginal part of Current Vector
+float vec_current_real[MEM_LENGTH];     // Real part of Current Vector
+float vec_current_imag[MEM_LENGTH];     // Imaginal part of Current Vector
 uint16_t vec_voltage[MEM_LENGTH];   // voltage vector
 
-double vec_current[N_MEDIAN];
-double vec_freq[N_MEDIAN];
+float vec_current[N_MEDIAN];
+float vec_freq[N_MEDIAN];
 int i_median = 0;
 
-double median(double* vec) {
+float median(float* vec) {
   // 渡された配列vecをコピー
-  double data[N_MEDIAN];
+  float data[N_MEDIAN];
   for (int i=0; i<N_MEDIAN; i++) {
     data[i] = vec[i];
   }
 
   // データを大きさの順に並べ替え
-  double tmp;
+  float tmp;
   for(int i=1; i<N_MEDIAN; i++) {
     for(int j=0; j<N_MEDIAN - i; j++) {
       if(data[j] > data[j + 1]) {
@@ -160,7 +161,7 @@ void loop() {
     */
 
     // Average current
-    double mean = 0.0f;
+    float mean = 0.0f;
     for (int i=0; i<MEM_LENGTH; i++) {
       mean += vec_current_real[i];
     }
@@ -171,7 +172,7 @@ void loop() {
     FFT.Windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD);
     FFT.Compute(FFT_FORWARD); // calculate FT
     FFT.ComplexToMagnitude(); // mag. to vR 1st half
-    double peak = FFT.MajorPeak(); // get peak freq
+    float peak = FFT.MajorPeak(); // get peak freq
 
     // median
     vec_current[i_median] = mean;
