@@ -3,7 +3,7 @@
 
 #include "train.h"
 
-Train train(115200, "ESP32-Dr.");
+Train train("ESP32-Dr.");
 
 void setup() {
     /* Serial */
@@ -11,7 +11,7 @@ void setup() {
     while (!Serial);
 
     /* SerialBT */
-    SerialBT.begin(train.serialPortName);
+    SerialBT.begin(train.serialBTPortName);
 
     /* ledc */
     ledcSetup(0, 700, 8);

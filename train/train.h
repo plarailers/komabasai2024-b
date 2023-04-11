@@ -1,4 +1,4 @@
-/* train.inoで使用する関数を定義する */
+/* train.inoで使用する変数・関数を定義する */
 
 #include <BluetoothSerial.h>
 BluetoothSerial SerialBT;
@@ -12,10 +12,10 @@ class Train : public GetStopping, public GetWheelSpeed, public GetPositionID
 {
     public:
         int     serialSpeed;
-        char*    serialPortName;
+        char*   serialBTPortName;
         int     MOTOR_INPUT_PIN;
 
-        Train(int serialSpeed, char* serialPortName);
+        Train(char* serialBTPortName);
         int     getMotorInput();
         void    moveMotor(int motorInput);
         double  getMovingDistance(double wheelSpeed, bool isStopping);
@@ -23,9 +23,9 @@ class Train : public GetStopping, public GetWheelSpeed, public GetPositionID
         void    sendPositionID(int positionID);
 };
 
-Train::Train(int serialSpeed, char* serialPortName) {
-    this->serialSpeed       = serialSpeed;
-    this->serialPortName    = serialPortName;
+Train::Train(char* serialBTPortName) {
+    this->serialSpeed       = 115200;
+    this->serialBTPortName  = serialBTPortName;
     this->MOTOR_INPUT_PIN   = A18;
 }
 
