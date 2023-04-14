@@ -21,14 +21,14 @@ public:
 
   /**
    * @brief ADC入力ピンを追加する。最大16個まで入力ピンを指定できる
-   * @param pin GPIO番号 (i.e. 35)
+   * @param channel ADC1の入力チャンネル。ADC1_CHANNEL_x
    * @param resolution 分解能。ADC_WIDTH_BIT_9 (9bit), ADC_WIDTH_BIT_10 (10bit), ADC_WIDTH_BIT_11 (11bit),
    * ADC_WIDTH_BIT_12 (12bit) のいずれかを指定する。デフォルトは12bit。
    * @param attenuation アッテネータのゲイン。http://radiopench.blog96.fc2.com/blog-entry-1034.html
    * などが詳しい。デフォルトは-11dB
    * @return 1:success, 0:指定されたピンはADCに非対応などの理由でADC入力ピンを追加できなかった
    */
-  int addPin(uint8_t pin, adc_bits_width_t resolution, adc_atten_t attenuation);
+  int addChannel(adc1_channel_t channel, adc_bits_width_t resolution, adc_atten_t attenuation);
 
   /**
    * @brief 1サンプルのAD変換が完了した時に呼び出される割り込み関数を登録する（2回以上登録した場合は上書きされる）

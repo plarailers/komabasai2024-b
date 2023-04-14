@@ -12,58 +12,16 @@ HighSpeedAnalogRead::HighSpeedAnalogRead()
   isrFunc_(NULL)
 {}
 
-int HighSpeedAnalogRead::addPin(uint8_t pin, adc_bits_width_t resolution, adc_atten_t attenuation) {
-  if (chNum_ > 16) {
+int HighSpeedAnalogRead::addChannel(adc1_channel_t channel, adc_bits_width_t resolution, adc_atten_t attenuation) {
+  if (chNum_ >= 16) {  // すでに16個登録されていたらエラーを吐く
     return 0;
   }
 
   // pattern table の書式は、ESP32 Technical Reference Manual の
   // 29.3.5 DIG SAR ADC Controllers を参照。
-
-  switch (pin) {
-  case ADC1_CHANNEL_0_GPIO_NUM:
-    patternTable_[chNum_ - 1] = (ADC1_CHANNEL_0 << 4) + (resolution << 2) + attenuation;
-    chNum_++;
-    return 1;
-
-  case ADC1_CHANNEL_1_GPIO_NUM:
-    patternTable_[chNum_ - 1] = (ADC1_CHANNEL_1 << 4) + (resolution << 2) + attenuation;
-    chNum_++;
-    return 1;
-
-  case ADC1_CHANNEL_2_GPIO_NUM:
-    patternTable_[chNum_ - 1] = (ADC1_CHANNEL_2 << 4) + (resolution << 2) + attenuation;
-    chNum_++;
-    return 1;
-
-  case ADC1_CHANNEL_3_GPIO_NUM:
-    patternTable_[chNum_ - 1] = (ADC1_CHANNEL_3 << 4) + (resolution << 2) + attenuation;
-    chNum_++;
-    return 1;
-
-  case ADC1_CHANNEL_4_GPIO_NUM:
-    patternTable_[chNum_ - 1] = (ADC1_CHANNEL_4 << 4) + (resolution << 2) + attenuation;
-    chNum_++;
-    return 1;
-
-  case ADC1_CHANNEL_5_GPIO_NUM:
-    patternTable_[chNum_ - 1] = (ADC1_CHANNEL_5 << 4) + (resolution << 2) + attenuation;
-    chNum_++;
-    return 1;
-
-  case ADC1_CHANNEL_6_GPIO_NUM:
-    patternTable_[chNum_ - 1] = (ADC1_CHANNEL_6 << 4) + (resolution << 2) + attenuation;
-    chNum_++;
-    return 1;
-
-  case ADC1_CHANNEL_7_GPIO_NUM:
-    patternTable_[chNum_ - 1] = (ADC1_CHANNEL_7 << 4) + (resolution << 2) + attenuation;
-    chNum_++;
-    return 1;
-
-  default:
-    return 0;
-  }
+  patternTable_[chNum_] = (channel << 4) + (resolution << 2) + attenuation;
+  chNum_++;
+  return 1;
 }
 
 void HighSpeedAnalogRead::attachInterrupt(void (*func)(uint16_t* data, size_t chNum_)) {
@@ -92,7 +50,7 @@ int HighSpeedAnalogRead::start() {
     i2s_config.fixed_mclk = 0;
 
     i2s_driver_install(I2S_NUM_0, &i2s_config, 0, NULL);
-    i2s_set_adc_mode(ADC_UNIT_1, (adc1_channel_t)((patternTable_[0] & 0xf) >> 4));
+    i2s_set_adc_mode(ADC_UNIT_1, (adc1_channel_t)((patternTable_[0] >> 4) & 0xf));
     i2s_adc_enable(I2S_NUM_0);
 
     // 各入力チャンネルの情報を pattern table に設定
@@ -107,6 +65,9 @@ int HighSpeedAnalogRead::start() {
 
     // 入力チャンネル数の設定
     *((uint32_t*)SYSCON_SARADC_CTRL_REG) |= ((chNum_ - 1) << 15);
+
+    Serial.print("[HighSpeedAnalogRead] Sampling start! Num of channels: ");
+    Serial.println(chNum_);
 
     // 読み取りタスクの開始
     xTaskCreatePinnedToCore(reader_, "ADC_reader", 2048, this, 1, &taskHandle_, 1);
