@@ -1,13 +1,28 @@
 import serial
+import time
 
-
-def send(message):
-    # Arduinoとのシリアル通信用のポートとボーレートを指定する
-    port = '/dev/tty.usbserial-110' # ポート名は環境に合わせて変更する
-    baudrate = 115200
-    # シリアルポートを開く
-    ser = serial.Serial(port, baudrate)
+def send(message,ser):
     # messageをArduinoに送信する
-    ser.write(bytes(str(message),'ascii'))
+    ser.write(bytes(message,'ascii'))
+    ser.flush()
+    print("send")
+    
+def receive(ser):
+    message=ser.readline()
+    message_string=message.decode('utf-8')
+    return message_string
+
 if __name__ == "__main__": 
-    send('K')#適当なメッセージ
+    port = '/dev/cu.usbserial-0001' # ポート名は環境に合わせて変更する
+    baudrate = 115200
+    ser = serial.Serial(port, baudrate,timeout=3.0,write_timeout=3.0)
+    time.sleep(3)
+    json_data='{ "key": 51, "value": 314 }'
+    send(json_data,ser)
+    while(True):
+        a=input()
+        send(a,ser)
+        
+    ser.close()
+    
+    #message=receive(ser)

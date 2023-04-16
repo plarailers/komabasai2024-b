@@ -1,60 +1,60 @@
+//sender 中継機
 #include "BluetoothSerial.h"
 
 BluetoothSerial SerialBT;
-
-// Bluetooth受信側のMacアドレスを設定する
-String MACadd = "9C:9C:1F:CB:D9:F2";
-uint8_t address[6]  = {0x9C, 0x9C, 0x1F, 0xCB, 0xD9, 0xF2};
+// Bluetooth受信(Receiver)側のMacアドレスを設定する。
+//String MACadd = "9C:9C:1F:CB:D9:F2";
+//uint8_t address[6]  = {0x9C, 0x9C, 0x1F, 0xCB, 0xD9, 0xF2};
 bool connected;
+const int BUFFER_SIZE = 32;
+char buf[BUFFER_SIZE];
 
 void setup() {
+
+  pinMode( 5, OUTPUT);
   Serial.begin(115200);
-  SerialBT.begin("ESP32test(master)", true); 
-  Serial.println("The device started in master mode, make sure remote BT device is on!");
-  
-  // connect(address) is fast (upto 10 secs max), connect(name) is slow (upto 30 secs max) as it needs
-  // to resolve name to address first, but it allows to connect to different devices with the same name.
-  // Set CoreDebugLevel to Info to view devices bluetooth address and device names
-  connected = SerialBT.connect(address);
-  
-  if(connected) {
+  SerialBT.begin("ESP32_sender", true); 
+  //上のtrueはmasterであることを示す
+  connected = SerialBT.connect("ESP32_receiver");
+  //addressはname or Macaddressを引数にとる。前者はmax30ms後者はmax10ms程度の秒数で接続可能
+  /*
+  if(connected){
     Serial.println("Connected Succesfully!");
-  } else {
+  }else {
     while(!SerialBT.connected(10000)) {
       Serial.println("Failed to connect. Make sure remote device is available and in range, then restart app."); 
     }
   }
-  /*
-  // disconnect() may take upto 10 secs max
-  if (SerialBT.disconnect()) {
-    Serial.println("Disconnected Succesfully!");
-  }
-  // this would reconnect to the name(will use address, if resolved) or address used with connect(name/address).
-  SerialBT.connect();
-
-  pinMode( 2, OUTPUT);
-  pinMode(14, INPUT_PULLUP);
-
-  // Sign for the end of bluetooth setup.
-  for (int i=0; i<3; i++) {
-    digitalWrite(2, HIGH);
-    delay(50);
-    digitalWrite(2, LOW);
-    delay(50);
-  }
   */
+
+  // セットアップ終了を示すLチカ
+  digitalWrite(5, HIGH);
+  delay(50);
+  digitalWrite(5, LOW);
+  delay(50);
+  
 }
 
-void loop() {
-  String line;    // 受信文字列
-  int line_len;   
-  long key;
-  if ( Serial.available() ) {       // 受信データがあるか？
-    line = Serial.readStringUntil('¥n');  
-    line_len = line.length();
-    key = line.toInt();
-    Serial.println(key);
-    SerialBT.write(key);
+String line;  
+void loop() {  
+  // pythonから受信し、ESP32に送信
+  int index=0;
+  while(Serial.available() > 0) {
+
+    digitalWrite(5, HIGH);
+    delay(50);
+    digitalWrite(5, LOW);
+    delay(50);
+    buf[index] = Serial.read();
+    index++;
+    if (index >= 32) {
+      break;
+    }
   }
-  delay(20);
+  for(int i = 0; i < index; i++){
+      SerialBT.write(buf[i]);//データをそのまま送信
+    }
+  index=0;
+  // ESP32から受信し、pythonに送信
+  delay(10);
 }
