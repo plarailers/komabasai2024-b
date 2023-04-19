@@ -5,86 +5,61 @@
 
 #include <BluetoothSerial.h>
 #include <driver/i2s.h>
+#include <esp_adc_cal.h>
 #include <soc/syscon_reg.h>
+#include "src/Filter.h"
 #include "src/HighSpeedAnalogRead.h"
-#include "src/arduinoFFT/arduinoFFT.h"
-
-#define SAMPLING_RATE 10000  // AD変換のサンプリングレート[Hz]
-#define ADC_N_CHANNEL 2      // AD変換したい信号の数。電圧と電流なので2つ
-#define ADC_CH_CURRENT ADC1_CHANNEL_4 //pin 32
-#define ADC_CH_VOLTAGE ADC1_CHANNEL_5 //pin 33
-#define FFT_VEC_LEN 1024  // FFTに使うサンプル数
-#define AVE_LEN 32   // 平滑化後の電流・電圧・周波数を記録しておくサンプル数
-#define N_MEDIAN 5   // モータ周波数は平均ではなく中央値で平滑化する。平滑化サンプル数
+#include "src/MotorRotationDetector.h"
 
 #define SERIAL_LEN 16
 
-arduinoFFT FFT;
+// ピン番号
+const int PIN_PWM = 25;
+const int PIN_SENSE_I = 32;
+const int PIN_SENSE_V = 33;
+const int PIN_PHOTO_CLK = 34;
+const int PIN_PHOTO_DAT = 35;
+
+// ADC関係(ユーザが指定する定数)
+const int ADC_SAMPLING_RATE = 20000;  // AD変換のサンプリングレート[Hz]
+const int ADC_N_CHANNEL = 4;      // AD変換したい信号の数。電圧、電流、clk、datの4つ
+const adc1_channel_t ADC_CH_CURRENT = (adc1_channel_t)(digitalPinToAnalogChannel(PIN_SENSE_I));
+const adc1_channel_t ADC_CH_VOLTAGE= (adc1_channel_t)(digitalPinToAnalogChannel(PIN_SENSE_V));
+const adc1_channel_t ADC_CH_CLK = (adc1_channel_t)(digitalPinToAnalogChannel(PIN_PHOTO_CLK));
+const adc1_channel_t ADC_CH_DAT = (adc1_channel_t)(digitalPinToAnalogChannel(PIN_PHOTO_DAT));
+const float R1_I = 1.0f;       // 電流検出用シャント抵抗
+const float R2_I = 470.0f;     // 電流検出信号の入力抵抗
+const float R3_I = 10000.0f;   // 電流検出信号のプルアップ抵抗
+const float R1_V = 47000.0f;   // 電圧計の分圧抵抗(上)
+const float R2_V = 10000.0f;   // 電圧計の分圧抵抗(下)
+const float R3_V = 220000.0f;  // 電圧検出信号のプルアップ抵抗
+const float GAIN_I = (R2_I + R3_I) / R3_I / R1_I;  // ADCで読んだ電圧[V]を電流[A]に換算する係数
+const float GAIN_V = (1.0f/R1_V + 1.0f/R2_V + 1.0f/R3_V) / (1.0f/R2_V + 1.0f/R3_V);  // ADCで読んだ電圧からモータ電圧を計算する係数
+
+// モータPWM関係
+const int PWM_CHANNEL = 0;
+const float PWM_FREQ = ADC_SAMPLING_RATE;  // モータのPWM周波数[Hz]。ADCと同一にすること
+
+// setupで代入される値
+esp_adc_cal_characteristics_t adc_chars_1;
+uint32_t current_offset_mV = 0;  // 0AのときのADC測定値[mV]
+
+// 指令などなど
+int pwm_duty = 0;
+int photoreflector_clk = 0;  // フォトリフレクタのクロック線読み値(0～4096)  
+int photoreflector_dat = 0;  // フォトリフレクタのデータ線読み値(0～4096)
+unsigned int motor_total_rotation = 0;  // マイコン起動から現在までの、モータの総回転数
+
+// for debug
+uint32_t value_mV_debug = 0;
+float current_A_debug = 0.0f;
+
 BluetoothSerial SerialBT;
 HighSpeedAnalogRead adc;
-
-const int PWM_PIN = 25;
-const int PWM_CHANNEL = 0;
-const uint32_t PWM_FREQ = 20000;
-
-int pwm_duty = 0;
-
-portMUX_TYPE ringbuf_mutex = portMUX_INITIALIZER_UNLOCKED;
-
-float ringbuf_current_A[FFT_VEC_LEN];
-float ringbuf_voltage_V[FFT_VEC_LEN];
-int i_ringbuf = 0;  // いま書き込むリングバッファのインデックス
-
-float vec_current_real[FFT_VEC_LEN];  // Real part of Current Vector
-float vec_current_imag[FFT_VEC_LEN];  // Imaginal part of Current Vector
-  
-float buf_freq_median[N_MEDIAN];  // 周波数の中央値を取るための配列
-int i_median = 0;
-
-unsigned long ave_time_us[AVE_LEN];  // フーリエ変換で周波数を計算した時刻
-float ave_freq_Hz[AVE_LEN];          // 中央値を取った後の周波数
-float ave_current_A[AVE_LEN];        // フーリエ変換期間の平均を取った電流
-float ave_voltage_V[AVE_LEN];        // フーリエ変換期間の平均を取った電圧
-int i_ave = 0;  // いま書き込んでいるバッファのインデックス
-
-float average(float* vec, size_t len) {
-  float sum = 0.0f;
-  for (int i=0; i<len; i++) {
-    sum += vec[i];
-  }
-  return sum / len;
-}
-
-float median(float* vec) {
-  // 渡された配列vecをコピー
-  float data[N_MEDIAN];
-  for (int i=0; i<N_MEDIAN; i++) {
-    data[i] = vec[i];
-  }
-
-  // データを大きさの順に並べ替え
-  float tmp;
-  for(int i=1; i<N_MEDIAN; i++) {
-    for(int j=0; j<N_MEDIAN - i; j++) {
-      if(data[j] > data[j + 1]) {
-        tmp = data[j];
-        data[j] = data[j + 1];
-        data[j + 1] = tmp;
-      }
-    }
-  }
-
-  // メジアンを求める
-  if(N_MEDIAN % 2 == 1) { // データ数が奇数個の場合
-    return data[(N_MEDIAN - 1) / 2];
-  } else { // データ数が偶数の場合
-    return (data[(N_MEDIAN / 2) - 1] + data[N_MEDIAN / 2]) / 2.0;
-  }
-}
+MotorRotationDetector motorRotationDetector;
 
 /**
  * @brief ADCによる1サンプリングが完了したときに実行される関数。
- * サンプリング結果をringbufに転記する
  * @param data サンプリングしたデータが記録されている配列へのポインタ。
  *             たとえばaddChannelで2つの入力チャンネルを登録した場合は、
  *               - data[0]: 1つ目に登録したCHのサンプリング結果
@@ -96,33 +71,53 @@ float median(float* vec) {
  * @param chNum サンプリングした入力ピンの数
  */
 void adcReadDone(uint16_t* data, size_t chNum) {
-  // リングバッファへサンプリング結果を転記
-  portENTER_CRITICAL(&ringbuf_mutex);
   for (size_t i = 0; i < chNum; i++) {
-    uint16_t value = data[i] & 0xFFF;         // ADCの読み値(0-4095)
+    unsigned long sampled_time = micros();
+    uint16_t value_raw = data[i] & 0xFFF;     // ADCの読み値(0-4095)
     uint8_t channel = (data[i] >> 12) & 0xF;  // CH番号
     if (channel == ADC_CH_CURRENT) {
-      ringbuf_current_A[i_ringbuf] = (float)value;
+      uint32_t value_mV = esp_adc_cal_raw_to_voltage(value_raw, &adc_chars_1);
+      float current_A = GAIN_I * (int32_t)(value_mV - current_offset_mV) / 1000.0f;
+      motorRotationDetector.update(current_A, sampled_time);
+      value_mV_debug = value_mV;
+      current_A_debug = current_A;
     } else if (channel == ADC_CH_VOLTAGE) {
-      ringbuf_voltage_V[i_ringbuf] = (float)value;
+
+    } else if (channel == ADC_CH_CLK) {
+      photoreflector_clk = value_raw;
+    } else if (channel == ADC_CH_DAT) {
+      photoreflector_dat = value_raw;
     }
   }
-  portEXIT_CRITICAL(&ringbuf_mutex);
-  // リングバッファのインデックスを進める
-  i_ringbuf = (i_ringbuf + 1) % FFT_VEC_LEN;
 }
 
 void setup() {
   Serial.begin(115200);
   ledcSetup(PWM_CHANNEL, PWM_FREQ, 8);
-  ledcAttachPin(PWM_PIN, PWM_CHANNEL);
+  ledcAttachPin(PIN_PWM, PWM_CHANNEL);
   ledcWrite(PWM_CHANNEL, pwm_duty);
   
   SerialBT.begin("Bluetooth-Oscillo");
+
+  // 電流のオフセット取得(64回analogReadして、平均値を取得)
+  analogSetAttenuation(ADC_0db);
+  for (int i = 0; i < 64; i++) {
+    current_offset_mV += analogReadMilliVolts(PIN_SENSE_I);
+  }
+  current_offset_mV /= 64;
+  Serial.println(current_offset_mV);
+  Serial.println(GAIN_I);
+  Serial.println(GAIN_V);
+
+  // ADCキャリブレーション値の設定
+  esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_0db, ADC_WIDTH_12Bit, 1100, &adc_chars_1);
   
+  // ADC測定対象チャンネルを追加し、測定開始
   adc.addChannel(ADC_CH_CURRENT, ADC_WIDTH_12Bit, ADC_ATTEN_0db);
   adc.addChannel(ADC_CH_VOLTAGE, ADC_WIDTH_12Bit, ADC_ATTEN_0db);
-  adc.setSampleRateHz(SAMPLING_RATE);
+  adc.addChannel(ADC_CH_CLK, ADC_WIDTH_12Bit, ADC_ATTEN_11db);
+  adc.addChannel(ADC_CH_DAT, ADC_WIDTH_12Bit, ADC_ATTEN_11db);
+  adc.setSampleRateHz(ADC_SAMPLING_RATE);
   adc.attachInterrupt(adcReadDone);
   adc.start();
 
@@ -130,55 +125,18 @@ void setup() {
 }
 
 void loop() {
+  // Serial.print("rotation: ");
+  // Serial.print(motorRotationDetector.getRotation());
+  // Serial.print(", totalRotation: ");
+  // Serial.println(motorRotationDetector.getTotalRotation());
 
-  // print value through Serial
-  // (serial speed should be 1Mbps or more)
-  /*
-  for (int i=0; i<FFT_VEC_LEN; i++) {
-    Serial.print(vec_current_real[i]);
-    Serial.print(",");
-    Serial.println(vec_voltage[i]);
-  }
-  */
-  // フーリエ変換を行った時刻を記録しておく
-  ave_time_us[i_ave] = micros();
-
-  // フーリエ変換用にデータをvec_currentに転記
-  portENTER_CRITICAL(&ringbuf_mutex);
-  for (size_t i = 0; i < FFT_VEC_LEN; i++) {
-    vec_current_real[i] = ringbuf_current_A[(i_ringbuf + 1 + i) / FFT_VEC_LEN];
-    vec_current_imag[i] = 0.0f;
-  }
+  Serial.print("value_mV: ");
+  Serial.print(value_mV_debug);
+  Serial.print(", current_A: ");
+  Serial.print(current_A_debug);
+  Serial.print(", noise_A: ");
+  Serial.println(motorRotationDetector.getNoise());
   
-  // 電流・電圧の平均を取る
-  ave_current_A[i_ave] = average(ringbuf_current_A, FFT_VEC_LEN);
-  ave_voltage_V[i_ave] = average(ringbuf_voltage_V, FFT_VEC_LEN);
-  portEXIT_CRITICAL(&ringbuf_mutex);
-
-  // Fourier transform (apply Hamming windowing)
-  FFT = arduinoFFT(vec_current_real, vec_current_imag, FFT_VEC_LEN, SAMPLING_RATE);
-  FFT.Windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD);
-  FFT.Compute(FFT_FORWARD);  // calculate FFT
-  FFT.ComplexToMagnitude();  // mag. to vR 1st half
-  float peak = FFT.MajorPeak();  // get peak freq
-
-  buf_freq_median[i_median] = peak;
-  i_median = (i_median + 1) % N_MEDIAN;
-
-  // 周波数を中央値を取ることで平滑化して記録
-  ave_freq_Hz[i_ave] = median(buf_freq_median);
-
-  // Serial.print(ave_freq_Hz[i_ave]);
-  Serial.print(ave_time_us[i_ave]);
-  Serial.print(", ");
-  Serial.print(peak);
-  Serial.print(", ");
-  Serial.print(ave_current_A[i_ave]);
-  Serial.print(", ");
-  Serial.println(ave_voltage_V[i_ave]);
-
-  // 電圧・電流・周波数の平均を取り終わったのでインデックスを進める
-  i_ave = (i_ave + 1) % AVE_LEN;
 
   // ------------------------------------
   // Motor duty command receive and apply
@@ -200,5 +158,5 @@ void loop() {
     ledcWrite(PWM_CHANNEL, pwm_duty);
   }
   
-  delay(1);
+  delay(10);
 }

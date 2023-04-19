@@ -10,6 +10,8 @@
  * 
  */
 
+#pragma once
+
 #include <Arduino.h>
 #include <driver/adc.h>
 #include <freertos/task.h>
