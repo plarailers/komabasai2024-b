@@ -8,13 +8,11 @@ export interface RailwayUI {
 }
 
 export interface PlatformUI {
-  x: number;
-  y: number;
+  position: { x: number; y: number };
 }
 
 export interface JunctionUI {
-  x: number;
-  y: number;
+  position: { x: number; y: number };
 }
 
 export interface SectionUI {

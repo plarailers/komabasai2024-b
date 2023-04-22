@@ -8,6 +8,7 @@ import { Platform } from "./Platform";
 import { Section } from "./Section";
 import { RailwayUI } from "../types";
 import { Train } from "./Train";
+import { Junction } from "./Junction";
 
 interface RailwayProps {
   config: RailwayConfig | null;
@@ -28,10 +29,13 @@ export const Railway: React.FC<React.PropsWithChildren<RailwayProps>> = ({
         <RailwayStateContext.Provider value={state}>
           <RailwayUIContext.Provider value={ui}>
             {Object.entries(ui.platforms).map(([id, platform]) => (
-              <Platform key={id} position={platform} />
+              <Platform key={id} position={platform.position} />
             ))}
             {Object.entries(ui.sections).map(([id, section]) => (
               <Section key={id} id={id} points={section.points} />
+            ))}
+            {Object.entries(ui.junctions).map(([id, junction]) => (
+              <Junction key={id} id={id} position={junction.position} />
             ))}
             {Object.entries(ui.trains).map(([id, train]) => (
               <Train key={id} id={id} />

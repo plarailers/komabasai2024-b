@@ -10,17 +10,17 @@ const ui: RailwayUI = {
   width: 680,
   height: 160,
   platforms: {
-    p0: { x: 340, y: 90 },
+    p0: { position: { x: 340, y: 90 } },
   },
   junctions: {
-    j0a: { x: 160, y: 100 },
-    j0b: { x: 200, y: 60 },
-    j1a: { x: 160, y: 100 },
-    j1b: { x: 240, y: 60 },
-    j2a: { x: 160, y: 100 },
-    j2b: { x: 160, y: 100 },
-    j3a: { x: 160, y: 100 },
-    j3b: { x: 160, y: 100 },
+    j0a: { position: { x: 160, y: 100 } },
+    j0b: { position: { x: 200, y: 60 } },
+    j1a: { position: { x: 280, y: 100 } },
+    j1b: { position: { x: 240, y: 60 } },
+    j2a: { position: { x: 400, y: 100 } },
+    j2b: { position: { x: 440, y: 60 } },
+    j3a: { position: { x: 520, y: 100 } },
+    j3b: { position: { x: 480, y: 60 } },
   },
   sections: {
     s00: {
