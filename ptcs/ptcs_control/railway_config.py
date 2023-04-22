@@ -45,7 +45,7 @@ class RailwayConfig(BaseModel):
 
 
 class JunctionConfig(BaseModel):
-    sections: dict["Joint", "Section"] = Field(default_factory=dict)
+    sections: dict[Joint, "Section"] = Field(default_factory=dict)
 
     def add_section(self, joint: "Joint", section: "Section") -> None:
         self.sections[joint] = section
