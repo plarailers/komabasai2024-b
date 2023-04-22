@@ -4,6 +4,7 @@ import { Layout } from "../components/Layout";
 import { useEffect, useState } from "react";
 import Platform from "../components/Platform";
 import Section from "../components/Section";
+import Railway from "../components/Railway";
 
 const Home: React.FC = () => {
   const [data, setData] = useState<RailwayState | null>(null);
@@ -25,9 +26,7 @@ const Home: React.FC = () => {
     <Layout>
       <Container>
         {time?.toLocaleString()}
-        <svg width="100%" viewBox="0 0 680 160">
-          <rect width={680} height={160} fill="#222222" />
-
+        <Railway width={680} height={160}>
           <Platform position={{ x: 340, y: 90 }} />
 
           <Section
@@ -128,7 +127,7 @@ const Home: React.FC = () => {
               { x: 520, y: 100 },
             ]}
           />
-        </svg>
+        </Railway>
         <Code block>{JSON.stringify(data, null, 4)}</Code>
       </Container>
     </Layout>
