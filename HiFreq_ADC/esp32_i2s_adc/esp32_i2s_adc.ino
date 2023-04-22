@@ -49,21 +49,10 @@ uint32_t voltage_offset_mV = 0;  // 0VのときのADC測定値[mV]
 int pwm_duty = 0;
 int photoreflector_clk = 0;  // フォトリフレクタのクロック線読み値(0～4096)  
 int photoreflector_dat = 0;  // フォトリフレクタのデータ線読み値(0～4096)
-unsigned int motor_total_rotation = 0;  // マイコン起動から現在までの、モータの総回転数
-
-// for debug
-uint32_t value_mV_debug = 0;
-float current_A_debug = 0.0f;
 
 BluetoothSerial SerialBT;
 HighSpeedAnalogRead adc;
 MotorRotationDetector motorRotationDetector;
-FirstHPF current_hpf;
-
-float ringbuf[10000];
-float ringbuf_for_print[10000];
-int i_ringbuf = 0;
-portMUX_TYPE mutex = portMUX_INITIALIZER_UNLOCKED;
 
 /**
  * @brief ADCによる1サンプリングが完了したときに実行される関数。
@@ -86,12 +75,6 @@ void adcReadDone(uint16_t* data, size_t chNum) {
     uint8_t channel = (data[i] >> 12) & 0xF;  // CH番号
     if (channel == ADC_CH_CURRENT) {
       current_A = GAIN_I * (int32_t)(value_mV - current_offset_mV) / 1000.0f;
-      value_mV_debug = value_mV;
-      portENTER_CRITICAL_ISR(&mutex);
-      ringbuf[i_ringbuf] = current_A;  //current_hpf.update(current_A, 1.0f / ADC_SAMPLING_RATE);
-      i_ringbuf = (i_ringbuf + 1) % 10000;
-      portEXIT_CRITICAL_ISR(&mutex);
-      current_A_debug = current_A;
     } else if (channel == ADC_CH_VOLTAGE) {
       voltage_V = GAIN_V * (int32_t)(value_mV - voltage_offset_mV) / 1000.0f;
     } else if (channel == ADC_CH_CLK) {
@@ -110,8 +93,6 @@ void setup() {
   ledcWrite(PWM_CHANNEL, pwm_duty);
   
   SerialBT.begin("Bluetooth-Oscillo");
-
-  current_hpf.setFc(3000.0f);
 
   // 電流・電圧のオフセット取得(64回analogReadして、平均値を取得)
   analogSetAttenuation(ADC_0db);
@@ -146,27 +127,9 @@ void loop() {
   Serial.print("rps: ");
   Serial.print(motorRotationDetector.getRps(), 8);
   Serial.print(", rotation: ");
-  Serial.println(motorRotationDetector.getRotation());
-  // Serial.print(", totalRotation: ");
-  // Serial.println(motorRotationDetector.getTotalRotation());
-
-  // Serial.print("value_mV: ");
-  // Serial.print(value_mV_debug);
-  // Serial.print(", current_A: ");
-  // Serial.print(current_A_debug);
-  // Serial.print(", noise_A: ");
-  // Serial.println(motorRotationDetector.getNoise());
-  
-  if (i_ringbuf == 0) {
-    portENTER_CRITICAL_ISR(&mutex);
-    for (int i = 0; i < 10000; i++) {
-      ringbuf_for_print[i] = ringbuf[i];
-    }
-    portEXIT_CRITICAL_ISR(&mutex);
-    for (int i = 0; i < 10000; i++) {
-      // Serial.println(ringbuf_for_print[i], 3);
-    }
-  }
+  Serial.print(motorRotationDetector.getRotation());
+  Serial.print(", totalRotation: ");
+  Serial.println(motorRotationDetector.getTotalRotation());
 
   // ------------------------------------
   // Motor duty command receive and apply
