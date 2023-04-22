@@ -8,6 +8,7 @@ BluetoothSerial SerialBT;
 bool connected;
 const int BUFFER_SIZE = 32;
 char buf[BUFFER_SIZE];
+char buf2[BUFFER_SIZE];
 
 void setup() {
 
@@ -55,6 +56,20 @@ void loop() {
       SerialBT.write(buf[i]);//データをそのまま送信
     }
   index=0;
+  memset(buf, '\0', BUFFER_SIZE);
+
   // ESP32から受信し、pythonに送信
-  delay(10);
+  while(SerialBT.available()>0) {
+    buf2[index] = SerialBT.read();
+    index++;
+    if (index >= BUFFER_SIZE) {
+      break;
+    }
+  }
+  for(int i = 0; i < index; i++){
+      Serial.write(buf2[i]);
+    }
+  index=0;
+  memset(buf2, '\0', BUFFER_SIZE);
+  delay(100);
 }

@@ -16,13 +16,11 @@ if __name__ == "__main__":
     port = '/dev/cu.usbserial-0001' # ポート名は環境に合わせて変更する
     baudrate = 115200
     ser = serial.Serial(port, baudrate,timeout=3.0,write_timeout=3.0)
-    time.sleep(3)
+    time.sleep(5)
     json_data='{ "key": 51, "value": 314 }'
-    send(json_data,ser)
     while(True):
-        a=input()
-        send(a,ser)
-        
+        print("///")
+        print(receive(ser))
     ser.close()
     
     #message=receive(ser)
