@@ -1,9 +1,10 @@
-import { Code, Container } from "@mantine/core";
+import { Code, Container, Stack } from "@mantine/core";
 import { DefaultService, RailwayConfig, RailwayState } from "ptcs_client";
 import { Layout } from "../components/Layout";
 import { useEffect, useState } from "react";
 import Railway from "../components/Railway";
 import { RailwayUI } from "../types";
+import { Debugger } from "../components/Debugger";
 
 const ui: RailwayUI = {
   width: 680,
@@ -167,9 +168,12 @@ const Home: React.FC = () => {
   return (
     <Layout>
       <Container>
-        {time?.toLocaleString()}
-        <Railway config={railwayConfig} state={railwayState} ui={ui} />
-        <Code block>{JSON.stringify(railwayState, null, 4)}</Code>
+        <Stack>
+          {time?.toLocaleString()}
+          <Railway config={railwayConfig} state={railwayState} ui={ui} />
+          <Debugger />
+          <Code block>{JSON.stringify(railwayState, null, 4)}</Code>
+        </Stack>
       </Container>
     </Layout>
   );
