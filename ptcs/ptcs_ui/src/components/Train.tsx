@@ -19,27 +19,32 @@ export const Train: React.FC<TrainProps> = ({ id }) => {
   }
 
   const state = railwayState.trains![id];
-  const position = calculatePoint(
+  const { position, direction } = calculatePositionAndDirection(
     state.mileage / railwayConfig.sections![state.current_section].length,
     railwayUI.sections![state.current_section].points
   );
+  const angle = (Math.atan2(direction.y, direction.x) / Math.PI) * 180;
 
-  const radius = 5;
   return (
-    <circle
-      cx={position.x}
-      cy={position.y}
-      r={radius}
-      fill="white"
-      stroke="gray"
-    />
+    <g transform={`translate(${position.x}, ${position.y})`}>
+      <g transform={`rotate(${angle})`}>
+        <polyline
+          points="-5,-5 -5,5 5,5 10,0 5,-5"
+          fill="white"
+          stroke="gray"
+        />
+      </g>
+    </g>
   );
 };
 
-const calculatePoint = (
+const calculatePositionAndDirection = (
   ratio: number,
   points: { x: number; y: number }[]
-): { x: number; y: number } => {
+): {
+  position: { x: number; y: number };
+  direction: { x: number; y: number };
+} => {
   let totalLength = 0;
   for (let i = 0; i < points.length - 1; i++) {
     const p = points[i];
@@ -49,7 +54,9 @@ const calculatePoint = (
   }
   let targetLength = totalLength * ratio;
   if (targetLength < 0) {
-    return points[0];
+    const p = points[0];
+    const q = points[1];
+    return { position: p, direction: { x: q.x - p.x, y: q.y - p.y } };
   }
   for (let i = 0; i < points.length - 1; i++) {
     const p = points[i];
@@ -59,10 +66,20 @@ const calculatePoint = (
       targetLength -= lineLength;
     } else {
       return {
-        x: p.x + (q.x - p.x) * (targetLength / lineLength),
-        y: p.y + (q.y - p.y) * (targetLength / lineLength),
+        position: {
+          x: p.x + (q.x - p.x) * (targetLength / lineLength),
+          y: p.y + (q.y - p.y) * (targetLength / lineLength),
+        },
+        direction: {
+          x: q.x - p.x,
+          y: q.y - p.y,
+        },
       };
     }
   }
-  return points[points.length - 1];
+  {
+    const p = points[points.length - 2];
+    const q = points[points.length - 1];
+    return { position: p, direction: { x: q.x - p.x, y: q.y - p.y } };
+  }
 };
