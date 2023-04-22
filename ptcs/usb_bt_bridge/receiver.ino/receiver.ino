@@ -16,6 +16,20 @@ void setup() {
 }
 
 void loop() {
+  //ESP32から受信
+  int index=0;
+  while(SerialBT.available()>0) {
+    buf[index] = SerialBT.read();
+    delay(2);
+    if(buf[index]=='}'){
+      Serial.println("find");//特に意味はあんまりない改行
+      break;
+    }
+    if (index+1 >= BUFFER_SIZE) {
+      break;
+    }
+    index++;
+  }
   //EPS32に送信
   String send_data="";
   doc_s.clear();
@@ -23,29 +37,16 @@ void loop() {
   doc_s["wR"]=200;
   serializeJson(doc_s,send_data);
   SerialBT.println(send_data);
-
-  //ESP32から受信
-  int index=0;
-  while(SerialBT.available()>0) {
-    buf[index] = SerialBT.read();
-    index++;
-    if (index >= 32) {
-      break;
-    }
-  }
+  delay(100);
   //test用にprint
   //kokokara
-  for(int i = 0; i < index; i++){
-      Serial.print(buf[i]);
+  for(int i = 0; i <= index; i++){
+        Serial.print(buf[i]);
   }
   deserializeJson(doc_r, buf); 
-  int value=doc_r["key"];
-  if(value==5){
-    Serial.println("success");
-  }
   //kokomade
   index=0;
   memset(buf, '\0', BUFFER_SIZE);
   doc_r.clear();
-  delay(1000);
+  delay(300);
 }

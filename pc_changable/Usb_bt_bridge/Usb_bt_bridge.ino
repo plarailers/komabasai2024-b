@@ -27,49 +27,47 @@ void setup() {
     }
   }
   */
-
-  // セットアップ終了を示すLチカ
-  digitalWrite(5, HIGH);
-  delay(50);
-  digitalWrite(5, LOW);
-  delay(50);
-  
 }
 
-String line;  
 void loop() {  
   // pythonから受信し、ESP32に送信
   int index=0;
-  while(Serial.available() > 0) {
-
-    digitalWrite(5, HIGH);
-    delay(50);
-    digitalWrite(5, LOW);
-    delay(50);
-    buf[index] = Serial.read();
-    index++;
-    if (index >= 32) {
-      break;
-    }
+  while(Serial.available()>0){
+      buf[index] = Serial.read();
+      delay(2);
+      if(buf[index]=='}'){
+        break;
+      }
+      if (index+1 >= BUFFER_SIZE) {
+        break;
+      }
+      index++;
   }
-  for(int i = 0; i < index; i++){
+  for(int i = 0; i <= index; i++){
       SerialBT.write(buf[i]);//データをそのまま送信
     }
-  index=0;
+
   memset(buf, '\0', BUFFER_SIZE);
+  index=0;
 
   // ESP32から受信し、pythonに送信
   while(SerialBT.available()>0) {
     buf2[index] = SerialBT.read();
-    index++;
-    if (index >= BUFFER_SIZE) {
+    delay(2);
+    if(buf2[index]=='}'){
       break;
     }
+    if (index+1 >= BUFFER_SIZE) {
+      break;
+    }
+    index++;
   }
-  for(int i = 0; i < index; i++){
+  for(int i = 0; i <= index; i++){
       Serial.write(buf2[i]);
     }
-  index=0;
+
   memset(buf2, '\0', BUFFER_SIZE);
-  delay(100);
+  index=0;
+
+  delay(300);
 }
