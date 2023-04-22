@@ -43,6 +43,7 @@ const float PWM_FREQ = ADC_SAMPLING_RATE;  // モータのPWM周波数[Hz]。ADC
 // setupで代入される値
 esp_adc_cal_characteristics_t adc_chars_1;
 uint32_t current_offset_mV = 0;  // 0AのときのADC測定値[mV]
+uint32_t voltage_offset_mV = 0;  // 0VのときのADC測定値[mV]
 
 // 指令などなど
 int pwm_duty = 0;
@@ -57,6 +58,12 @@ float current_A_debug = 0.0f;
 BluetoothSerial SerialBT;
 HighSpeedAnalogRead adc;
 MotorRotationDetector motorRotationDetector;
+FirstHPF current_hpf;
+
+float ringbuf[10000];
+float ringbuf_for_print[10000];
+int i_ringbuf = 0;
+portMUX_TYPE mutex = portMUX_INITIALIZER_UNLOCKED;
 
 /**
  * @brief ADCによる1サンプリングが完了したときに実行される関数。
@@ -71,43 +78,51 @@ MotorRotationDetector motorRotationDetector;
  * @param chNum サンプリングした入力ピンの数
  */
 void adcReadDone(uint16_t* data, size_t chNum) {
+  float current_A = 0.0f;
+  float voltage_V = 0.0f;
   for (size_t i = 0; i < chNum; i++) {
-    unsigned long sampled_time = micros();
-    uint16_t value_raw = data[i] & 0xFFF;     // ADCの読み値(0-4095)
+    uint16_t value_raw = data[i] & 0xFFF;  // ADCの読み値(0-4095)
+    uint32_t value_mV = esp_adc_cal_raw_to_voltage(value_raw, &adc_chars_1);
     uint8_t channel = (data[i] >> 12) & 0xF;  // CH番号
     if (channel == ADC_CH_CURRENT) {
-      uint32_t value_mV = esp_adc_cal_raw_to_voltage(value_raw, &adc_chars_1);
-      float current_A = GAIN_I * (int32_t)(value_mV - current_offset_mV) / 1000.0f;
-      motorRotationDetector.update(current_A, sampled_time);
+      current_A = GAIN_I * (int32_t)(value_mV - current_offset_mV) / 1000.0f;
       value_mV_debug = value_mV;
+      portENTER_CRITICAL_ISR(&mutex);
+      ringbuf[i_ringbuf] = current_A;  //current_hpf.update(current_A, 1.0f / ADC_SAMPLING_RATE);
+      i_ringbuf = (i_ringbuf + 1) % 10000;
+      portEXIT_CRITICAL_ISR(&mutex);
       current_A_debug = current_A;
     } else if (channel == ADC_CH_VOLTAGE) {
-
+      voltage_V = GAIN_V * (int32_t)(value_mV - voltage_offset_mV) / 1000.0f;
     } else if (channel == ADC_CH_CLK) {
       photoreflector_clk = value_raw;
     } else if (channel == ADC_CH_DAT) {
       photoreflector_dat = value_raw;
     }
   }
+  motorRotationDetector.update(current_A, 1000000 / ADC_SAMPLING_RATE);
 }
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(1000000);
   ledcSetup(PWM_CHANNEL, PWM_FREQ, 8);
   ledcAttachPin(PIN_PWM, PWM_CHANNEL);
   ledcWrite(PWM_CHANNEL, pwm_duty);
   
   SerialBT.begin("Bluetooth-Oscillo");
 
-  // 電流のオフセット取得(64回analogReadして、平均値を取得)
+  current_hpf.setFc(3000.0f);
+
+  // 電流・電圧のオフセット取得(64回analogReadして、平均値を取得)
   analogSetAttenuation(ADC_0db);
   for (int i = 0; i < 64; i++) {
     current_offset_mV += analogReadMilliVolts(PIN_SENSE_I);
+    voltage_offset_mV += analogReadMilliVolts(PIN_SENSE_V);
+    delay(10);  // 連続でreadすると若干値が小さくなってしまったのでdelayを入れる
   }
   current_offset_mV /= 64;
+  Serial.print("[setup] current_offset_mV: ");
   Serial.println(current_offset_mV);
-  Serial.println(GAIN_I);
-  Serial.println(GAIN_V);
 
   // ADCキャリブレーション値の設定
   esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_0db, ADC_WIDTH_12Bit, 1100, &adc_chars_1);
@@ -125,18 +140,30 @@ void setup() {
 }
 
 void loop() {
-  // Serial.print("rotation: ");
-  // Serial.print(motorRotationDetector.getRotation());
+  Serial.print("rps: ");
+  Serial.print(motorRotationDetector.getRps(), 8);
+  Serial.print(", rotation: ");
+  Serial.println(motorRotationDetector.getRotation());
   // Serial.print(", totalRotation: ");
   // Serial.println(motorRotationDetector.getTotalRotation());
 
-  Serial.print("value_mV: ");
-  Serial.print(value_mV_debug);
-  Serial.print(", current_A: ");
-  Serial.print(current_A_debug);
-  Serial.print(", noise_A: ");
-  Serial.println(motorRotationDetector.getNoise());
+  // Serial.print("value_mV: ");
+  // Serial.print(value_mV_debug);
+  // Serial.print(", current_A: ");
+  // Serial.print(current_A_debug);
+  // Serial.print(", noise_A: ");
+  // Serial.println(motorRotationDetector.getNoise());
   
+  if (i_ringbuf == 0) {
+    portENTER_CRITICAL_ISR(&mutex);
+    for (int i = 0; i < 10000; i++) {
+      ringbuf_for_print[i] = ringbuf[i];
+    }
+    portEXIT_CRITICAL_ISR(&mutex);
+    for (int i = 0; i < 10000; i++) {
+      // Serial.println(ringbuf_for_print[i], 3);
+    }
+  }
 
   // ------------------------------------
   // Motor duty command receive and apply
@@ -157,6 +184,5 @@ void loop() {
     // Serial.println(pwm_duty);
     ledcWrite(PWM_CHANNEL, pwm_duty);
   }
-  
-  delay(10);
+  delay(100);
 }
