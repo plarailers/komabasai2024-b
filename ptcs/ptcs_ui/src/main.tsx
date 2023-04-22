@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { createHashRouter, RouterProvider } from "react-router-dom";
 import { MantineProvider } from "@mantine/core";
-import Home from "./pages/Home";
+import { Home } from "./pages/Home";
 
 const router = createHashRouter([
   {

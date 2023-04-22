@@ -2,7 +2,7 @@ import { Code, Container, Stack } from "@mantine/core";
 import { DefaultService, RailwayConfig, RailwayState } from "ptcs_client";
 import { Layout } from "../components/Layout";
 import { useEffect, useState } from "react";
-import Railway from "../components/Railway";
+import { Railway } from "../components/Railway";
 import { RailwayUI } from "../types";
 import { Debugger } from "../components/Debugger";
 
@@ -140,7 +140,7 @@ const ui: RailwayUI = {
   },
 };
 
-const Home: React.FC = () => {
+export const Home: React.FC = () => {
   const [railwayConfig, setRailwayConfig] = useState<RailwayConfig | null>(
     null
   );
@@ -178,5 +178,3 @@ const Home: React.FC = () => {
     </Layout>
   );
 };
-
-export default Home;

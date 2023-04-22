@@ -4,10 +4,10 @@ import {
   RailwayStateContext,
   RailwayUIContext,
 } from "../contexts";
-import Platform from "./Platform";
-import Section from "./Section";
+import { Platform } from "./Platform";
+import { Section } from "./Section";
 import { RailwayUI } from "../types";
-import Train from "./Train";
+import { Train } from "./Train";
 
 interface RailwayProps {
   config: RailwayConfig | null;
@@ -15,7 +15,7 @@ interface RailwayProps {
   ui: RailwayUI;
 }
 
-const Railway: React.FC<React.PropsWithChildren<RailwayProps>> = ({
+export const Railway: React.FC<React.PropsWithChildren<RailwayProps>> = ({
   config,
   state,
   ui,
@@ -43,5 +43,3 @@ const Railway: React.FC<React.PropsWithChildren<RailwayProps>> = ({
     </svg>
   );
 };
-
-export default Railway;

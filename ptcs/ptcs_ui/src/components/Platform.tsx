@@ -2,7 +2,7 @@ interface PlatformProps {
   position: { x: number; y: number };
 }
 
-const Platform: React.FC<PlatformProps> = ({ position }) => {
+export const Platform: React.FC<PlatformProps> = ({ position }) => {
   const width = 60;
   const height = 20;
   return (
@@ -15,5 +15,3 @@ const Platform: React.FC<PlatformProps> = ({ position }) => {
     />
   );
 };
-
-export default Platform;

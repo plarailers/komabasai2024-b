@@ -9,7 +9,7 @@ interface TrainProps {
   id: string;
 }
 
-const Train: React.FC<TrainProps> = ({ id }) => {
+export const Train: React.FC<TrainProps> = ({ id }) => {
   const railwayConfig = useContext(RailwayConfigContext);
   const railwayState = useContext(RailwayStateContext);
   const railwayUI = useContext(RailwayUIContext);
@@ -66,5 +66,3 @@ const calculatePoint = (
   }
   return points[points.length - 1];
 };
-
-export default Train;

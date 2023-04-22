@@ -3,7 +3,7 @@ interface SectionProps {
   points: { x: number; y: number }[];
 }
 
-const Section: React.FC<SectionProps> = ({ id, points }) => {
+export const Section: React.FC<SectionProps> = ({ id, points }) => {
   const blocked = false;
 
   const shrunkPointFirst = shrink(points[0], points[1], 4);
@@ -39,5 +39,3 @@ const shrink = (
     y: p.y + ((q.y - p.y) / Math.hypot(q.x - p.x, q.y - p.y)) * amount,
   };
 };
-
-export default Section;
