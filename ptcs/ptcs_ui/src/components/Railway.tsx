@@ -28,13 +28,13 @@ const Railway: React.FC<React.PropsWithChildren<RailwayProps>> = ({
         <RailwayStateContext.Provider value={state}>
           <RailwayUIContext.Provider value={ui}>
             {Object.entries(ui.platforms).map(([id, platform]) => (
-              <Platform position={platform} />
+              <Platform key={id} position={platform} />
             ))}
             {Object.entries(ui.sections).map(([id, section]) => (
-              <Section id={id} points={section.points} />
+              <Section key={id} id={id} points={section.points} />
             ))}
             {Object.entries(ui.trains).map(([id, train]) => (
-              <Train id={id} />
+              <Train key={id} id={id} />
             ))}
             {children}
           </RailwayUIContext.Provider>
