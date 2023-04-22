@@ -34,7 +34,7 @@ const float R1_V = 47000.0f;   // 電圧計の分圧抵抗(上)
 const float R2_V = 10000.0f;   // 電圧計の分圧抵抗(下)
 const float R3_V = 220000.0f;  // 電圧検出信号のプルアップ抵抗
 const float GAIN_I = (R2_I + R3_I) / R3_I / R1_I;  // ADCで読んだ電圧[V]を電流[A]に換算する係数
-const float GAIN_V = (1.0f/R1_V + 1.0f/R2_V + 1.0f/R3_V) / (1.0f/R2_V + 1.0f/R3_V);  // ADCで読んだ電圧からモータ電圧を計算する係数
+const float GAIN_V = (R1_V*R2_V + R2_V*R3_V + R3_V*R1_V) / (R2_V*R3_V);  // ADCで読んだ電圧からモータ電圧を計算する係数
 
 // モータPWM関係
 const int PWM_CHANNEL = 0;
@@ -121,8 +121,11 @@ void setup() {
     delay(10);  // 連続でreadすると若干値が小さくなってしまったのでdelayを入れる
   }
   current_offset_mV /= 64;
+  voltage_offset_mV /= 64;
   Serial.print("[setup] current_offset_mV: ");
   Serial.println(current_offset_mV);
+  Serial.print("[setup] voltage_offset_mV: ");
+  Serial.println(voltage_offset_mV);
 
   // ADCキャリブレーション値の設定
   esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_0db, ADC_WIDTH_12Bit, 1100, &adc_chars_1);
