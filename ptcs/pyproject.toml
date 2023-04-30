@@ -7,6 +7,7 @@ readme = "README.md"
 packages = [
     { include = "ptcs_control" },
     { include = "ptcs_server" },
+    { include = "usb_bt_bridge" },
 ]
 
 [tool.poetry.scripts]

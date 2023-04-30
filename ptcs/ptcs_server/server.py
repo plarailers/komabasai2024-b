@@ -1,14 +1,17 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from ptcs_control import Control
+from ptcs_server.bridges import create_bridges
 import uvicorn
 from .api import api_router
 
 
 control = Control()
+bridges = create_bridges()
 
 app = FastAPI(generate_unique_id_function=lambda route: route.name)
 app.state.control = control
+app.state.bridges = bridges
 
 # `/api` 以下で API を呼び出す
 app.include_router(api_router, prefix="/api")
