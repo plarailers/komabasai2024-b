@@ -1,8 +1,10 @@
 from typing import Any
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from usb_bt_bridge import Bridge
 from .bridges import BridgeManager, BridgeTarget
 from ptcs_control import Control
+from ptcs_control.components import Train
 import uvicorn
 from .api import api_router
 
@@ -14,6 +16,7 @@ def handle_receive(target: BridgeTarget, data: Any) -> None:
 def create_app() -> FastAPI:
     control = Control()
     bridges = BridgeManager(callback=handle_receive)
+    bridges.register(Train("t0"), Bridge("COM4"))
 
     bridges.start()
 

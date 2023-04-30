@@ -19,15 +19,7 @@ class BridgeManager:
     thread: Optional[threading.Thread]
 
     def __init__(self, callback: BridgeCallback) -> None:
-        self.print_ports()
-
-        bridges: BridgeDict = {
-            Train("t0"): Bridge("COM4"),
-        }
-
-        self.bridges = bridges
-        self.print_bridges()
-
+        self.bridges = {}
         self.send_queue = queue.Queue()
         self.callback = callback
         self.thread = None
@@ -42,6 +34,12 @@ class BridgeManager:
         print("bridges:")
         for key, value in self.bridges.items():
             print(f"  {key} = {value}")
+
+    def register(self, target: BridgeTarget, bridge: Bridge) -> None:
+        """
+        ブリッジを登録する。
+        """
+        self.bridges[target] = bridge
 
     def start(self) -> None:
         """
