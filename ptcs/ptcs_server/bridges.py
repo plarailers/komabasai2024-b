@@ -44,11 +44,20 @@ class BridgeManager:
             print(f"  {key} = {value}")
 
     def start(self) -> None:
+        """
+        送受信スレッドを開始する。
+        """
         thread = threading.Thread(target=self._run, daemon=True)
         thread.start()
         self.thread = thread
 
     def _run(self) -> None:
+        """
+        スレッドの中身。
+        ブリッジから受信したデータがあれば、コールバックを呼び出す。
+        送信キューにデータがあれば、ブリッジに送信する。
+        """
+
         while True:
             # 受信
             for target, bridge in self.bridges.items():
@@ -70,4 +79,8 @@ class BridgeManager:
                 bridge.send(message)
 
     def send(self, target: BridgeTarget, data: Any) -> None:
+        """
+        `target` に向けて JSON データ `data` を送信する。
+        (実際にはすぐに送信せず、送信キューに入れておく。)
+        """
         self.send_queue.put((target, data))
