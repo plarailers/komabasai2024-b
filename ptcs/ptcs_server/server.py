@@ -9,11 +9,13 @@ import uvicorn
 from .api import api_router
 
 
-def handle_receive(target: BridgeTarget, data: Any) -> None:
-    print(target, data)
-
-
 def create_app() -> FastAPI:
+    def handle_receive(target: BridgeTarget, data: Any) -> None:
+        print(target, data)
+        # TODO: インターフェイスを定めてコマンドを判別する
+        if data["pID"]:
+            control.move_train(target, data["wR"] / 100)
+
     control = Control()
     bridges = BridgeManager(callback=handle_receive)
     bridges.register(Train("t0"), Bridge("COM4"))
