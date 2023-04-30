@@ -13,12 +13,12 @@ export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
               { label: "Settings", to: "/settings" },
             ].map((item) => (
               <ReactRouterNavLink
+                key={item.label}
                 to={item.to}
                 style={{ textDecoration: "none" }}
               >
                 {({ isActive }) => (
                   <NavLink
-                    key={item.label}
                     label={item.label}
                     active={isActive}
                     sx={(theme) => ({

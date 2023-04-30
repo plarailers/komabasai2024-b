@@ -1,15 +1,17 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from ptcs_control import Control
 import uvicorn
-from .api.router import router as api_router
+from .api import api_router
 
 
-app = FastAPI()
+control = Control()
+
+app = FastAPI(generate_unique_id_function=lambda route: route.name)
+app.state.control = control
 
 # `/api` 以下で API を呼び出す
-api_app = FastAPI(title="API")
-api_app.include_router(api_router)
-app.mount("/api", api_app)
+app.include_router(api_router, prefix="/api")
 
 # `/` 以下で静的ファイルを配信する
 app.mount("/", StaticFiles(directory="./ptcs_ui/dist", html=True), name="static")
