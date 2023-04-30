@@ -4,9 +4,7 @@
  */
 
 #include <BluetoothSerial.h>
-#include <driver/i2s.h>
 #include <esp_adc_cal.h>
-#include <soc/syscon_reg.h>
 #include "src/Filter.h"
 #include "src/HighSpeedAnalogRead.h"
 #include "src/MotorRotationDetector.h"
