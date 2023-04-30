@@ -1,14 +1,21 @@
+from typing import Any
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from .bridges import BridgeManager, BridgeTarget
 from ptcs_control import Control
-from ptcs_server.bridges import create_bridges
 import uvicorn
 from .api import api_router
 
 
+def handle_receive(target: BridgeTarget, data: Any) -> None:
+    print(target, data)
+
+
 def create_app() -> FastAPI:
     control = Control()
-    bridges = create_bridges()
+    bridges = BridgeManager(callback=handle_receive)
+
+    bridges.start()
 
     app = FastAPI(generate_unique_id_function=lambda route: route.name)
     app.state.control = control
