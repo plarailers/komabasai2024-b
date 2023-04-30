@@ -1,16 +1,19 @@
 class GetWheelSpeed
 {
     public:
-        int     MOTOR_CURRENT_SENSOR_PIN;
+        int     MOTOR_CURRENT_PIN;
+        int     MOTOR_VOLTAGE_PIN;
+        float   wheelSpeed;
         GetWheelSpeed();
-        double  getWheelSpeed(int MOTOR_CURRENT_SENSOR_PIN);
+        float   getWheelSpeed(int MOTOR_CURRENT_PIN);
 };
 
 GetWheelSpeed::GetWheelSpeed() {
-    this->MOTOR_CURRENT_SENSOR_PIN = 4;
+    this->MOTOR_CURRENT_PIN     = 32;
+    this->MOTOR_VOLTAGE_PIN     = 33;
+    this->wheelSpeed            = 0;
 }
 
-double GetWheelSpeed::getWheelSpeed(int MOTOR_CURRENT_SENSOR_PIN) {
-    double  wheelSpeed;
+float GetWheelSpeed::getWheelSpeed(int MOTOR_CURRENT_PIN) {
     return wheelSpeed;
 }

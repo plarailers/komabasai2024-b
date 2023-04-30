@@ -14,26 +14,27 @@ class Train : public GetStopping, public GetWheelSpeed, public GetPositionID
         int     serialSpeed;
         char*   serialBTPortName;
         int     MOTOR_INPUT_PIN;
+        int     motorInput;
 
         Train(char* serialBTPortName);
         int     getMotorInput();
         void    moveMotor(int motorInput);
-        double  getMovingDistance(double wheelSpeed, bool isStopping);
-        void    sendMovingDistance(double movingDistance);
+        float   calcWheelRotation(float wheelSpeed, bool isStopping);
+        void    sendWheelRotation(float wheelRotation);
         void    sendPositionID(int positionID);
 };
 
 Train::Train(char* serialBTPortName) {
     this->serialSpeed       = 115200;
     this->serialBTPortName  = serialBTPortName;
-    this->MOTOR_INPUT_PIN   = A18;
+    this->MOTOR_INPUT_PIN   = 25;
+    this->motorInput        = 0;
 }
 
 int Train::getMotorInput() {
 
     int MOTOR_INPUT_MAX = 255;  // inputの上限
     int MOTOR_INPUT_MIN = 0;    // inputの下限
-    int motorInput;
 
     while (SerialBT.available() > 0) {
         motorInput = SerialBT.read();
@@ -46,23 +47,27 @@ void Train::moveMotor(int motorInput) {
     ledcWrite(0, motorInput);
 }
 
-double Train::getMovingDistance(double wheelSpeed, bool isStopping) {
+float Train::calcWheelRotation(float wheelSpeed, bool isStopping) {
 
-    double movingDistance;
+    float wheelRotation;
 
     if (isStopping) {
         return 0;
     }
     else {
         /* wheelSpeedを時間積分 */
-        return movingDistance;
+        return wheelRotation;
     }
 }
 
-void Train::sendMovingDistance(double movingDistance) {
-    SerialBT.print(movingDistance);
+void Train::sendWheelRotation(float wheelRotation) {
+    SerialBT.print("\"wheelRotation\":");
+    SerialBT.print(wheelRotation);
+    SerialBT.println("}");
 }
 
 void Train::sendPositionID(int positionID) {
+    SerialBT.print("{\"positionID\":");
     SerialBT.print(positionID);
+    SerialBT.println("}");
 }

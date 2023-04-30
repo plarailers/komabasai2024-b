@@ -3,16 +3,13 @@
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
 
-/* This driver reads raw data from the BNO055
-
-   Connections
+/* 
+   BNO055 to ESP32 Connections
    ===========
-   Connect SCL to analog 5
-   Connect SDA to analog 4
+   Connect SCL to 22
+   Connect SDA to 21
    Connect VDD to 3.3V DC
    Connect GROUND to common ground
-
-   History
    =======
    2015/MAR/03  - First release (KTOWN)
 */
@@ -122,15 +119,19 @@ bool GetStopping::getStopping(void)
         count++;
     }
 
+    // Serial.print("5:");
+    // Serial.print(5);
+    // Serial.print(", -5:");
+    // Serial.print(-5);
     
-    Serial.print("Acclt:");
-    Serial.print(acclt);
-    Serial.print(", Acclt_lp:");
-    Serial.print(acclt_lp);
-    Serial.print(", Stop:");
-    Serial.print(stop_flag);
-    Serial.print(", Stop_flag2:");
-    Serial.println(stop_flag2);
+    // Serial.print(", Acclt:");
+    // Serial.print(acclt);
+    // Serial.print(", Acclt_lp:");
+    // Serial.print(acclt_lp);
+    // Serial.print(", Stop:");
+    // Serial.print(stop_flag);
+    // Serial.print(", Stop_flag2:");
+    // Serial.println(stop_flag2);
 
     delay(1);
 
