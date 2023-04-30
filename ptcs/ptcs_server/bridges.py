@@ -14,8 +14,7 @@ BridgeCallback = Callable[[BridgeTarget, Any], None]
 
 class BridgeManager:
     bridges: BridgeDict
-    send_queue: queue.Queue[Any]
-    recv_queue: queue.Queue[Any]
+    send_queue: queue.Queue[tuple[BridgeTarget, Any]]
     callback: BridgeCallback
     thread: Optional[threading.Thread]
 
@@ -30,7 +29,6 @@ class BridgeManager:
         self.print_bridges()
 
         self.send_queue = queue.Queue()
-        self.recv_queue = queue.Queue()
         self.callback = callback
         self.thread = None
 
@@ -46,24 +44,30 @@ class BridgeManager:
             print(f"  {key} = {value}")
 
     def start(self) -> None:
-        thread = threading.Thread(target=self.run, daemon=True)
+        thread = threading.Thread(target=self._run, daemon=True)
         thread.start()
         self.thread = thread
 
-    def run(self) -> None:
+    def _run(self) -> None:
         while True:
             # 受信
             for target, bridge in self.bridges.items():
                 if bridge.serial.in_waiting:
                     message = bridge.receive()
-                    print(target, message)
-                    data: Any
                     try:
                         data = json.loads(message)
+                        print(f"RECV {target} {data}")
+                        self.callback(target, data)
                     except json.decoder.JSONDecodeError:
-                        data = None
+                        pass
 
             # 送信
             while not self.send_queue.empty():
-                command = self.send_queue.get()
-                print(command)
+                target, data = self.send_queue.get()
+                print(f"SEND {target} {data}")
+                bridge = self.bridges[target]
+                message = json.dumps(data)
+                bridge.send(message)
+
+    def send(self, target: BridgeTarget, data: Any) -> None:
+        self.send_queue.put((target, data))
