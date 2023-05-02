@@ -1,6 +1,7 @@
 from .components import Direction, Joint, Junction, Section, Train
 from .railway_config import RailwayConfig, init_config
 from .railway_state import RailwayState, init_state
+from .railway_command import RailwayCommand, init_command
 
 
 class Control:
@@ -10,16 +11,42 @@ class Control:
 
     config: "RailwayConfig"
     state: "RailwayState"
+    command: "RailwayCommand"
 
     def __init__(self) -> None:
         self.config = init_config()
         self.state = init_state()
+        self.command = init_command()
 
     def get_config(self) -> "RailwayConfig":
         return self.config
 
     def get_state(self) -> "RailwayState":
         return self.state
+
+    def get_command(self) -> "RailwayCommand":
+        return self.command
+
+    def toggle_junction(self, junction_id: "Junction", direction: "Direction") -> None:
+        """
+        指定された分岐・合流点の方向を指示する。
+        """
+
+        self.command.junctions[junction_id] = direction
+    
+    def set_speed(self, train_id: "Train", speed: float) -> None:
+        """
+        指定された列車の速度を指示する。
+        """
+
+        self.command.trains[train_id].speed = speed
+
+    def update_junction(self, junction_id: "Junction", direction: "Direction") -> None:
+        """
+        指定された分岐・合流点の方向を更新する。
+        """
+
+        self.state.junctions[junction_id].direction = direction
 
     def move_train(self, train_id: "Train", delta: float) -> None:
         """
