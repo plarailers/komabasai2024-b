@@ -67,6 +67,18 @@ class Control:
             train_state.current_section = next_section
             train_state.target_junction = next_target_junction
 
+    def calc_direction(self) -> None:
+        """
+        ポイントをどちら向きにするかを計算する。
+        """
+        # 「とりうるルート」の列挙
+
+        # 列車位置と線路の状態（障害物の有無）に応じてどのルートを使うか判断する
+
+        # ポイント変更
+        pass
+
+
     def _get_next_section_and_junction(
         self, current_section: Section, target_junction: Junction
     ) -> tuple[Section, Junction]:
