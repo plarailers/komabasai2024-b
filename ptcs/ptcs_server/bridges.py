@@ -1,4 +1,5 @@
 import json
+import logging
 import queue
 import threading
 from typing import Any, Callable, Optional
@@ -63,7 +64,7 @@ class BridgeManager:
                     message = bridge.receive()
                     try:
                         data = json.loads(message)
-                        print(f"RECV {target} {data}")
+                        logging.info(f"RECV {target} {data}")
                         self.callback(target, data)
                     except json.decoder.JSONDecodeError:
                         pass
@@ -71,7 +72,7 @@ class BridgeManager:
             # 送信
             while not self.send_queue.empty():
                 target, data = self.send_queue.get()
-                print(f"SEND {target} {data}")
+                logging.info(f"SEND {target} {data}")
                 bridge = self.bridges[target]
                 message = json.dumps(data)
                 bridge.send(message)
