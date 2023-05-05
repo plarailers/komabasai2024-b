@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request
 from ptcs_control import Control
-from ptcs_control.components import Train
+from ptcs_control.components import Direction, Junction, Train
 from ptcs_control.railway_config import RailwayConfig
 from ptcs_control.railway_state import RailwayState
 import pydantic
@@ -39,3 +39,16 @@ def move_train(train_id: str, params: MoveTrainParams, request: Request) -> None
     control: Control = request.app.state.control
     train = Train(train_id)
     control.move_train(train, params.delta)
+
+class UpdateJunctionParams(pydantic.BaseModel):
+    direction: Direction
+
+@api_router.post("/state/junctions/{junction_id}/update")
+def update_junction(junction_id: str, params: UpdateJunctionParams, request: Request) -> None:
+    """
+    指定された分岐点の方向を更新する。
+    デバッグ用。
+    """
+    control: Control = request.app.state.control
+    junction = Junction(junction_id)
+    control.update_junction(junction, params.direction)
