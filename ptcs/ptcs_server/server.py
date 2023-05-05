@@ -35,6 +35,8 @@ def create_app_with_bridge() -> FastAPI:
             control.move_train(target, data["wR"] / 100)
 
     bridges = BridgeManager(callback=handle_receive)
+
+    # TODO: ソースコードの変更なしに COM ポートを指定できるようにする
     bridges.register(Train("t0"), Bridge("COM4"))
 
     bridges.start()
