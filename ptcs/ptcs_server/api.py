@@ -59,7 +59,7 @@ def update_junction(junction_id: str, params: UpdateJunctionParams, request: Req
 @api_router.post("/state/sections/{section_id}/block")
 def block_section(section_id: str, request: Request) -> None:
     """
-    指定させた区間に障害物を発生させる。
+    指定された区間に障害物を発生させる。
     デバッグ用。
     """
     control: Control = request.app.state.control
@@ -70,7 +70,7 @@ def block_section(section_id: str, request: Request) -> None:
 @api_router.post("/state/sections/{section_id}/unblock")
 def unblock_section(section_id: str, request: Request) -> None:
     """
-    指定させた区間の障害物を取り除く。
+    指定された区間の障害物を取り除く。
     デバッグ用。
     """
     control: Control = request.app.state.control
