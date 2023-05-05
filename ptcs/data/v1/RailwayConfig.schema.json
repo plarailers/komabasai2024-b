@@ -1,0 +1,71 @@
+{
+  "title": "RailwayConfig",
+  "description": "\u8def\u7dda\u306e\u8a2d\u5b9a",
+  "type": "object",
+  "properties": {
+    "junctions": {
+      "title": "Junctions",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/JunctionConfig"
+      }
+    },
+    "sections": {
+      "title": "Sections",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/SectionConfig"
+      }
+    },
+    "trains": {
+      "title": "Trains",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/TrainConfig"
+      }
+    }
+  },
+  "definitions": {
+    "JunctionConfig": {
+      "title": "JunctionConfig",
+      "type": "object",
+      "properties": {
+        "sections": {
+          "title": "Sections",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "SectionConfig": {
+      "title": "SectionConfig",
+      "type": "object",
+      "properties": {
+        "junction_0": {
+          "title": "Junction 0",
+          "type": "string"
+        },
+        "junction_1": {
+          "title": "Junction 1",
+          "type": "string"
+        },
+        "length": {
+          "title": "Length",
+          "type": "number"
+        }
+      },
+      "required": [
+        "junction_0",
+        "junction_1",
+        "length"
+      ]
+    },
+    "TrainConfig": {
+      "title": "TrainConfig",
+      "type": "object",
+      "properties": {}
+    }
+  }
+}
