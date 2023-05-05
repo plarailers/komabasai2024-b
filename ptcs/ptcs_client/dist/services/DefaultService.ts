@@ -102,4 +102,50 @@ export class DefaultService {
         });
     }
 
+    /**
+     * Block Section
+     * 指定させた区間に障害物を発生させる。
+     * デバッグ用。
+     * @param sectionId
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static blockSection(
+        sectionId: string,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/state/sections/{section_id}/block',
+            path: {
+                'section_id': sectionId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+
+    /**
+     * Unblock Section
+     * 指定させた区間の障害物を取り除く。
+     * デバッグ用。
+     * @param sectionId
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static unblockSection(
+        sectionId: string,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/state/sections/{section_id}/unblock',
+            path: {
+                'section_id': sectionId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+
 }
