@@ -1,0 +1,127 @@
+{
+  "$schema": "./RailwayConfig.schema.json",
+  "junctions": {
+    "j0a": {
+      "sections": {
+        "CONVERGING": "s00",
+        "THROUGH": "s07",
+        "DIVERGING": "s08"
+      }
+    },
+    "j0b": {
+      "sections": {
+        "THROUGH": "s00",
+        "CONVERGING": "s01",
+        "DIVERGING": "s08"
+      }
+    },
+    "j1a": {
+      "sections": {
+        "CONVERGING": "s06",
+        "THROUGH": "s07",
+        "DIVERGING": "s09"
+      }
+    },
+    "j1b": {
+      "sections": {
+        "CONVERGING": "s01",
+        "THROUGH": "s02",
+        "DIVERGING": "s09"
+      }
+    },
+    "j2a": {
+      "sections": {
+        "THROUGH": "s05",
+        "CONVERGING": "s06",
+        "DIVERGING": "s10"
+      }
+    },
+    "j2b": {
+      "sections": {
+        "THROUGH": "s02",
+        "CONVERGING": "s03",
+        "DIVERGING": "s10"
+      }
+    },
+    "j3a": {
+      "sections": {
+        "CONVERGING": "s04",
+        "THROUGH": "s05",
+        "DIVERGING": "s11"
+      }
+    },
+    "j3b": {
+      "sections": {
+        "CONVERGING": "s03",
+        "THROUGH": "s04",
+        "DIVERGING": "s11"
+      }
+    }
+  },
+  "sections": {
+    "s00": {
+      "junction_0": "j0a",
+      "junction_1": "j0b",
+      "length": 100.0
+    },
+    "s01": {
+      "junction_0": "j0b",
+      "junction_1": "j1b",
+      "length": 100.0
+    },
+    "s02": {
+      "junction_0": "j1b",
+      "junction_1": "j2b",
+      "length": 100.0
+    },
+    "s03": {
+      "junction_0": "j2b",
+      "junction_1": "j3b",
+      "length": 100.0
+    },
+    "s04": {
+      "junction_0": "j3b",
+      "junction_1": "j3a",
+      "length": 100.0
+    },
+    "s05": {
+      "junction_0": "j3a",
+      "junction_1": "j2a",
+      "length": 100.0
+    },
+    "s06": {
+      "junction_0": "j2a",
+      "junction_1": "j1a",
+      "length": 100.0
+    },
+    "s07": {
+      "junction_0": "j1a",
+      "junction_1": "j0a",
+      "length": 100.0
+    },
+    "s08": {
+      "junction_0": "j0a",
+      "junction_1": "j0b",
+      "length": 100.0
+    },
+    "s09": {
+      "junction_0": "j1a",
+      "junction_1": "j1b",
+      "length": 100.0
+    },
+    "s10": {
+      "junction_0": "j2a",
+      "junction_1": "j2b",
+      "length": 100.0
+    },
+    "s11": {
+      "junction_0": "j3a",
+      "junction_1": "j3b",
+      "length": 100.0
+    }
+  },
+  "trains": {
+    "t0": {},
+    "t1": {}
+  }
+}

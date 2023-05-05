@@ -34,7 +34,7 @@ class Direction(Enum):
     CURVE = "CURVE"
 
 
-class Joint(Enum):
+class Joint(str, Enum):
     r"""
     ターンアウトレールにおける分岐・合流の接続のしかたを表す列挙型
 
