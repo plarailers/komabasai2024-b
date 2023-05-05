@@ -1,22 +1,42 @@
+from typing import Any
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from usb_bt_bridge import Bridge
+from .bridges import BridgeManager, BridgeTarget
+from ptcs_control import Control
+from ptcs_control.components import Train
 import uvicorn
-from .api.router import router as api_router
+from .api import api_router
 
 
-app = FastAPI()
+def create_app() -> FastAPI:
+    def handle_receive(target: BridgeTarget, data: Any) -> None:
+        print(target, data)
+        # TODO: インターフェイスを定めてコマンドを判別する
+        if data["pID"]:
+            control.move_train(target, data["wR"] / 100)
 
-# `/api` 以下で API を呼び出す
-api_app = FastAPI(title="API")
-api_app.include_router(api_router)
-app.mount("/api", api_app)
+    control = Control()
+    bridges = BridgeManager(callback=handle_receive)
+    bridges.register(Train("t0"), Bridge("COM4"))
 
-# `/` 以下で静的ファイルを配信する
-app.mount("/", StaticFiles(directory="./ptcs_ui/dist", html=True), name="static")
+    bridges.start()
+
+    app = FastAPI(generate_unique_id_function=lambda route: route.name)
+    app.state.control = control
+    app.state.bridges = bridges
+
+    # `/api` 以下で API を呼び出す
+    app.include_router(api_router, prefix="/api")
+
+    # `/` 以下で静的ファイルを配信する
+    app.mount("/", StaticFiles(directory="./ptcs_ui/dist", html=True), name="static")
+
+    return app
 
 
 def serve() -> None:
     """
     列車制御システムを Web サーバーとして起動する。
     """
-    uvicorn.run("ptcs_server.server:app", port=5000, log_level="info", reload=True)
+    uvicorn.run("ptcs_server.server:create_app", port=5000, log_level="info", reload=True)
