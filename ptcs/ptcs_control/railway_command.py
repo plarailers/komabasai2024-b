@@ -27,7 +27,7 @@ class RailwayCommand(BaseModel):
 
         形式: `(ID, 速度指令値)`
         """
-        for (train_id, speed) in train_tuples:
+        for train_id, speed in train_tuples:
             self.trains[train_id] = TrainCommand(speed=speed)
 
 
@@ -49,10 +49,6 @@ def init_command() -> RailwayCommand:
     j0b = Junction("j0b")
     j1a = Junction("j1a")
     j1b = Junction("j1b")
-    j2a = Junction("j2a")
-    j2b = Junction("j2b")
-    j3a = Junction("j3a")
-    j3b = Junction("j3b")
 
     t0 = Train("t0")
     t1 = Train("t1")
@@ -62,10 +58,6 @@ def init_command() -> RailwayCommand:
         (j0b, Direction.STRAIGHT),
         (j1a, Direction.STRAIGHT),
         (j1b, Direction.STRAIGHT),
-        (j2a, Direction.STRAIGHT),
-        (j2b, Direction.STRAIGHT),
-        (j3a, Direction.STRAIGHT),
-        (j3b, Direction.STRAIGHT),
     )
 
     command.define_trains(

@@ -32,7 +32,7 @@ class RailwayState(BaseModel):
             self.sections[section_id] = SectionState()
 
     def define_trains(self, *train_tuples: tuple["Train", "Section", "Junction", float]) -> None:
-        for (train_id, current_section, target_junction, mileage) in train_tuples:
+        for train_id, current_section, target_junction, mileage in train_tuples:
             self.trains[train_id] = TrainState(
                 current_section=current_section, target_junction=target_junction, mileage=mileage
             )
@@ -62,23 +62,13 @@ def init_state() -> RailwayState:
     j0b = Junction("j0b")
     j1a = Junction("j1a")
     j1b = Junction("j1b")
-    j2a = Junction("j2a")
-    j2b = Junction("j2b")
-    j3a = Junction("j3a")
-    j3b = Junction("j3b")
 
-    s00 = Section("s00")
-    s01 = Section("s01")
-    s02 = Section("s02")
-    s03 = Section("s03")
-    s04 = Section("s04")
-    s05 = Section("s05")
-    s06 = Section("s06")
-    s07 = Section("s07")
-    s08 = Section("s08")
-    s09 = Section("s09")
-    s10 = Section("s10")
-    s11 = Section("s11")
+    s0 = Section("s0")
+    s1 = Section("s1")
+    s2 = Section("s2")
+    s3 = Section("s3")
+    s4 = Section("s4")
+    s5 = Section("s5")
 
     t0 = Train("t0")
     t1 = Train("t1")
@@ -88,30 +78,20 @@ def init_state() -> RailwayState:
         (j0b, Direction.STRAIGHT),
         (j1a, Direction.STRAIGHT),
         (j1b, Direction.STRAIGHT),
-        (j2a, Direction.STRAIGHT),
-        (j2b, Direction.STRAIGHT),
-        (j3a, Direction.STRAIGHT),
-        (j3b, Direction.STRAIGHT),
     )
 
     state.define_sections(
-        (s00,),
-        (s01,),
-        (s02,),
-        (s03,),
-        (s04,),
-        (s05,),
-        (s06,),
-        (s07,),
-        (s08,),
-        (s09,),
-        (s10,),
-        (s11,),
+        (s0,),
+        (s1,),
+        (s2,),
+        (s3,),
+        (s4,),
+        (s5,),
     )
 
     state.define_trains(
-        (t0, s00, j0b, 0),
-        (t1, s04, j3a, 0),
+        (t0, s0, j0b, 0),
+        (t1, s2, j1a, 0),
     )
 
     return state
