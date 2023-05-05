@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request
 from ptcs_control import Control
-from ptcs_control.components import Direction, Junction, Train
+from ptcs_control.components import Direction, Junction, Section, Train
 from ptcs_control.railway_config import RailwayConfig
 from ptcs_control.railway_state import RailwayState
 import pydantic
@@ -40,8 +40,10 @@ def move_train(train_id: str, params: MoveTrainParams, request: Request) -> None
     train = Train(train_id)
     control.move_train(train, params.delta)
 
+
 class UpdateJunctionParams(pydantic.BaseModel):
     direction: Direction
+
 
 @api_router.post("/state/junctions/{junction_id}/update")
 def update_junction(junction_id: str, params: UpdateJunctionParams, request: Request) -> None:
@@ -52,3 +54,25 @@ def update_junction(junction_id: str, params: UpdateJunctionParams, request: Req
     control: Control = request.app.state.control
     junction = Junction(junction_id)
     control.update_junction(junction, params.direction)
+
+
+@api_router.post("/state/sections/{section_id}/block")
+def block_section(section_id: str, request: Request) -> None:
+    """
+    指定させた区間に障害物を発生させる。
+    デバッグ用。
+    """
+    control: Control = request.app.state.control
+    section = Section(section_id)
+    control.block_section(section)
+
+
+@api_router.post("/state/sections/{section_id}/unblock")
+def unblock_section(section_id: str, request: Request) -> None:
+    """
+    指定させた区間の障害物を取り除く。
+    デバッグ用。
+    """
+    control: Control = request.app.state.control
+    section = Section(section_id)
+    control.unblock_section(section)
