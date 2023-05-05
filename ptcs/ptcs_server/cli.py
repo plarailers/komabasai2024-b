@@ -3,8 +3,9 @@ from . import server
 
 
 @click.command()
-def main() -> None:
-    server.serve()
+@click.option("--bridge", is_flag=True)
+def main(bridge: bool) -> None:
+    server.serve(bridge=bridge)
 
 
 if __name__ == "__main__":
