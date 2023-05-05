@@ -79,23 +79,13 @@ def init_config() -> RailwayConfig:
     j0b = Junction("j0b")
     j1a = Junction("j1a")
     j1b = Junction("j1b")
-    j2a = Junction("j2a")
-    j2b = Junction("j2b")
-    j3a = Junction("j3a")
-    j3b = Junction("j3b")
 
-    s00 = Section("s00")
-    s01 = Section("s01")
-    s02 = Section("s02")
-    s03 = Section("s03")
-    s04 = Section("s04")
-    s05 = Section("s05")
-    s06 = Section("s06")
-    s07 = Section("s07")
-    s08 = Section("s08")
-    s09 = Section("s09")
-    s10 = Section("s10")
-    s11 = Section("s11")
+    s0 = Section("s0")
+    s1 = Section("s1")
+    s2 = Section("s2")
+    s3 = Section("s3")
+    s4 = Section("s4")
+    s5 = Section("s5")
 
     t0 = Train("t0")
     t1 = Train("t1")
@@ -105,25 +95,15 @@ def init_config() -> RailwayConfig:
         (j0b,),
         (j1a,),
         (j1b,),
-        (j2a,),
-        (j2b,),
-        (j3a,),
-        (j3b,),
     )
 
     config.define_sections(
-        (s00, j0a, Joint.CONVERGING, j0b, Joint.THROUGH, 100),
-        (s01, j0b, Joint.CONVERGING, j1b, Joint.CONVERGING, 100),
-        (s02, j1b, Joint.THROUGH, j2b, Joint.THROUGH, 100),
-        (s03, j2b, Joint.CONVERGING, j3b, Joint.CONVERGING, 100),
-        (s04, j3b, Joint.THROUGH, j3a, Joint.CONVERGING, 100),
-        (s05, j3a, Joint.THROUGH, j2a, Joint.THROUGH, 100),
-        (s06, j2a, Joint.CONVERGING, j1a, Joint.CONVERGING, 100),
-        (s07, j1a, Joint.THROUGH, j0a, Joint.THROUGH, 100),
-        (s08, j0a, Joint.DIVERGING, j0b, Joint.DIVERGING, 100),
-        (s09, j1a, Joint.DIVERGING, j1b, Joint.DIVERGING, 100),
-        (s10, j2a, Joint.DIVERGING, j2b, Joint.DIVERGING, 100),
-        (s11, j3a, Joint.DIVERGING, j3b, Joint.DIVERGING, 100),
+        (s0, j0a, Joint.CONVERGING, j0b, Joint.THROUGH, 100),
+        (s1, j0b, Joint.CONVERGING, j1b, Joint.THROUGH, 100),
+        (s2, j1b, Joint.THROUGH, j1a, Joint.CONVERGING, 100),
+        (s3, j1a, Joint.THROUGH, j0a, Joint.THROUGH, 100),
+        (s4, j0a, Joint.DIVERGING, j0b, Joint.DIVERGING, 100),
+        (s5, j1a, Joint.DIVERGING, j1b, Joint.DIVERGING, 100),
     )
 
     config.define_trains(
