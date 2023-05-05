@@ -99,7 +99,7 @@ def init_config() -> RailwayConfig:
 
     config.define_sections(
         (s0, j0a, Joint.CONVERGING, j0b, Joint.THROUGH, 100),
-        (s1, j0b, Joint.CONVERGING, j1b, Joint.THROUGH, 100),
+        (s1, j0b, Joint.CONVERGING, j1b, Joint.CONVERGING, 100),
         (s2, j1b, Joint.THROUGH, j1a, Joint.CONVERGING, 100),
         (s3, j1a, Joint.THROUGH, j0a, Joint.THROUGH, 100),
         (s4, j0a, Joint.DIVERGING, j0b, Joint.DIVERGING, 100),
