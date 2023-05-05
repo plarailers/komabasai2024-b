@@ -4,7 +4,7 @@ import time
 
 
 class Bridge:
-    serial: serial.Serial
+    serial: "serial.Serial"
 
     def __init__(self, port: str) -> None:
         baudrate = 115200
