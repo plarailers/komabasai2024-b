@@ -26,7 +26,7 @@ export const Junction: React.FC<JunctionProps> = ({ id, position }) => {
 
   const directions: Record<string, { x: number; y: number }> = {};
 
-  for (const joint of ["CONVERGING", "THROUGH", "DIVERGING"]) {
+  for (const joint of ["converging", "through", "diverging"]) {
     const section = config.sections![joint];
     const sectionConfig = railwayConfig.sections![section];
     if (id === sectionConfig.junction_0) {
@@ -45,11 +45,11 @@ export const Junction: React.FC<JunctionProps> = ({ id, position }) => {
   let pointDirection: string;
   switch (state.direction) {
     case Direction.STRAIGHT: {
-      pointDirection = "THROUGH";
+      pointDirection = "through";
       break;
     }
     case Direction.CURVE: {
-      pointDirection = "DIVERGING";
+      pointDirection = "diverging";
       break;
     }
   }
@@ -62,8 +62,8 @@ export const Junction: React.FC<JunctionProps> = ({ id, position }) => {
       <polyline
         points={[
           {
-            x: directions["CONVERGING"].x * radius,
-            y: directions["CONVERGING"].y * radius,
+            x: directions["converging"].x * radius,
+            y: directions["converging"].y * radius,
           },
           {
             x: 0,

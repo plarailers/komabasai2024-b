@@ -24,14 +24,14 @@ class Direction(Enum):
 
     ```
     _______________
-    ______  _______ STRAIGHT
+    ______  _______ straight
           \ \______
-           \_______ CURVE
+           \_______ curve
     ```
     """
 
-    STRAIGHT = "STRAIGHT"
-    CURVE = "CURVE"
+    STRAIGHT = "straight"
+    CURVE = "curve"
 
 
 class Joint(str, Enum):
@@ -40,14 +40,14 @@ class Joint(str, Enum):
 
     ```
                _______________
-    CONVERGING ______  _______ THROUGH
+    converging ______  _______ through
                      \ \______
-                      \_______ DIVERGING
+                      \_______ diverging
     ```
 
     NOTE: いい名前を募集中
     """
 
-    THROUGH = "THROUGH"
-    DIVERGING = "DIVERGING"
-    CONVERGING = "CONVERGING"
+    THROUGH = "through"
+    DIVERGING = "diverging"
+    CONVERGING = "converging"
