@@ -4,6 +4,7 @@
 import type { MoveTrainParams } from '../models/MoveTrainParams';
 import type { RailwayConfig } from '../models/RailwayConfig';
 import type { RailwayState } from '../models/RailwayState';
+import type { UpdateJunctionParams } from '../models/UpdateJunctionParams';
 
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -65,6 +66,33 @@ export class DefaultService {
             url: '/api/state/trains/{train_id}/move',
             path: {
                 'train_id': trainId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+
+    /**
+     * Update Junction
+     * 指定された分岐点の方向を更新する。
+     * デバッグ用。
+     * @param junctionId
+     * @param requestBody
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static updateJunction(
+        junctionId: string,
+        requestBody: UpdateJunctionParams,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/state/junctions/{junction_id}/update',
+            path: {
+                'junction_id': junctionId,
             },
             body: requestBody,
             mediaType: 'application/json',
