@@ -5,6 +5,11 @@ import { useEffect, useState } from "react";
 import { Railway } from "../components/Railway";
 import { RailwayUI } from "../types";
 import { Debugger } from "../components/Debugger";
+import {
+  RailwayConfigContext,
+  RailwayStateContext,
+  RailwayUIContext,
+} from "../contexts";
 
 const ui: RailwayUI = {
   width: 680,
@@ -115,15 +120,21 @@ export const Home: React.FC = () => {
   }, []);
 
   return (
-    <Layout>
-      <Container>
-        <Stack>
-          {time?.toLocaleString()}
-          <Railway config={railwayConfig} state={railwayState} ui={ui} />
-          <Debugger />
-          <Code block>{JSON.stringify(railwayState, null, 4)}</Code>
-        </Stack>
-      </Container>
-    </Layout>
+    <RailwayConfigContext.Provider value={railwayConfig}>
+      <RailwayStateContext.Provider value={railwayState}>
+        <RailwayUIContext.Provider value={ui}>
+          <Layout>
+            <Container>
+              <Stack>
+                {time?.toLocaleString()}
+                <Railway />
+                <Debugger />
+                <Code block>{JSON.stringify(railwayState, null, 4)}</Code>
+              </Stack>
+            </Container>
+          </Layout>
+        </RailwayUIContext.Provider>
+      </RailwayStateContext.Provider>
+    </RailwayConfigContext.Provider>
   );
 };
