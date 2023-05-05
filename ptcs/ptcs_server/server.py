@@ -10,21 +10,10 @@ from .api import api_router
 
 
 def create_app() -> FastAPI:
-    def handle_receive(target: BridgeTarget, data: Any) -> None:
-        print(target, data)
-        # TODO: インターフェイスを定めてコマンドを判別する
-        if data["pID"]:
-            control.move_train(target, data["wR"] / 100)
-
     control = Control()
-    bridges = BridgeManager(callback=handle_receive)
-    bridges.register(Train("t0"), Bridge("COM4"))
-
-    bridges.start()
 
     app = FastAPI(generate_unique_id_function=lambda route: route.name)
     app.state.control = control
-    app.state.bridges = bridges
 
     # `/api` 以下で API を呼び出す
     app.include_router(api_router, prefix="/api")
@@ -35,8 +24,31 @@ def create_app() -> FastAPI:
     return app
 
 
-def serve() -> None:
+def create_app_with_bridge() -> FastAPI:
+    app = create_app()
+    control: Control = app.state.control
+
+    def handle_receive(target: BridgeTarget, data: Any) -> None:
+        print(target, data)
+        # TODO: インターフェイスを定めてコマンドを判別する
+        if data["pID"]:
+            control.move_train(target, data["wR"] / 100)
+
+    bridges = BridgeManager(callback=handle_receive)
+    bridges.register(Train("t0"), Bridge("COM4"))
+
+    bridges.start()
+
+    app.state.bridges = bridges
+
+    return app
+
+
+def serve(*, bridge: bool = False) -> None:
     """
     列車制御システムを Web サーバーとして起動する。
     """
-    uvicorn.run("ptcs_server.server:create_app", port=5000, log_level="info", reload=True)
+    if bridge:
+        uvicorn.run("ptcs_server.server:create_app_with_bridge", port=5000, log_level="info", reload=True)
+    else:
+        uvicorn.run("ptcs_server.server:create_app", port=5000, log_level="info", reload=True)
