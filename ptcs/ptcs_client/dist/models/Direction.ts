@@ -8,13 +8,13 @@
  *
  * ```
  * _______________
- * ______  _______ STRAIGHT
+ * ______  _______ straight
  * \ \______
- * \_______ CURVE
+ * \_______ curve
  * ```
  *
  */
 export enum Direction {
-    STRAIGHT = 'STRAIGHT',
-    CURVE = 'CURVE',
+    STRAIGHT = 'straight',
+    CURVE = 'curve',
 }

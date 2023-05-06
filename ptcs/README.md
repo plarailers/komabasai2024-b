@@ -34,13 +34,25 @@ pip install poetry
 poetry install
 ```
 
-### システム起動
+### システム起動 (実機なし)
 
 ```bash
 poetry run server
 ```
 
 起動後、http://127.0.0.1:5000 にアクセスしてください。
+
+### システム起動 (実機あり)
+
+PC に基地局を接続した上で、ptcs_server/server.py のポート指定部分を編集し、--bridge オプションをつけてサーバーを起動します。
+
+```bash
+poetry run server --bridge
+```
+
+起動後、http://127.0.0.1:5000 にアクセスしてください。
+
+将来的には BLE による一対多通信を実装する予定のため、ポート指定なしで動くようになると思います。
 
 
 ## 開発者向け

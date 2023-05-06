@@ -4,6 +4,7 @@
 import type { MoveTrainParams } from '../models/MoveTrainParams';
 import type { RailwayConfig } from '../models/RailwayConfig';
 import type { RailwayState } from '../models/RailwayState';
+import type { UpdateJunctionParams } from '../models/UpdateJunctionParams';
 
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -68,6 +69,79 @@ export class DefaultService {
             },
             body: requestBody,
             mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+
+    /**
+     * Update Junction
+     * 指定された分岐点の方向を更新する。
+     * デバッグ用。
+     * @param junctionId
+     * @param requestBody
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static updateJunction(
+        junctionId: string,
+        requestBody: UpdateJunctionParams,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/state/junctions/{junction_id}/update',
+            path: {
+                'junction_id': junctionId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+
+    /**
+     * Block Section
+     * 指定させた区間に障害物を発生させる。
+     * デバッグ用。
+     * @param sectionId
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static blockSection(
+        sectionId: string,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/state/sections/{section_id}/block',
+            path: {
+                'section_id': sectionId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+
+    /**
+     * Unblock Section
+     * 指定させた区間の障害物を取り除く。
+     * デバッグ用。
+     * @param sectionId
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static unblockSection(
+        sectionId: string,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/state/sections/{section_id}/unblock',
+            path: {
+                'section_id': sectionId,
+            },
             errors: {
                 422: `Validation Error`,
             },

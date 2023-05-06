@@ -17,6 +17,7 @@ export type { SectionConfig } from './models/SectionConfig';
 export type { SectionState } from './models/SectionState';
 export type { TrainConfig } from './models/TrainConfig';
 export type { TrainState } from './models/TrainState';
+export type { UpdateJunctionParams } from './models/UpdateJunctionParams';
 export type { ValidationError } from './models/ValidationError';
 
 export { DefaultService } from './services/DefaultService';
