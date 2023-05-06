@@ -1,10 +1,17 @@
+import { useContext } from "react";
+import { RailwayStateContext } from "../contexts";
+
 interface SectionProps {
   id: string;
   points: { x: number; y: number }[];
 }
 
 export const Section: React.FC<SectionProps> = ({ id, points }) => {
-  const blocked = false;
+  const railwayState = useContext(RailwayStateContext);
+
+  if (!railwayState) return null;
+
+  const state = railwayState.sections![id];
 
   const shrunkPointFirst = shrink(points[0], points[1], 4);
 
@@ -22,8 +29,8 @@ export const Section: React.FC<SectionProps> = ({ id, points }) => {
     <polyline
       points={shrunkPoints.map((p) => `${p.x},${p.y}`).join(" ")}
       fill="none"
-      stroke={blocked ? "red" : "white"}
-      strokeWidth={blocked ? 4 : 2}
+      stroke={state.blocked ? "red" : "white"}
+      strokeWidth={state.blocked ? 4 : 2}
       strokeLinecap="square"
     />
   );

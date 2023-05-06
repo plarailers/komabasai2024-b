@@ -24,30 +24,30 @@ class Direction(Enum):
 
     ```
     _______________
-    ______  _______ STRAIGHT
+    ______  _______ straight
           \ \______
-           \_______ CURVE
+           \_______ curve
     ```
     """
 
-    STRAIGHT = "STRAIGHT"
-    CURVE = "CURVE"
+    STRAIGHT = "straight"
+    CURVE = "curve"
 
 
-class Joint(Enum):
+class Joint(str, Enum):
     r"""
     ターンアウトレールにおける分岐・合流の接続のしかたを表す列挙型
 
     ```
                _______________
-    CONVERGING ______  _______ THROUGH
+    converging ______  _______ through
                      \ \______
-                      \_______ DIVERGING
+                      \_______ diverging
     ```
 
     NOTE: いい名前を募集中
     """
 
-    THROUGH = "THROUGH"
-    DIVERGING = "DIVERGING"
-    CONVERGING = "CONVERGING"
+    THROUGH = "through"
+    DIVERGING = "diverging"
+    CONVERGING = "converging"

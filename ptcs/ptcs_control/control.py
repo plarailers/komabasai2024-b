@@ -27,13 +27,25 @@ class Control:
     def get_command(self) -> "RailwayCommand":
         return self.command
 
+    def block_section(self, section_id: "Section") -> None:
+        """
+        指定された区間上に障害物を発生させ、使えなくさせる。
+        """
+        self.state.sections[section_id].blocked = True
+
+    def unblock_section(self, section_id: "Section") -> None:
+        """
+        指定された区間上の障害物を取り除き、使えるようにする。
+        """
+        self.state.sections[section_id].blocked = False
+
     def toggle_junction(self, junction_id: "Junction", direction: "Direction") -> None:
         """
         指定された分岐・合流点の方向を指示する。
         """
 
         self.command.junctions[junction_id] = direction
-    
+
     def set_speed(self, train_id: "Train", speed: float) -> None:
         """
         指定された列車の速度を指示する。
