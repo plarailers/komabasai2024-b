@@ -43,7 +43,7 @@ class JunctionState(BaseModel):
 
 
 class SectionState(BaseModel):
-    pass
+    blocked: bool = Field(False, description="区間上に障害物が発生していて使えない状態になっているかどうか")
 
 
 class TrainState(BaseModel):
