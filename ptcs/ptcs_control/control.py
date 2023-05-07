@@ -130,7 +130,7 @@ class Control:
                 s5_exist = True
 
         # ポイントの向きを判定
-        junction_direction: list(tuple[Junction, Direction])
+        junction_direction: list[tuple[Junction, Direction]]
         if not s3_blocked:
             junction_direction = possible_junction_direction["normal"]
         elif s1_j1b_exist or (not s2_exist and not s5_exist):
