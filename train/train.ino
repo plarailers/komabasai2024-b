@@ -26,8 +26,8 @@ void setup() {
     Serial.println("BNO055 Setup done!!");
 
     // /* MFRC522 */
-    train.MFRC522Setup();
-    Serial.println("MFRC522 Setup done!!");
+    // train.MFRC522Setup();
+    // Serial.println("MFRC522 Setup done!!");
 
 }
 
