@@ -90,8 +90,10 @@ class Control:
         j1a = Junction("j1a")
         j1b = Junction("j1b")
         # sectionの定義
+        s1 = Section("s1")
         s2 = Section("s2")
         s3 = Section("s3")
+        s5 = Section("s5")
         # 「とりうるルート」の列挙
         possible_junction_direction: dict[str, list(tuple[Junction, Direction])] = {
             "normal": [(j0a, Direction.STRAIGHT),
@@ -113,18 +115,27 @@ class Control:
         s3_blocked: bool = self.state.sections[s3].blocked
 
         train_states = self.state.trains
+        # s1にtarget_junctionがj1bであるtrainが存在するか
+        s1_j1b_exist: bool = False
         # s2に列車が存在するか
         s2_exist: bool = False
-        for train_state in train_states:
-            s2_exist = (s2_exist or (train_state.current_section == s2))
+        # s5にtrainが存在するか
+        s5_exist: bool = False
+        for train_state in train_states.values():
+            if train_state.current_section == s1 and train_state.target_junction == j1b:
+                s1_j1b_exist = True
+            if train_state.current_section == s2:
+                s2_exist = True
+            if train_state.current_section == s5:
+                s5_exist = True
 
         # ポイントの向きを判定
         junction_direction: list(tuple[Junction, Direction])
         if not s3_blocked:
             junction_direction = possible_junction_direction["normal"]
-        elif s3_blocked and not s2_exist:
+        elif s1_j1b_exist or (not s2_exist and not s5_exist):
             junction_direction = possible_junction_direction["blocked1"]
-        elif s3_blocked and s2_exist:
+        elif not s1_j1b_exist and (s2_exist or s5_exist):
             junction_direction = possible_junction_direction["blocked2"]
 
         # ポイント変更
