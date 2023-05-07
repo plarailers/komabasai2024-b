@@ -95,7 +95,7 @@ class Control:
         s3 = Section("s3")
         s5 = Section("s5")
         # 「とりうるルート」の列挙
-        possible_junction_direction: dict[str, list(tuple[Junction, Direction])] = {
+        possible_junction_direction: dict[str, list[tuple[Junction, Direction]]] = {
             "normal": [(j0a, Direction.STRAIGHT),
                        (j0b, Direction.STRAIGHT),
                        (j1a, Direction.STRAIGHT),
