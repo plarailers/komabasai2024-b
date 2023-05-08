@@ -19,10 +19,16 @@ export const Train: React.FC<TrainProps> = ({ id }) => {
   }
 
   const state = railwayState.trains![id];
+  const currentSectionConfig = railwayConfig.sections![state.current_section];
+  const currentSectionUI = railwayUI.sections![state.current_section];
   const { position, direction } = calculatePositionAndDirection(
-    state.mileage / railwayConfig.sections![state.current_section].length,
-    railwayUI.sections![state.current_section].points
+    state.mileage / currentSectionConfig.length,
+    currentSectionUI.points
   );
+  if (state.target_junction === currentSectionConfig.junction_0) {
+    direction.x *= -1;
+    direction.y *= -1;
+  }
   const angle = (Math.atan2(direction.y, direction.x) / Math.PI) * 180;
 
   return (
