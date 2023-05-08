@@ -79,6 +79,13 @@ class Control:
             train_state.current_section = next_section
             train_state.target_junction = next_target_junction
 
+    def calc_speed(self) -> None:
+        # [ATP]停止位置までの距離を、先行列車の位置と、ジャンクションの状態をもとに計算する
+        # [ATP]停止位置までの距離を使って、列車の許容速度を計算する
+        # [ATO]停車駅の情報から、停止位置を取得する
+        # [ATO]ATPで計算した許容速度の範囲内で、停止位置で止まるための速度を計算する
+        pass
+    
     def _get_next_section_and_junction(
         self, current_section: Section, target_junction: Junction
     ) -> tuple[Section, Junction]:
