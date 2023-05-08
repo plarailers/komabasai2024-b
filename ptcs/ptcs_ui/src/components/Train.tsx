@@ -80,6 +80,6 @@ const calculatePositionAndDirection = (
   {
     const p = points[points.length - 2];
     const q = points[points.length - 1];
-    return { position: p, direction: { x: q.x - p.x, y: q.y - p.y } };
+    return { position: q, direction: { x: q.x - p.x, y: q.y - p.y } };
   }
 };
