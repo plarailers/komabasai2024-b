@@ -67,17 +67,38 @@ class Control:
 
         train_state = self.state.trains[train_id]
         current_section_config = self.config.sections[train_state.current_section]
-        train_state.mileage += delta
 
-        while train_state.mileage >= current_section_config.length:
-            train_state.mileage -= current_section_config.length
+        if train_state.target_junction == current_section_config.junction_1:
+            train_state.mileage += delta
+        elif train_state.target_junction == current_section_config.junction_0:
+            train_state.mileage -= delta
+        else:
+            raise
+
+        while (
+            train_state.mileage > current_section_config.length
+            or train_state.mileage < 0
+        ):
+            if train_state.mileage > current_section_config.length:
+                surplus_mileage = train_state.mileage - current_section_config.length
+            elif train_state.mileage < 0:
+                surplus_mileage = -train_state.mileage
+            else:
+                raise
 
             next_section, next_target_junction = self._get_next_section_and_junction(
                 train_state.current_section, train_state.target_junction
             )
 
             train_state.current_section = next_section
+            current_section_config = self.config.sections[next_section]
             train_state.target_junction = next_target_junction
+            if train_state.target_junction == current_section_config.junction_1:
+                train_state.mileage = surplus_mileage
+            elif train_state.target_junction == current_section_config.junction_0:
+                train_state.mileage = current_section_config.length - surplus_mileage
+            else:
+                raise
 
     # def calc_speed(self) -> None:
     #     BREAK_ACCLT: float = 20  # ブレーキ減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
