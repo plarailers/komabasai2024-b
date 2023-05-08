@@ -34,12 +34,6 @@ const float R3_V = 220000.0f;  // 電圧検出信号のプルアップ抵抗
 const float GAIN_I = (R2_I + R3_I) / R3_I / R1_I;  // ADCで読んだ電圧[V]を電流[A]に換算する係数
 const float GAIN_V = (R1_V*R2_V + R2_V*R3_V + R3_V*R1_V) / (R2_V*R3_V);  // ADCで読んだ電圧からモータ電圧を計算する係数
 
-// 空転検出関係
-const float CUTOFF_FREQ = 10.0f;  // 電流・電圧・回転数等のカットオフ周波数
-const float VOLT_TO_SPD_SLOPE = 95.3f;  // 無負荷時の電圧[V]をx軸、y軸を速度[rps]としたときの傾き
-const float VOLT_TO_SPD_INTERCEPT = -61.4f;  // 無負荷時の電圧[V]をx軸、y軸を速度[rps]としたときの切片
-const float SPIN_THRESHOLD = 0.75f;  // 無負荷回転速度の何割を超えたら空転と判定するか
-
 // モータPWM関係
 const int PWM_CHANNEL = 0;
 const float PWM_FREQ = ADC_SAMPLING_RATE;  // モータのPWM周波数[Hz]。ADCと同一にすること
@@ -49,19 +43,12 @@ esp_adc_cal_characteristics_t adc_chars_1;
 uint32_t current_offset_mV = 0;  // 0AのときのADC測定値[mV]
 uint32_t voltage_offset_mV = 0;  // 0VのときのADC測定値[mV]
 
-// 指令やデータ
+// 指令などなど
 int pwm_duty = 0;
 int photoreflector_clk = 0;  // フォトリフレクタのクロック線読み値(0～4096)  
 int photoreflector_dat = 0;  // フォトリフレクタのデータ線読み値(0～4096)
-float current_lpf_A = 0.0f;
-float voltage_lpf_V = 0.0f;
-float speed_lpf_rps = 0.0f;
-bool spin = false;  // 空転検出時にtrue となるフラグ
 
 BluetoothSerial SerialBT;
-FirstLPF currentLPF;
-FirstLPF voltageLPF;
-FirstLPF speedLPF;
 HighSpeedAnalogRead adc;
 MotorRotationDetector motorRotationDetector;
 
@@ -94,41 +81,21 @@ void adcReadDone(uint16_t* data, size_t chNum) {
       photoreflector_dat = value_raw;
     }
   }
-  // 測定した電流値をモータ速度検出器に渡して、回転を積算する
   motorRotationDetector.update(current_A, 1000000 / ADC_SAMPLING_RATE);
-
-  // 空転検出用の、平滑化した電流・電圧・速度を計算
-  current_lpf_A = currentLPF.update(current_A, 1.0f / ADC_SAMPLING_RATE);
-  voltage_lpf_V = voltageLPF.update(voltage_V, 1.0f / ADC_SAMPLING_RATE);
-  speed_lpf_rps = speedLPF.update(motorRotationDetector.getRps(), 1.0f / ADC_SAMPLING_RATE);
-
-  // 無負荷速度を推定し、現在の回転速度が無負荷速度に近いならば空転と判断
-  float noload_speed_rpf = voltage_lpf_V * VOLT_TO_SPD_SLOPE + VOLT_TO_SPD_INTERCEPT;
-  if (noload_speed_rpf > 0.0f && speed_lpf_rps > SPIN_THRESHOLD * noload_speed_rpf) {
-    spin = true;
-  } else {
-    spin = false;
-  }
 }
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(1000000);
   ledcSetup(PWM_CHANNEL, PWM_FREQ, 8);
   ledcAttachPin(PIN_PWM, PWM_CHANNEL);
   ledcWrite(PWM_CHANNEL, pwm_duty);
   
   SerialBT.begin("Bluetooth-Oscillo");
 
-  // フィルタの初期設定
-  currentLPF.setFc(CUTOFF_FREQ);
-  voltageLPF.setFc(CUTOFF_FREQ);
-  speedLPF.setFc(CUTOFF_FREQ);
-
   // 電流・電圧のオフセット取得(64回analogReadして、平均値を取得)
   analogSetAttenuation(ADC_0db);
   for (int i = 0; i < 64; i++) {
     current_offset_mV += analogReadMilliVolts(PIN_SENSE_I);
-    delay(10);  // 連続でreadすると若干値が小さくなってしまったのでdelayを入れる
     voltage_offset_mV += analogReadMilliVolts(PIN_SENSE_V);
     delay(10);  // 連続でreadすると若干値が小さくなってしまったのでdelayを入れる
   }
@@ -160,9 +127,7 @@ void loop() {
   Serial.print(", rotation: ");
   Serial.print(motorRotationDetector.getRotation());
   Serial.print(", totalRotation: ");
-  Serial.print(motorRotationDetector.getTotalRotation());
-  Serial.print(", spin: ");
-  Serial.println(spin);
+  Serial.println(motorRotationDetector.getTotalRotation());
 
   // ------------------------------------
   // Motor duty command receive and apply
