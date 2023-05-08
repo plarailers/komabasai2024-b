@@ -76,8 +76,8 @@ def init_state() -> RailwayState:
     state.define_junctions(
         (j0a, Direction.STRAIGHT),
         (j0b, Direction.STRAIGHT),
-        (j1a, Direction.STRAIGHT),
-        (j1b, Direction.STRAIGHT),
+        (j1a, Direction.CURVE),
+        (j1b, Direction.CURVE),
     )
 
     state.define_sections(
@@ -90,8 +90,8 @@ def init_state() -> RailwayState:
     )
 
     state.define_trains(
-        (t0, s0, j0b, 0),
-        (t1, s2, j1a, 0),
+        (t0, s0, j0b, 10),
+        (t1, s2, j1a, 10),
     )
 
     return state
