@@ -6,12 +6,12 @@ BluetoothSerial SerialBT;
 
 #include "GetStopping.h"
 #include "GetWheelSpeed.h"
-// #include "GetPositionID.h"
-#include "GetPositionID_Photo.h"
+#include "GetPositionID.h"
+// #include "GetPositionID_Photo.h"
 
 #define BUFFER_SIZE 32
 
-class Train : public GetStopping, public GetWheelSpeed, public GetPositionID_Photo
+class Train : public GetStopping, public GetWheelSpeed, public GetPositionID
 {
     public:
         int         serialSpeed;
@@ -45,27 +45,26 @@ int Train::getMotorInput() {
 
     // 基地局から受信
     while(SerialBT.available() > 0) {
+
         buf[index] = SerialBT.read();
         delay(2);
         // 受信したjsonが終了したらmotorInputを更新
         if(buf[index]=='}'){
             deserializeJson(doc_r, buf);
-            motorInput = doc_r["motorInput"].as<int>();
+            motorInput = doc_r["mI"].as<int>();
             Serial.println(motorInput);
 
             // motorInputをエコーバックする
-            String send_data="";
-            doc_s.clear();
-            doc_s["motorInput"] = motorInput;
-            serializeJson(doc_s,send_data);
-            SerialBT.println(send_data);
-            delay(100);
+            // String send_data="";
+            // doc_s.clear();
+            // doc_s["mI"] = motorInput;
+            // serializeJson(doc_s,send_data);
+            // SerialBT.println(send_data);
 
             // doc_r, buf, indexを初期化
             doc_r.clear();
             memset(buf, '\0', BUFFER_SIZE);
             index = 0;
-            delay(300);
             break;
         }
         if (index > BUFFER_SIZE - 1) {
@@ -95,13 +94,17 @@ float Train::calcWheelRotation(float wheelSpeed, bool isStopping) {
 }
 
 void Train::sendWheelRotation(float wheelRotation) {
-    SerialBT.print("{\"wheelRotation\":");
-    SerialBT.print(wheelRotation);
-    SerialBT.println("}");
+    String send_data="";
+    doc_s.clear();
+    doc_s["wR"]=wheelRotation;
+    serializeJson(doc_s,send_data);
+    SerialBT.println(send_data);
 }
 
 void Train::sendPositionID(int positionID) {
-    SerialBT.print("{\"positionID\":");
-    SerialBT.print(positionID);
-    SerialBT.println("}");
+    String send_data="";
+    doc_s.clear();
+    doc_s["pID"]=positionID;
+    serializeJson(doc_s,send_data);
+    SerialBT.println(send_data);
 }

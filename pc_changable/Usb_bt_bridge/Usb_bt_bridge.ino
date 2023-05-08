@@ -32,43 +32,14 @@ void setup() {
 
 void loop() {  
     // pythonから受信し、ESP32に送信
-    int index=0;
     while(Serial.available()>0){
-        buf[index] = Serial.read();
-        delay(2);
-        if(buf[index]=='}'){
-            break;
-        }
-        if (index+1 >= BUFFER_SIZE) {
-            break;
-        }
-        index++;
+        char sendData = Serial.read();
+        SerialBT.write(sendData);
     }
-    for(int i = 0; i <= index; i++){
-        SerialBT.write(buf[i]);//データをそのまま送信
-    }
-
-    memset(buf, '\0', BUFFER_SIZE);
-    index=0;
 
     // ESP32から受信し、pythonに送信
     while(SerialBT.available()>0) {
-        buf2[index] = SerialBT.read();
-        delay(2);
-        if(buf2[index]=='}'){
-        break;
-        }
-        if (index+1 >= BUFFER_SIZE) {
-        break;
-        }
-        index++;
+        char recvData = SerialBT.read();
+        Serial.write(recvData);
     }
-    for(int i = 0; i <= index; i++) {
-        Serial.write(buf2[i]);
-    }
-
-    memset(buf2, '\0', BUFFER_SIZE);
-    index=0;
-
-    delay(300);
 }

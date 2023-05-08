@@ -13,6 +13,7 @@ void setup() {
 
     /* SerialBT */
     SerialBT.begin(train.serialBTPortName);
+    while (!SerialBT);
     Serial.println("SerialBT Start!!");
 
     // /* ledc */
@@ -26,8 +27,8 @@ void setup() {
     Serial.println("BNO055 Setup done!!");
 
     // /* MFRC522 */
-    // train.MFRC522Setup();
-    // Serial.println("MFRC522 Setup done!!");
+    train.MFRC522Setup();
+    Serial.println("MFRC522 Setup done!!");
 
 }
 
@@ -41,7 +42,7 @@ void loop(){
     float   wheelSpeed      = train.getWheelSpeed(train.MOTOR_CURRENT_PIN);
     bool    isStopping      = train.getStopping();
     float   wheelRotation   = train.calcWheelRotation(wheelSpeed, isStopping);
-    train.sendWheelRotation(wheelRotation);
+    if (wheelRotation > 0) train.sendWheelRotation(wheelRotation);
 
     // /* 絶対位置検知(APS) */
     int     positionID      = train.getPositionID();
