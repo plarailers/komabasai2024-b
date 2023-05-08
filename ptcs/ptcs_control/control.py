@@ -1,3 +1,4 @@
+import math
 from .components import Direction, Joint, Junction, Section, Train
 from .railway_config import RailwayConfig, init_config
 from .railway_state import RailwayState, init_state
@@ -100,66 +101,88 @@ class Control:
             else:
                 raise
 
-    # def calc_speed(self) -> None:
-    #     BREAK_ACCLT: float = 20  # ブレーキ減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
-    #     MAX_SPEED: float = 40  # 最高速度[cm/s]  NOTE:将来的には車両のパラメータとしてとして定義
+    def calc_speed(self) -> None:
+        BREAK_ACCLT: float = 10  # ブレーキ減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
+        MAX_SPEED: float = 40  # 最高速度[cm/s]  NOTE:将来的には車両のパラメータとしてとして定義
+        MERGIN: float = 10  # 停止余裕距離[cm]
 
-    #     # [ATP]停止位置までの距離`distance`を、先行列車の位置と、ジャンクションの状態をもとに計算する
-    #     for train_id, train_state in self.state.trains.items():
+        for train_id, train_state in self.state.trains.items():
+            # [ATP]停止位置までの距離`distance`を、先行列車の位置と、ジャンクションの状態をもとに計算する
 
-    #         current_section = train_state.current_section
-    #         target_junction = train_state.target_junction
-    #         next_section, = self._get_next_section_and_junction(current_section, target_junction)
+            distance = 0
 
-    #         distance = 0
+            current_section = train_state.current_section
+            target_junction = train_state.target_junction
 
-    #         current_section_config = self.config.sections[current_section]
-    #         current_section_state = self.state.sections[current_section]
-    #         direction = self.state.junctions[target_junction].direction
-    #         junction_config = self.config.junctions[target_junction]
-    #         through_section = junction_config.sections[Joint.THROUGH]
-    #         diverging_section = junction_config.sections[Joint.DIVERGING]
+            while True:
+                current_section_config = self.config.sections[current_section]
+                current_section_state = self.state.sections[current_section]
+                next_section, next_junction = self._get_next_section_and_junction(
+                    current_section, target_junction
+                )
+                next_section_state = self.state.sections[next_section]
 
-    #         # いま見ているセクションが閉鎖 -> 即時停止
-    #         if current_section_state.blocked is True:
-    #             distance = 0
-    #             # break
+                # いま見ているセクションが閉鎖 -> 即時停止
+                if current_section_state.blocked is True:
+                    distance = 0
+                    break
 
-    #         # いま見ているセクションに先行列車がいる -> 先行列車の手前で停止
-    #         elif False:
-    #             pass
+                # 先行列車に到達できる -> 先行列車の手前で停止
+                elif self._get_forward_train(train_id):
+                    distance = self._get_forward_train(train_id)[1] - MERGIN
+                    break
 
-    #         # 目指すジャンクションが自列車側に開通していない -> 目指すジャンクションの手前で停止
-    #         elif direction == Direction.STRAIGHT and current_section == diverging_section or direction == Direction.CURVE and current_section == through_section:
-    #             if target_junction == current_section_config.junction_0:
-    #                 distance = train_state.mileage - 10
-    #             elif target_junction == current_section_config.junction_1:
-    #                 distance = current_section_config.length - train_state.mileage - 10
-    #             else:
-    #                 raise
+                # 目指すジャンクションが自列車側に開通していない -> 目指すジャンクションの手前で停止
+                elif (
+                    self._get_next_section_and_junction_strict(
+                        current_section, target_junction
+                    )
+                    is None
+                ):
+                    if target_junction == current_section_config.junction_0:
+                        distance = train_state.mileage - MERGIN
+                    elif target_junction == current_section_config.junction_1:
+                        distance = (
+                            current_section_config.length - train_state.mileage - MERGIN
+                        )
+                    else:
+                        raise
+                    break
 
-    #         # 次のセクションが閉鎖 -> 目指すジャンクションの手前で停止
-    #         elif self.state.sections[next_section].blocked is True:
-    #             if target_junction == current_section_config.junction_0:
-    #                 distance = train_state.mileage - 10
-    #             elif target_junction == current_section_config.junction_1:
-    #                 distance = current_section_config.length - train_state.mileage - 10
-    #             else:
-    #                 raise
+                # 次のセクションが閉鎖 -> 目指すジャンクションの手前で停止
+                elif next_section_state.blocked is True:
+                    if target_junction == current_section_config.junction_0:
+                        distance = train_state.mileage - MERGIN
+                    elif target_junction == current_section_config.junction_1:
+                        distance = (
+                            current_section_config.length - train_state.mileage - MERGIN
+                        )
+                    else:
+                        raise
+                    break
 
-    #         else:
+                # 停止条件を満たさなければ次に移る
+                else:
+                    (
+                        current_section,
+                        target_junction,
+                    ) = self._get_next_section_and_junction(
+                        current_section, target_junction
+                    )
 
-    #         # 許容速度計算
-    #         speedlimit = 0
-    #         if distance > 0:
-    #             speedlimit = math.sqrt(2 * self.BREAK_ACCLT * distance)
-    #             if speedlimit > self.MAX_SPEED:
-    #                 speedlimit = self.MAX_SPEED
-    #         command.trains[train_id].speed = speedlimit
-    #     # [ATP]停止位置までの距離を使って、列車の許容速度を計算する
-    #     # [ATO]停車駅の情報から、停止位置を取得する
-    #     # [ATO]ATPで計算した許容速度の範囲内で、停止位置で止まるための速度を計算する
-    #     pass
+            if distance < 0:
+                distance = 0
+
+            # [ATP]停止位置までの距離を使って、列車の許容速度`speedlimit`を計算する
+
+            speedlimit = math.sqrt(2 * BREAK_ACCLT * distance)
+            if speedlimit > MAX_SPEED:
+                speedlimit = MAX_SPEED
+
+            print(train_id, distance, speedlimit)
+
+            # [ATO]停車駅の情報から、停止位置を取得する
+            # [ATO]ATPで計算した許容速度の範囲内で、停止位置で止まるための速度を計算する
 
     def _get_forward_train(self, train: Train) -> tuple[Train, float] | None:
         """

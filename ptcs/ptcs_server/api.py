@@ -39,7 +39,7 @@ def move_train(train_id: str, params: MoveTrainParams, request: Request) -> None
     control: Control = request.app.state.control
     train = Train(train_id)
     control.move_train(train, params.delta)
-    print(train, control._get_forward_train(train))
+    control.calc_speed()
 
 
 class UpdateJunctionParams(pydantic.BaseModel):
