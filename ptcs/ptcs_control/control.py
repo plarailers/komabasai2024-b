@@ -1,5 +1,5 @@
 import math
-from .components import Direction, Joint, Junction, Section, Train
+from .components import Direction, Joint, Junction, Section, Stop, Train
 from .railway_config import RailwayConfig, init_config
 from .railway_state import RailwayState, init_state
 from .railway_command import RailwayCommand, init_command
@@ -479,3 +479,99 @@ class Control:
             target_junction
         )
         return next_section, next_target_junction
+
+    def calc_stop(self) -> None:
+        for train_id, train_state in self.state.trains.items():
+            train_state.stop = self._get_forward_stop(train_id)
+
+    def _get_forward_stop(self, train: Train) -> Stop | None:
+        """
+        指定された列車が次にたどり着く停止位置を取得する。
+        停止位置に到達できない場合は None を返す。
+        NOTE: `_get_forward_train` とほぼ同じアルゴリズム
+        """
+
+        train_state = self.state.trains[train]
+        section_config = self.config.sections[train_state.current_section]
+
+        forward_stop: Stop | None = None
+        forward_stop_distance: float = 99999999  # ありえない大きな値
+
+        # 指定された列車と同一セクションに存在する、
+        # 指定された列車の前方にある停止位置のうち、最も近いもの`forward_stop`を取得
+
+        for stop, stop_config in self.config.stops.items():
+            if (
+                stop_config.section == train_state.current_section
+                and stop_config.target_junction == train_state.target_junction
+            ):
+                if (
+                    # 端点0(target_junction)<---|stop|--train---<端点1
+                    train_state.target_junction == section_config.junction_0
+                    and stop_config.mileage <= train_state.mileage
+                ) or (
+                    # 端点0>---train--|stop|--->端点1(target_junction)
+                    train_state.target_junction == section_config.junction_1
+                    and train_state.mileage <= stop_config.mileage
+                ):
+                    distance = abs(train_state.mileage - stop_config.mileage)
+                    if distance < forward_stop_distance:
+                        forward_stop = stop
+                        forward_stop_distance = distance
+
+        # 指定された列車と同一セクションに先行列車が存在しなければ次のセクションに移り、
+        # 先行列車が見つかるまで繰り返す
+
+        section = train_state.current_section
+        target_junction = train_state.target_junction
+
+        if train_state.target_junction == section_config.junction_0:
+            distance = train_state.mileage
+        elif train_state.target_junction == section_config.junction_1:
+            distance = section_config.length - train_state.mileage
+        else:
+            raise
+
+        # 無限ループ検出用
+        visited: set[tuple[Section, Junction]] = set()
+
+        while forward_stop is None:
+            next_section_and_junction = self._get_next_section_and_junction_strict(
+                section, target_junction
+            )
+
+            if next_section_and_junction:
+                # 無限ループを検出したら None を返す
+                if next_section_and_junction in visited:
+                    return None
+
+                visited.add(next_section_and_junction)
+
+                section, target_junction = next_section_and_junction
+                section_config = self.config.sections[section]
+
+                for stop, stop_config in self.config.stops.items():
+                    if (
+                        stop_config.section == section
+                        and stop_config.target_junction == target_junction
+                    ):
+                        # 端点0(target_junction)<---|stop|-----<端点1
+                        if target_junction == section_config.junction_0:
+                            new_distance = (
+                                distance + section_config.length - stop_config.mileage
+                            )
+                        # 端点0>-----|stop|--->端点1(target_junction)
+                        elif target_junction == section_config.junction_1:
+                            new_distance = distance + stop_config.mileage
+                        else:
+                            raise
+
+                        if new_distance < forward_stop_distance:
+                            forward_stop = stop
+                            forward_stop_distance = new_distance
+            else:
+                break
+
+            distance += section_config.length
+
+        return forward_stop
