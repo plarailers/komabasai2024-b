@@ -92,6 +92,13 @@ const ui: RailwayUI = {
     t0: {},
     t1: {},
   },
+  stops: {
+    stop_0: {},
+    stop_1: {},
+    stop_2: {},
+    stop_3: {},
+    stop_4: {},
+  },
 };
 
 export const Home: React.FC = () => {

@@ -4,6 +4,8 @@
 
 import type { JunctionConfig } from './JunctionConfig';
 import type { SectionConfig } from './SectionConfig';
+import type { StationConfig } from './StationConfig';
+import type { StopConfig } from './StopConfig';
 import type { TrainConfig } from './TrainConfig';
 
 /**
@@ -13,5 +15,7 @@ export type RailwayConfig = {
     junctions?: Record<string, JunctionConfig>;
     sections?: Record<string, SectionConfig>;
     trains?: Record<string, TrainConfig>;
+    stations?: Record<string, StationConfig>;
+    stops?: Record<string, StopConfig>;
 };
 

@@ -5,6 +5,7 @@ export interface RailwayUI {
   junctions: Record<string, JunctionUI>;
   sections: Record<string, SectionUI>;
   trains: Record<string, TrainUI>;
+  stops: Record<string, StopUI>;
 }
 
 export interface PlatformUI {
@@ -22,3 +23,5 @@ export interface SectionUI {
 }
 
 export interface TrainUI {}
+
+export interface StopUI {}

@@ -111,6 +111,15 @@ def init_config() -> RailwayConfig:
     t0 = Train("t0")
     t1 = Train("t1")
 
+    station_0 = Station("station_0")
+    station_1 = Station("station_1")
+
+    stop_0 = Stop("stop_0")
+    stop_1 = Stop("stop_1")
+    stop_2 = Stop("stop_2")
+    stop_3 = Stop("stop_3")
+    stop_4 = Stop("stop_4")
+
     config.define_junctions(
         (j0a,),
         (j0b,),
@@ -130,6 +139,23 @@ def init_config() -> RailwayConfig:
     config.define_trains(
         (t0,),
         (t1,),
+    )
+
+    config.stations.update(
+        {
+            station_0: StationConfig(stops=[stop_0, stop_1]),
+            station_1: StationConfig(stops=[stop_2, stop_3, stop_4]),
+        }
+    )
+
+    config.stops.update(
+        {
+            stop_0: StopConfig(section=s0, mileage=24),
+            stop_1: StopConfig(section=s0, mileage=77),
+            stop_2: StopConfig(section=s1, mileage=10),
+            stop_3: StopConfig(section=s1, mileage=90),
+            stop_4: StopConfig(section=s3, mileage=75),
+        }
     )
 
     return config

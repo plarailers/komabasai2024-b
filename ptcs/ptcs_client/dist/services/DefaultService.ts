@@ -104,7 +104,7 @@ export class DefaultService {
 
     /**
      * Block Section
-     * 指定させた区間に障害物を発生させる。
+     * 指定された区間に障害物を発生させる。
      * デバッグ用。
      * @param sectionId
      * @returns any Successful Response
@@ -127,7 +127,7 @@ export class DefaultService {
 
     /**
      * Unblock Section
-     * 指定させた区間の障害物を取り除く。
+     * 指定された区間の障害物を取り除く。
      * デバッグ用。
      * @param sectionId
      * @returns any Successful Response
