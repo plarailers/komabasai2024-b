@@ -86,7 +86,8 @@ class StationConfig(BaseModel):
 
 
 class StopConfig(BaseModel):
-    section: Section
+    section: "Section"
+    target_junction: "Junction"
     mileage: float
 
 
@@ -150,11 +151,11 @@ def init_config() -> RailwayConfig:
 
     config.stops.update(
         {
-            stop_0: StopConfig(section=s0, mileage=24),
-            stop_1: StopConfig(section=s0, mileage=77),
-            stop_2: StopConfig(section=s1, mileage=10),
-            stop_3: StopConfig(section=s1, mileage=90),
-            stop_4: StopConfig(section=s3, mileage=75),
+            stop_0: StopConfig(section=s0, target_junction=j0b, mileage=24),
+            stop_1: StopConfig(section=s0, target_junction=j0b, mileage=77),
+            stop_2: StopConfig(section=s1, target_junction=j0b, mileage=10),
+            stop_3: StopConfig(section=s1, target_junction=j1b, mileage=90),
+            stop_4: StopConfig(section=s3, target_junction=j0a, mileage=75),
         }
     )
 
