@@ -77,6 +77,69 @@ class Control:
         train_state.mileage = new_mileage
         train_state.target_junction = new_target_junction
 
+    def calc_direction(self) -> None:
+        """
+        ポイントをどちら向きにするかを計算する。
+        """
+
+        # junction定義
+        j0a = Junction("j0a")
+        j0b = Junction("j0b")
+        j1a = Junction("j1a")
+        j1b = Junction("j1b")
+        # sectionの定義
+        s1 = Section("s1")
+        s2 = Section("s2")
+        s3 = Section("s3")
+        s5 = Section("s5")
+        # 「とりうるルート」の列挙
+        possible_junction_direction: dict[str, list[tuple[Junction, Direction]]] = {
+            "normal": [(j0a, Direction.STRAIGHT),
+                       (j0b, Direction.STRAIGHT),
+                       (j1a, Direction.STRAIGHT),
+                       (j1b, Direction.STRAIGHT)],
+            "blocked1": [(j0a, Direction.CURVE),
+                         (j0b, Direction.STRAIGHT),
+                         (j1a, Direction.CURVE),
+                         (j1b, Direction.STRAIGHT)],
+            "blocked2": [(j0a, Direction.CURVE),
+                         (j0b, Direction.CURVE),
+                         (j1a, Direction.CURVE),
+                         (j1b, Direction.CURVE)]
+        }
+
+        # 列車位置と線路の状態（障害物の有無）に応じてどのルートを使うか判断する
+        # s3がblockされているか
+        s3_blocked: bool = self.state.sections[s3].blocked
+
+        train_states = self.state.trains
+        # s1にtarget_junctionがj1bであるtrainが存在するか
+        s1_j1b_exist: bool = False
+        # s2に列車が存在するか
+        s2_exist: bool = False
+        # s5にtrainが存在するか
+        s5_exist: bool = False
+        for train_state in train_states.values():
+            if train_state.current_section == s1 and train_state.target_junction == j1b:
+                s1_j1b_exist = True
+            if train_state.current_section == s2:
+                s2_exist = True
+            if train_state.current_section == s5:
+                s5_exist = True
+
+        # ポイントの向きを判定
+        junction_direction: list[tuple[Junction, Direction]]
+        if not s3_blocked:
+            junction_direction = possible_junction_direction["normal"]
+        elif s1_j1b_exist or (not s2_exist and not s5_exist):
+            junction_direction = possible_junction_direction["blocked1"]
+        elif not s1_j1b_exist and (s2_exist or s5_exist):
+            junction_direction = possible_junction_direction["blocked2"]
+
+        # ポイント変更
+        for junction_id, direction in junction_direction:
+            self.update_junction(junction_id=junction_id, direction=direction)
+
     def calc_speed(self) -> None:
         BREAK_ACCLT: float = 10  # ブレーキ減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
         MAX_SPEED: float = 40  # 最高速度[cm/s]  NOTE:将来的には車両のパラメータとしてとして定義
