@@ -67,39 +67,15 @@ class Control:
         """
 
         train_state = self.state.trains[train_id]
-        current_section_config = self.config.sections[train_state.current_section]
-
-        if train_state.target_junction == current_section_config.junction_1:
-            train_state.mileage += delta
-        elif train_state.target_junction == current_section_config.junction_0:
-            train_state.mileage -= delta
-        else:
-            raise
-
-        while (
-            train_state.mileage > current_section_config.length
-            or train_state.mileage < 0
-        ):
-            if train_state.mileage > current_section_config.length:
-                surplus_mileage = train_state.mileage - current_section_config.length
-            elif train_state.mileage < 0:
-                surplus_mileage = -train_state.mileage
-            else:
-                raise
-
-            next_section, next_target_junction = self._get_next_section_and_junction(
-                train_state.current_section, train_state.target_junction
-            )
-
-            train_state.current_section = next_section
-            current_section_config = self.config.sections[next_section]
-            train_state.target_junction = next_target_junction
-            if train_state.target_junction == current_section_config.junction_1:
-                train_state.mileage = surplus_mileage
-            elif train_state.target_junction == current_section_config.junction_0:
-                train_state.mileage = current_section_config.length - surplus_mileage
-            else:
-                raise
+        new_section, new_mileage, new_target_junction = self._get_new_position(
+            train_state.current_section,
+            train_state.mileage,
+            train_state.target_junction,
+            delta,
+        )
+        train_state.current_section = new_section
+        train_state.mileage = new_mileage
+        train_state.target_junction = new_target_junction
 
     def calc_speed(self) -> None:
         BREAK_ACCLT: float = 10  # ブレーキ減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
@@ -183,6 +159,51 @@ class Control:
 
             # [ATO]停車駅の情報から、停止位置を取得する
             # [ATO]ATPで計算した許容速度の範囲内で、停止位置で止まるための速度を計算する
+
+    def _get_new_position(
+        self,
+        section: "Section",
+        mileage: float,
+        target_junction: "Junction",
+        delta: float,
+    ) -> tuple[Section, float, Junction]:
+        """
+        指定された section と mileage から、target_junction 方向に delta 進んだ場所の
+        section と mileage と target_junction を取得する
+        """
+
+        section_config = self.config.sections[section]
+
+        if target_junction == section_config.junction_1:
+            mileage += delta
+        elif target_junction == section_config.junction_0:
+            mileage -= delta
+        else:
+            raise
+
+        while mileage > section_config.length or mileage < 0:
+            if mileage > section_config.length:
+                surplus_mileage = mileage - section_config.length
+            elif mileage < 0:
+                surplus_mileage = -mileage
+            else:
+                raise
+
+            next_section, next_target_junction = self._get_next_section_and_junction(
+                section, target_junction
+            )
+
+            section = next_section
+            section_config = self.config.sections[next_section]
+            target_junction = next_target_junction
+            if target_junction == section_config.junction_1:
+                mileage = surplus_mileage
+            elif target_junction == section_config.junction_0:
+                mileage = section_config.length - surplus_mileage
+            else:
+                raise
+
+        return (section, mileage, target_junction)
 
     def _get_forward_train(self, train: Train) -> tuple[Train, float] | None:
         """
