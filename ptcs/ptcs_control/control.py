@@ -490,7 +490,7 @@ class Control:
 
     def _get_forward_stop(self, train: Train) -> tuple[Stop, float] | None:
         """
-        指定された列車が次にたどり着く停止位置を取得する。
+        指定された列車が次にたどり着く停止位置とそこまでの距離を取得する。
         停止位置に到達できない場合は None を返す。
         NOTE: `_get_forward_train` とほぼ同じアルゴリズム
         """
