@@ -17,6 +17,16 @@ Train = NewType("Train", str)
 列車を表す識別子
 """
 
+Station = NewType("Station", str)
+"""
+駅を表す識別子
+"""
+
+Stop = NewType("Stop", str)
+"""
+停止目標を表す識別子
+"""
+
 
 class Direction(Enum):
     r"""

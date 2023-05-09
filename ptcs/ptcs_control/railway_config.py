@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from .components import Joint, Junction, Section, Train
+from .components import Joint, Junction, Section, Station, Stop, Train
 
 
 class RailwayConfig(BaseModel):
@@ -12,6 +12,8 @@ class RailwayConfig(BaseModel):
     junctions: dict[Junction, "JunctionConfig"] = Field(default_factory=dict)
     sections: dict[Section, "SectionConfig"] = Field(default_factory=dict)
     trains: dict[Train, "TrainConfig"] = Field(default_factory=dict)
+    stations: dict[Station, "StationConfig"] = Field(default_factory=dict)
+    stops: dict[Stop, "StopConfig"] = Field(default_factory=dict)
 
     def define_junctions(self, *junction_tuples: tuple["Junction"]) -> None:
         """
@@ -23,14 +25,24 @@ class RailwayConfig(BaseModel):
             self.junctions[junction_id] = JunctionConfig()
 
     def define_sections(
-        self, *section_tuples: tuple["Section", "Junction", "Joint", "Junction", "Joint", float]
+        self,
+        *section_tuples: tuple[
+            "Section", "Junction", "Joint", "Junction", "Joint", float
+        ]
     ) -> None:
         """
         区間を一斉に定義する。
 
         形式: `(ID, j0のID, j0との接続方法, j1のID, j1との接続方法, 長さ[mm])`
         """
-        for section_id, junction_0_id, junction_0_joint, junction_1_id, junction_1_joint, length in section_tuples:
+        for (
+            section_id,
+            junction_0_id,
+            junction_0_joint,
+            junction_1_id,
+            junction_1_joint,
+            length,
+        ) in section_tuples:
             self.junctions[junction_0_id].add_section(junction_0_joint, section_id)
             self.junctions[junction_1_id].add_section(junction_1_joint, section_id)
             self.sections[section_id] = SectionConfig(
@@ -67,6 +79,15 @@ class SectionConfig(BaseModel):
 
 class TrainConfig(BaseModel):
     pass
+
+
+class StationConfig:
+    stops: list["Stop"]
+
+
+class StopConfig:
+    section: Section
+    mileage: float
 
 
 RailwayConfig.update_forward_refs()
