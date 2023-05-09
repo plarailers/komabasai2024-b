@@ -80,11 +80,11 @@ const ui: RailwayUI = {
       ],
     },
     s5: {
-      from: "j1b",
-      to: "j1a",
+      from: "j1a",
+      to: "j1b",
       points: [
-        { x: 480, y: 60 },
         { x: 520, y: 100 },
+        { x: 480, y: 60 },
       ],
     },
   },
