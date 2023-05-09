@@ -136,15 +136,15 @@ class Control:
         s3_blocked: bool = self.state.sections[s3].blocked
 
         train_states = self.state.trains
-        # s1にtarget_junctionがj1bであるtrainが存在するか
-        s1_j1b_exist: bool = False
+        # s1にtarget_junctionがj0bであるtrainが存在するか
+        s1_j0b_exist: bool = False
         # s2に列車が存在するか
         s2_exist: bool = False
         # s5にtrainが存在するか
         s5_exist: bool = False
         for train_state in train_states.values():
-            if train_state.current_section == s1 and train_state.target_junction == j1b:
-                s1_j1b_exist = True
+            if train_state.current_section == s1 and train_state.target_junction == j0b:
+                s1_j0b_exist = True
             if train_state.current_section == s2:
                 s2_exist = True
             if train_state.current_section == s5:
@@ -154,10 +154,10 @@ class Control:
         junction_direction: list[tuple[Junction, Direction]]
         if not s3_blocked:
             junction_direction = possible_junction_direction["normal"]
-        elif s1_j1b_exist or (not s2_exist and not s5_exist):
-            junction_direction = possible_junction_direction["blocked1"]
-        elif not s1_j1b_exist and (s2_exist or s5_exist):
+        elif s1_j0b_exist or s2_exist or s5_exist:
             junction_direction = possible_junction_direction["blocked2"]
+        else:
+            junction_direction = possible_junction_direction["blocked1"]
 
         # ポイント変更
         for junction_id, direction in junction_direction:
