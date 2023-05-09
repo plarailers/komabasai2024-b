@@ -81,11 +81,11 @@ class TrainConfig(BaseModel):
     pass
 
 
-class StationConfig:
-    stops: list["Stop"]
+class StationConfig(BaseModel):
+    stops: list["Stop"] = Field(default_factory=list)
 
 
-class StopConfig:
+class StopConfig(BaseModel):
     section: Section
     mileage: float
 
