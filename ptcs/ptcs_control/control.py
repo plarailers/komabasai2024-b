@@ -482,9 +482,13 @@ class Control:
 
     def calc_stop(self) -> None:
         for train_id, train_state in self.state.trains.items():
-            train_state.stop = self._get_forward_stop(train_id)
+            forward_stop_and_distance = self._get_forward_stop(train_id)
+            if forward_stop_and_distance:
+                train_state.stop = forward_stop_and_distance[0]
+            else:
+                train_state.stop = None
 
-    def _get_forward_stop(self, train: Train) -> Stop | None:
+    def _get_forward_stop(self, train: Train) -> tuple[Stop, float] | None:
         """
         指定された列車が次にたどり着く停止位置を取得する。
         停止位置に到達できない場合は None を返す。
@@ -574,4 +578,8 @@ class Control:
 
             distance += section_config.length
 
-        return forward_stop
+        # 停止目標を発見できたら、そこまでの距離とともに返す
+        if forward_stop:
+            return (forward_stop, forward_stop_distance)
+        else:
+            return None
