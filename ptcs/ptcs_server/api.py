@@ -41,6 +41,7 @@ def move_train(train_id: str, params: MoveTrainParams, request: Request) -> None
     control.move_train(train, params.delta)
     # calc_directionデバック用
     control.calc_direction()
+    # calc_speedデバック用
     control.calc_speed()
 
 
