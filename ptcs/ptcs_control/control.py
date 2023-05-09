@@ -67,15 +67,39 @@ class Control:
         """
 
         train_state = self.state.trains[train_id]
-        new_section, new_mileage, new_target_junction = self._get_new_position(
-            train_state.current_section,
-            train_state.mileage,
-            train_state.target_junction,
-            delta,
-        )
-        train_state.current_section = new_section
-        train_state.mileage = new_mileage
-        train_state.target_junction = new_target_junction
+        current_section_config = self.config.sections[train_state.current_section]
+
+        if train_state.target_junction == current_section_config.junction_1:
+            train_state.mileage += delta
+        elif train_state.target_junction == current_section_config.junction_0:
+            train_state.mileage -= delta
+        else:
+            raise
+
+        while (
+            train_state.mileage > current_section_config.length
+            or train_state.mileage < 0
+        ):
+            if train_state.mileage > current_section_config.length:
+                surplus_mileage = train_state.mileage - current_section_config.length
+            elif train_state.mileage < 0:
+                surplus_mileage = -train_state.mileage
+            else:
+                raise
+
+            next_section, next_target_junction = self._get_next_section_and_junction(
+                train_state.current_section, train_state.target_junction
+            )
+
+            train_state.current_section = next_section
+            current_section_config = self.config.sections[next_section]
+            train_state.target_junction = next_target_junction
+            if train_state.target_junction == current_section_config.junction_1:
+                train_state.mileage = surplus_mileage
+            elif train_state.target_junction == current_section_config.junction_0:
+                train_state.mileage = current_section_config.length - surplus_mileage
+            else:
+                raise
 
     def calc_direction(self) -> None:
         """
