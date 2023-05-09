@@ -2,20 +2,15 @@
 
 #include <BluetoothSerial.h>
 #include <ArduinoJson.h>
-BluetoothSerial SerialBT;
-
-#include "StopSensor.h"
+#include "src/StopSensor.h"
 #include "MotorRotationDetector.h"
-#include "PositionID_Detector.h"
-// #include "GetPositionID_Photo.h"
+#include "src/PositionID_Detector.h"
 
 #define BUFFER_SIZE 32
 
 class Train
 {
-    public:
-        StopSensor stopSensor;
-        PositionID_Detector positionID_Detector;
+    public: 
         int         serialSpeed;
         char*       serialBTPortName;
         int         MOTOR_INPUT_PIN;
@@ -24,20 +19,23 @@ class Train
         StaticJsonDocument<BUFFER_SIZE> doc_r;
         StaticJsonDocument<BUFFER_SIZE> doc_s;
 
+        BluetoothSerial         SerialBT;
+        StopSensor              stopSensor;
+        PositionID_Detector     positionID_Detector;
+
         Train(char* serialBTPortName);
+
         int     getMotorInput();
         void    moveMotor(int motorInput);
-        void    sendMotorRotation(float motorRotation);
-        void    sendPositionID(int positionID);
-        void    sendIsStopping(bool isStopping);
+        void    sendData(String key, String value);
 };
 
-Train::Train(char* serialBTPortName) {
-    this->serialSpeed       = 115200;
-    this->serialBTPortName  = serialBTPortName;
-    this->MOTOR_INPUT_PIN   = 25;
-    this->motorInput        = 0;
-}
+Train::Train(char* serialBTPortName)
+:   serialSpeed(115200),
+    serialBTPortName(serialBTPortName),
+    MOTOR_INPUT_PIN(25),
+    motorInput(0)
+{}
 
 int Train::getMotorInput() {
 
@@ -57,11 +55,7 @@ int Train::getMotorInput() {
             // Serial.println(motorInput);
 
             // motorInputをエコーバックする
-            // String send_data="";
-            // doc_s.clear();
-            // doc_s["mI"] = motorInput;
-            // serializeJson(doc_s,send_data);
-            // SerialBT.println(send_data);
+            // sendData("mI", String(motorInput));
 
             // doc_r, buf, indexを初期化
             doc_r.clear();
@@ -82,26 +76,10 @@ void Train::moveMotor(int motorInput) {
     ledcWrite(0, motorInput);
 }
 
-void Train::sendMotorRotation(float motorRotation) {
+void Train::sendData(String key, String value) {
     String send_data="";
     doc_s.clear();
-    doc_s["mR"]=motorRotation;
-    serializeJson(doc_s,send_data);
-    SerialBT.println(send_data);
-}
-
-void Train::sendPositionID(int positionID) {
-    String send_data="";
-    doc_s.clear();
-    doc_s["pID"]=positionID;
-    serializeJson(doc_s,send_data);
-    SerialBT.println(send_data);
-}
-
-void Train::sendIsStopping(bool isStopping) {
-    String send_data="";
-    doc_s.clear();
-    doc_s["iS"]=isStopping;
+    doc_s[key]=value;
     serializeJson(doc_s,send_data);
     SerialBT.println(send_data);
 }

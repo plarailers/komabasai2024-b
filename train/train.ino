@@ -16,7 +16,7 @@ void setup() {
     Serial.println("Serial Start!!");
 
     /* SerialBT */
-    SerialBT.begin(train.serialBTPortName);
+    train.SerialBT.begin(train.serialBTPortName);
     Serial.println("SerialBT Start!!");
 
     /* ledcセットアップ */
@@ -50,18 +50,18 @@ void loop(){
     if (new_time - old_time > 100) {
 
         /* モータ回転数 */
-        float   motorRotation   = motorRotationDetector.getRotation();
-        // if (motorRotation > 0) train.sendMotorRotation(motorRotation);
+        unsigned int   motorRotation   = motorRotationDetector.getRotation();
+        if (motorRotation > 0) train.sendData("mR", String(motorRotation));
 
         /* 停止検知(SS) */
         bool    isStopping      = train.stopSensor.getStopping();
-        train.sendIsStopping(isStopping);
+        if (isStopping) train.sendData("iS", String(isStopping));
 
         old_time = new_time;
     }
 
     /* 絶対位置検知(APS) */
     int     positionID      = train.positionID_Detector.getPositionID();
-    if (positionID > 0) train.sendPositionID(positionID);
+    if (positionID > 0) train.sendData("pID", String(positionID));
 
 }
