@@ -187,37 +187,44 @@ class Control:
 
                 # いま見ているセクションが閉鎖 -> 即時停止
                 if current_section_state.blocked is True:
-                    distance = 0
+                    distance += 0
                     break
 
                 # 先行列車に到達できる -> 先行列車の手前で停止
                 elif self._get_forward_train(train_id):
-                    distance = self._get_forward_train(train_id)[1] - MERGIN
+                    distance += self._get_forward_train(train_id)[1] - MERGIN
                     break
 
-                # 目指すジャンクションが自列車側に開通していない -> 目指すジャンクションの手前で停止
+                # 目指すジャンクションが自列車側に開通していない or 次のセクションが閉鎖
+                # -> 目指すジャンクションの手前で停止
                 elif (
                     self._get_next_section_and_junction_strict(
                         current_section, target_junction
                     )
                     is None
+                    or next_section_state.blocked is True
                 ):
-                    if target_junction == current_section_config.junction_0:
-                        distance = train_state.mileage - MERGIN
-                    elif target_junction == current_section_config.junction_1:
-                        distance = (
-                            current_section_config.length - train_state.mileage - MERGIN
-                        )
+                    if current_section == train_state.current_section:
+                        if target_junction == current_section_config.junction_0:
+                            distance += train_state.mileage - MERGIN
+                        elif target_junction == current_section_config.junction_1:
+                            distance += (
+                                current_section_config.length
+                                - train_state.mileage
+                                - MERGIN
+                            )
+                        else:
+                            raise
                     else:
-                        raise
+                        distance += current_section_config.length - MERGIN
                     break
 
                 # 次のセクションが閉鎖 -> 目指すジャンクションの手前で停止
                 elif next_section_state.blocked is True:
                     if target_junction == current_section_config.junction_0:
-                        distance = train_state.mileage - MERGIN
+                        distance += train_state.mileage - MERGIN
                     elif target_junction == current_section_config.junction_1:
-                        distance = (
+                        distance += (
                             current_section_config.length - train_state.mileage - MERGIN
                         )
                     else:
@@ -226,6 +233,23 @@ class Control:
 
                 # 停止条件を満たさなければ次に移る
                 else:
+                    if current_section == train_state.current_section:
+                        if (
+                            train_state.target_junction
+                            == current_section_config.junction_0
+                        ):
+                            distance += train_state.mileage
+                        elif (
+                            train_state.target_junction
+                            == current_section_config.junction_1
+                        ):
+                            distance += (
+                                current_section_config.length - train_state.mileage
+                            )
+                        else:
+                            raise
+                    else:
+                        distance += current_section_config.length
                     (
                         current_section,
                         target_junction,
@@ -242,7 +266,14 @@ class Control:
             if speedlimit > MAX_SPEED:
                 speedlimit = MAX_SPEED
 
-            print(train_id, distance, speedlimit)
+            print(
+                train_id,
+                self._get_forward_train(train_id),
+                self._get_next_section_and_junction_strict(
+                    train_state.current_section, train_state.target_junction
+                ),
+                distance,
+            )
 
             # [ATO]停車駅の情報から、停止位置を取得する
             # [ATO]ATPで計算した許容速度の範囲内で、停止位置で止まるための速度を計算する
