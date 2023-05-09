@@ -4,16 +4,18 @@
 #include <ArduinoJson.h>
 BluetoothSerial SerialBT;
 
-#include "GetStopping.h"
-#include "GetWheelSpeed.h"
-#include "GetPositionID.h"
+#include "StopSensor.h"
+#include "MotorRotationDetector.h"
+#include "PositionID_Detector.h"
 // #include "GetPositionID_Photo.h"
 
 #define BUFFER_SIZE 32
 
-class Train : public GetStopping, public GetWheelSpeed, public GetPositionID
+class Train
 {
     public:
+        StopSensor stopSensor;
+        PositionID_Detector positionID_Detector;
         int         serialSpeed;
         char*       serialBTPortName;
         int         MOTOR_INPUT_PIN;
@@ -25,9 +27,9 @@ class Train : public GetStopping, public GetWheelSpeed, public GetPositionID
         Train(char* serialBTPortName);
         int     getMotorInput();
         void    moveMotor(int motorInput);
-        float   calcWheelRotation(float wheelSpeed, bool isStopping);
-        void    sendWheelRotation(float wheelRotation);
+        void    sendMotorRotation(float motorRotation);
         void    sendPositionID(int positionID);
+        void    sendIsStopping(bool isStopping);
 };
 
 Train::Train(char* serialBTPortName) {
@@ -47,12 +49,12 @@ int Train::getMotorInput() {
     while(SerialBT.available() > 0) {
 
         buf[index] = SerialBT.read();
-        delay(2);
+        delay(3);
         // 受信したjsonが終了したらmotorInputを更新
         if(buf[index]=='}'){
             deserializeJson(doc_r, buf);
             motorInput = doc_r["mI"].as<int>();
-            Serial.println(motorInput);
+            // Serial.println(motorInput);
 
             // motorInputをエコーバックする
             // String send_data="";
@@ -80,23 +82,10 @@ void Train::moveMotor(int motorInput) {
     ledcWrite(0, motorInput);
 }
 
-float Train::calcWheelRotation(float wheelSpeed, bool isStopping) {
-
-    float wheelRotation;
-
-    if (isStopping) {
-        return 0;
-    }
-    else {
-        /* wheelSpeedを時間積分 */
-        return wheelRotation;
-    }
-}
-
-void Train::sendWheelRotation(float wheelRotation) {
+void Train::sendMotorRotation(float motorRotation) {
     String send_data="";
     doc_s.clear();
-    doc_s["wR"]=wheelRotation;
+    doc_s["mR"]=motorRotation;
     serializeJson(doc_s,send_data);
     SerialBT.println(send_data);
 }
@@ -105,6 +94,14 @@ void Train::sendPositionID(int positionID) {
     String send_data="";
     doc_s.clear();
     doc_s["pID"]=positionID;
+    serializeJson(doc_s,send_data);
+    SerialBT.println(send_data);
+}
+
+void Train::sendIsStopping(bool isStopping) {
+    String send_data="";
+    doc_s.clear();
+    doc_s["iS"]=isStopping;
     serializeJson(doc_s,send_data);
     SerialBT.println(send_data);
 }

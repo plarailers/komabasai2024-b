@@ -23,7 +23,7 @@
 //                                   id, address
 Adafruit_BNO055 bno = Adafruit_BNO055(-1, 0x28, &Wire);
 
-class GetStopping {
+class StopSensor {
     private:
         double          acclt,acclt_bias,acclt_lp;
         bool            stop_flag,stop_flag2;
@@ -35,7 +35,7 @@ class GetStopping {
         double          tau;//Time constant corresponding to cutoff frequency
 
     public:
-        GetStopping();
+        StopSensor();
         void    BNO055Setup();  //加速度センサ(BNP055)
         bool    getStopping(void);
         double  getAcclt(double acclt_bias);
@@ -43,7 +43,7 @@ class GetStopping {
         double  lowpass(double accle_lp, double acclt, double dt);
 };
 
-GetStopping::GetStopping() {
+StopSensor::StopSensor() {
     this->acclt         = 0;
     this->acclt_bias    = 0;
     this->acclt_lp      = 0;
@@ -59,7 +59,7 @@ GetStopping::GetStopping() {
     this->tau           = 1.0*(2*PI*F);
 }
 
-void GetStopping::BNO055Setup(void)
+void StopSensor::BNO055Setup(void)
 {
     /* Initialise the sensor */
     if(!bno.begin())
@@ -83,7 +83,7 @@ void GetStopping::BNO055Setup(void)
     Serial.println("Estimated bias for acclt:" + String(acclt_bias));
 }
 
-bool GetStopping::getStopping(void)
+bool StopSensor::getStopping(void)
 {
     //Measure cycle
     time_old = time;
@@ -139,13 +139,13 @@ bool GetStopping::getStopping(void)
 }
 
 
-double GetStopping::getAcclt(double acclt_bias){
+double StopSensor::getAcclt(double acclt_bias){
     imu::Vector<3> accl = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
     double acclt = sqrt(pow(double(accl.x()),2) + pow(double(accl.y()),2) + pow(double(accl.z()),2)) - acclt_bias;
     return acclt;
 }
 
-double GetStopping::getBias(){
+double StopSensor::getBias(){
     double acclt_bias = 0;   
     for(int i=0;i<10;++i){
         acclt_bias += getAcclt(0);
@@ -154,7 +154,7 @@ double GetStopping::getBias(){
     return acclt_bias;
 }
 
-double GetStopping::lowpass(double acclt_lp,double acclt,double dt){
+double StopSensor::lowpass(double acclt_lp,double acclt,double dt){
     double a = tau/(dt + tau);
     acclt_lp = a*acclt_lp + (1 - a)*acclt;
     return acclt_lp;

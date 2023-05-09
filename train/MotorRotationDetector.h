@@ -3,7 +3,6 @@
  * I2Sを用いて高速かつ等間隔にAD変換を行い、データをシリアルに出力する。
  */
 
-#include <BluetoothSerial.h>
 #include <esp_adc_cal.h>
 #include "src/Filter.h"
 #include "src/HighSpeedAnalogRead.h"
@@ -48,7 +47,6 @@ int pwm_duty = 0;
 int photoreflector_clk = 0;  // フォトリフレクタのクロック線読み値(0～4096)  
 int photoreflector_dat = 0;  // フォトリフレクタのデータ線読み値(0～4096)
 
-BluetoothSerial SerialBT;
 HighSpeedAnalogRead adc;
 MotorRotationDetector motorRotationDetector;
 
@@ -64,6 +62,7 @@ MotorRotationDetector motorRotationDetector;
  *             である
  * @param chNum サンプリングした入力ピンの数
  */
+
 void adcReadDone(uint16_t* data, size_t chNum) {
   float current_A = 0.0f;
   float voltage_V = 0.0f;
@@ -84,69 +83,30 @@ void adcReadDone(uint16_t* data, size_t chNum) {
   motorRotationDetector.update(current_A, 1000000 / ADC_SAMPLING_RATE);
 }
 
-void setup() {
-  Serial.begin(115200);
-  ledcSetup(PWM_CHANNEL, PWM_FREQ, 8);
-  ledcAttachPin(PIN_PWM, PWM_CHANNEL);
-  ledcWrite(PWM_CHANNEL, pwm_duty);
-  
-  SerialBT.begin("Bluetooth-Oscillo");
-
-  // 電流・電圧のオフセット取得(64回analogReadして、平均値を取得)
-  analogSetAttenuation(ADC_0db);
-  for (int i = 0; i < 64; i++) {
-    current_offset_mV += analogReadMilliVolts(PIN_SENSE_I);
-    voltage_offset_mV += analogReadMilliVolts(PIN_SENSE_V);
-    delay(10);  // 連続でreadすると若干値が小さくなってしまったのでdelayを入れる
-  }
-  current_offset_mV /= 64;
-  voltage_offset_mV /= 64;
-  Serial.print("[setup] current_offset_mV: ");
-  Serial.println(current_offset_mV);
-  Serial.print("[setup] voltage_offset_mV: ");
-  Serial.println(voltage_offset_mV);
-
-  // ADCキャリブレーション値の設定
-  esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_0db, ADC_WIDTH_12Bit, 1100, &adc_chars_1);
-  
-  // ADC測定対象チャンネルを追加し、測定開始
-  adc.addChannel(ADC_CH_CURRENT, ADC_WIDTH_12Bit, ADC_ATTEN_0db);
-  adc.addChannel(ADC_CH_VOLTAGE, ADC_WIDTH_12Bit, ADC_ATTEN_0db);
-  adc.addChannel(ADC_CH_CLK, ADC_WIDTH_12Bit, ADC_ATTEN_11db);
-  adc.addChannel(ADC_CH_DAT, ADC_WIDTH_12Bit, ADC_ATTEN_11db);
-  adc.setSampleRateHz(ADC_SAMPLING_RATE);
-  adc.attachInterrupt(adcReadDone);
-  adc.start();
-
-  Serial.println("setup end");
-}
-
-void loop() {
-  Serial.print("rps: ");
-  Serial.print(motorRotationDetector.getRps(), 8);
-  Serial.print(", rotation: ");
-  Serial.print(motorRotationDetector.getRotation());
-  Serial.print(", totalRotation: ");
-  Serial.println(motorRotationDetector.getTotalRotation());
-
-  // ------------------------------------
-  // Motor duty command receive and apply
-  // ------------------------------------
-  byte buf[SERIAL_LEN];
-  memset(buf, 0, SERIAL_LEN);
-  
-  int i = 0;
-  if (Serial.available()){
-    while(Serial.available()) {
-      buf[i] = Serial.read();
-      i++;
-      if (i >= SERIAL_LEN) {
-        break;
-      }
+void motorRotationDetectorSetup() {
+    // 電流・電圧のオフセット取得(64回analogReadして、平均値を取得)
+    analogSetAttenuation(ADC_0db);
+    for (int i = 0; i < 64; i++) {
+        current_offset_mV += analogReadMilliVolts(PIN_SENSE_I);
+        voltage_offset_mV += analogReadMilliVolts(PIN_SENSE_V);
+        delay(10);  // 連続でreadすると若干値が小さくなってしまったのでdelayを入れる
     }
-    sscanf((char*)buf, "%d", &pwm_duty);
-    // Serial.println(pwm_duty);
-    ledcWrite(PWM_CHANNEL, pwm_duty);
-  }
-  delay(100);
+    current_offset_mV /= 64;
+    voltage_offset_mV /= 64;
+    Serial.print("[setup] current_offset_mV: ");
+    Serial.println(current_offset_mV);
+    Serial.print("[setup] voltage_offset_mV: ");
+    Serial.println(voltage_offset_mV);
+
+    // ADCキャリブレーション値の設定
+    esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_0db, ADC_WIDTH_12Bit, 1100, &adc_chars_1);
+    
+    // ADC測定対象チャンネルを追加し、測定開始
+    adc.addChannel(ADC_CH_CURRENT, ADC_WIDTH_12Bit, ADC_ATTEN_0db);
+    adc.addChannel(ADC_CH_VOLTAGE, ADC_WIDTH_12Bit, ADC_ATTEN_0db);
+    adc.addChannel(ADC_CH_CLK, ADC_WIDTH_12Bit, ADC_ATTEN_11db);
+    adc.addChannel(ADC_CH_DAT, ADC_WIDTH_12Bit, ADC_ATTEN_11db);
+    adc.setSampleRateHz(ADC_SAMPLING_RATE);
+    adc.attachInterrupt(adcReadDone);
+    adc.start();
 }

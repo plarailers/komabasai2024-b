@@ -19,7 +19,7 @@ if __name__ == "__main__":
         ser.read_until(b'}')
         time.sleep(3)
         while(True):
-            motorInput = 60
+            motorInput = 100
             json_data=f'{{"mI":{motorInput}}}'
             # print(json_data)
             send(json_data,ser)

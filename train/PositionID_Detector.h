@@ -24,22 +24,22 @@
 MFRC522 mfrc522(SS_PIN, RST_PIN);  // Create MFRC522 instance
 MFRC522::MIFARE_Key key;
 
-class GetPositionID
+class PositionID_Detector
 {
 	private:
 		int 	positionID;
     public:
-		GetPositionID();
+		PositionID_Detector();
         void    MFRC522Setup(); //RFIDリーダ(MFRC522)
         int     getPositionID();
 		void 	dump_byte_array(byte *buffer, byte bufferSize);
 };
 
-GetPositionID::GetPositionID() {
+PositionID_Detector::PositionID_Detector() {
 	this->positionID = 0;
 }
 
-void GetPositionID::MFRC522Setup() {
+void PositionID_Detector::MFRC522Setup() {
     SPI.begin();			// Init SPI bus
 	mfrc522.PCD_Init();		// Init MFRC522
 	delay(4);				// Optional delay. Some board do need more time after init to be ready, see Readme
@@ -47,7 +47,7 @@ void GetPositionID::MFRC522Setup() {
 	Serial.println(F("Scan PICC to see UID, SAK, type, and data blocks..."));
 }
 
-int GetPositionID::getPositionID() {
+int PositionID_Detector::getPositionID() {
     // Reset the loop if no new card present on the sensor/reader. This saves the entire process when idle.
 	if ( ! mfrc522.PICC_IsNewCardPresent()) {
 		return -1;
@@ -57,14 +57,6 @@ int GetPositionID::getPositionID() {
 	if ( ! mfrc522.PICC_ReadCardSerial()) {
 		return -1;
 	}
-
-	// Dump debug info about the card; PICC_HaltA() is automatically called
-	// mfrc522.PICC_DumpToSerial(&(mfrc522.uid));
-
-	// 顯示卡片內容
-	// Serial.print(F("Card UID:"));
-	// dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size); // 顯示卡片的UID
-	// Serial.println();
 	
 	positionID = mfrc522.uid.uidByte[0]; //UIDの最初の1バイトをPositionIDとする
 	Serial.print("PositionID: ");
@@ -75,7 +67,7 @@ int GetPositionID::getPositionID() {
     return positionID;
 }
 
-void GetPositionID::dump_byte_array(byte *buffer, byte bufferSize) {
+void PositionID_Detector::dump_byte_array(byte *buffer, byte bufferSize) {
 	for (byte i = 0; i < bufferSize; i++) {
         Serial.print(buffer[i] < 0x10 ? " 0" : " ");
         Serial.print(buffer[i], DEC);

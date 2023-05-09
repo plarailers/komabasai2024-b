@@ -5,7 +5,11 @@
 
 Train train("ESP32-Dr.");
 
+unsigned int old_time = 0;
+unsigned int new_time = 0;
+
 void setup() {
+
     /* Serial */
     Serial.begin(train.serialSpeed);
     while (!Serial);
@@ -13,39 +17,51 @@ void setup() {
 
     /* SerialBT */
     SerialBT.begin(train.serialBTPortName);
-    while (!SerialBT);
     Serial.println("SerialBT Start!!");
 
-    // /* ledc */
+    /* ledcセットアップ */
     ledcSetup(0, 700, 8);
     ledcAttachPin(train.MOTOR_INPUT_PIN, 0);
     train.moveMotor(0);
     Serial.println("LEDC Setup done!!");
 
-    /* BNO055 */
-    train.BNO055Setup();
+    /* モータ回転数検知セットアップ */
+    motorRotationDetectorSetup();
+    Serial.println("MotorRotationDetector Setup done!!");
+
+    /* BNO055セットアップ */
+    train.stopSensor.BNO055Setup();
     Serial.println("BNO055 Setup done!!");
 
-    // /* MFRC522 */
-    train.MFRC522Setup();
+    /* MFRC522セットアップ */
+    train.positionID_Detector.MFRC522Setup();
     Serial.println("MFRC522 Setup done!!");
 
 }
 
 void loop(){
 
-    // /* モータ駆動 */
+    /* モータ駆動 */
     int     motorInput      = train.getMotorInput();
     train.moveMotor(motorInput);
 
-    // /* 積算位置検知(IPS) */
-    float   wheelSpeed      = train.getWheelSpeed(train.MOTOR_CURRENT_PIN);
-    bool    isStopping      = train.getStopping();
-    float   wheelRotation   = train.calcWheelRotation(wheelSpeed, isStopping);
-    if (wheelRotation > 0) train.sendWheelRotation(wheelRotation);
+    // 100ms毎にモータ回転数と停止検知を行う
+    new_time = millis();
+    if (new_time - old_time > 100) {
 
-    // /* 絶対位置検知(APS) */
-    int     positionID      = train.getPositionID();
+        /* モータ回転数 */
+        float   motorRotation   = motorRotationDetector.getRotation();
+        // if (motorRotation > 0) train.sendMotorRotation(motorRotation);
+
+        /* 停止検知(SS) */
+        bool    isStopping      = train.stopSensor.getStopping();
+        train.sendIsStopping(isStopping);
+
+        old_time = new_time;
+    }
+
+    /* 絶対位置検知(APS) */
+    int     positionID      = train.positionID_Detector.getPositionID();
     if (positionID > 0) train.sendPositionID(positionID);
 
 }
