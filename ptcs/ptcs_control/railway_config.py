@@ -96,7 +96,7 @@ class TrainConfig(BaseModel):
     max_speed: float
     delta_per_motor_rotation: float  # モータ1回転で進む距離[cm]
 
-    def get_input_from_speed(self, speed: float) -> int:
+    def calc_input(self, speed: float) -> int:
         if speed > self.max_speed:
             return self.max_input
         elif speed <= 0:
