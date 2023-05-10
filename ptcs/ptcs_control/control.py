@@ -1,5 +1,5 @@
 import math
-from .components import Direction, Joint, Junction, Section, Stop, Train
+from .components import Direction, Joint, Junction, Position, Section, Stop, Train
 from .railway_config import RailwayConfig, init_config
 from .railway_state import RailwayState, init_state
 from .railway_command import RailwayCommand, init_command
@@ -100,6 +100,22 @@ class Control:
                 train_state.mileage = current_section_config.length - surplus_mileage
             else:
                 raise
+
+    def put_train(self, train_id: "Train", position: "Position") -> None:
+        """
+        指定された列車の位置を修正する。
+        TODO: 向きを割り出すためにどうするか
+        """
+
+        train_state = self.state.trains[train_id]
+        position_config = self.config.positions[position]
+
+        if False:
+            train_state.current_section = position_config.section
+            train_state.target_junction = ...
+            train_state.mileage = position_config.mileage
+
+        raise NotImplementedError()
 
     def calc_direction(self) -> None:
         """

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from .components import Joint, Junction, Section, Station, Stop, Train
+from .components import Joint, Junction, Position, Section, Station, Stop, Train
 
 
 class RailwayConfig(BaseModel):
@@ -14,6 +14,7 @@ class RailwayConfig(BaseModel):
     trains: dict[Train, "TrainConfig"] = Field(default_factory=dict)
     stations: dict[Station, "StationConfig"] = Field(default_factory=dict)
     stops: dict[Stop, "StopConfig"] = Field(default_factory=dict)
+    positions: dict[Position, "PositionConfig"] = Field(default_factory=dict)
 
     def define_junctions(self, *junction_tuples: tuple["Junction"]) -> None:
         """
@@ -25,10 +26,7 @@ class RailwayConfig(BaseModel):
             self.junctions[junction_id] = JunctionConfig()
 
     def define_sections(
-        self,
-        *section_tuples: tuple[
-            "Section", "Junction", "Joint", "Junction", "Joint", float
-        ]
+        self, *section_tuples: tuple["Section", "Junction", "Joint", "Junction", "Joint", float]
     ) -> None:
         """
         区間を一斉に定義する。
@@ -91,6 +89,11 @@ class StopConfig(BaseModel):
     mileage: float
 
 
+class PositionConfig(BaseModel):
+    section: "Section"
+    mileage: float
+
+
 RailwayConfig.update_forward_refs()
 
 
@@ -120,6 +123,10 @@ def init_config() -> RailwayConfig:
     stop_2 = Stop("stop_2")
     stop_3 = Stop("stop_3")
     stop_4 = Stop("stop_4")
+
+    position_0 = Position("position_0")
+    position_1 = Position("position_1")
+    position_2 = Position("position_2")
 
     config.define_junctions(
         (j0a,),
@@ -156,6 +163,14 @@ def init_config() -> RailwayConfig:
             stop_2: StopConfig(section=s1, target_junction=j0b, mileage=10),
             stop_3: StopConfig(section=s1, target_junction=j1b, mileage=90),
             stop_4: StopConfig(section=s3, target_junction=j0a, mileage=75),
+        }
+    )
+
+    config.positions.update(
+        {
+            position_0: PositionConfig(section=s0, mileage=50),
+            position_1: PositionConfig(section=s0, mileage=90),
+            position_2: PositionConfig(section=s2, mileage=50),
         }
     )
 
