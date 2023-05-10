@@ -119,22 +119,30 @@ class Control:
         s5 = Section("s5")
         # 「とりうるルート」の列挙
         possible_junction_direction: dict[str, list[tuple[Junction, Direction]]] = {
-            "pattern1": [(j0a, Direction.STRAIGHT),
-                       (j0b, Direction.STRAIGHT),
-                       (j1a, Direction.STRAIGHT),
-                       (j1b, Direction.STRAIGHT)],
-            "pattern2": [(j0a, Direction.CURVE),
-                       (j0b, Direction.CURVE),
-                       (j1a, Direction.STRAIGHT),
-                       (j1b, Direction.STRAIGHT)],
-            "pattern3": [(j0a, Direction.CURVE),
-                         (j0b, Direction.STRAIGHT),
-                         (j1a, Direction.CURVE),
-                         (j1b, Direction.STRAIGHT)],
-            "pattern4": [(j0a, Direction.CURVE),
-                         (j0b, Direction.CURVE),
-                         (j1a, Direction.CURVE),
-                         (j1b, Direction.CURVE)]
+            "pattern1": [
+                (j0a, Direction.STRAIGHT),
+                (j0b, Direction.STRAIGHT),
+                (j1a, Direction.STRAIGHT),
+                (j1b, Direction.STRAIGHT),
+            ],
+            "pattern2": [
+                (j0a, Direction.CURVE),
+                (j0b, Direction.CURVE),
+                (j1a, Direction.STRAIGHT),
+                (j1b, Direction.STRAIGHT),
+            ],
+            "pattern3": [
+                (j0a, Direction.CURVE),
+                (j0b, Direction.STRAIGHT),
+                (j1a, Direction.CURVE),
+                (j1b, Direction.STRAIGHT),
+            ],
+            "pattern4": [
+                (j0a, Direction.CURVE),
+                (j0b, Direction.CURVE),
+                (j1a, Direction.CURVE),
+                (j1b, Direction.CURVE),
+            ],
         }
 
         # 列車位置と線路の状態（障害物の有無）に応じてどのルートを使うか判断する
@@ -178,9 +186,9 @@ class Control:
                 junction_direction = possible_junction_direction["pattern3"]
             elif not s1_j1b_exist and s5_exist:
                 junction_direction = possible_junction_direction["pattern4"]
-            else: 
+            else:
                 raise
-        
+
         # ポイント変更
         for junction_id, direction in junction_direction:
             self.update_junction(junction_id=junction_id, direction=direction)
