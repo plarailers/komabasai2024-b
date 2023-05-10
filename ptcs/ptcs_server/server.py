@@ -1,3 +1,5 @@
+import threading
+import time
 from typing import Any
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -12,8 +14,18 @@ from .api import api_router
 def create_app() -> FastAPI:
     control = Control()
 
+    # control 内部の時計を現実世界の時間において進める
+    def run_clock() -> None:
+        while True:
+            time.sleep(1)
+            control.tick()
+
+    clock_thread = threading.Thread(target=run_clock, daemon=True)
+    clock_thread.start()
+
     app = FastAPI(generate_unique_id_function=lambda route: route.name)
     app.state.control = control
+    app.state.clock_thread = clock_thread
 
     # `/api` 以下で API を呼び出す
     app.include_router(api_router, prefix="/api")
