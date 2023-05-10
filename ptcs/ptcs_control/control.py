@@ -61,6 +61,14 @@ class Control:
 
         self.state.junctions[junction_id].direction = direction
 
+    def move_train_mr(self, train_id: "Train", motor_rotation: int) -> None:
+        """
+        指定された列車をモータ motor_rotation 回転分だけ進める
+        """
+
+        delta_per_motor_rotation = self.config.trains[train_id].delta_per_motor_rotation
+        self.move_train(train_id, motor_rotation * delta_per_motor_rotation)
+
     def move_train(self, train_id: "Train", delta: float) -> None:
         """
         指定された列車を距離 delta 分だけ進める。
