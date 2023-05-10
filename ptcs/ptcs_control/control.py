@@ -519,8 +519,8 @@ class Control:
                         forward_stop = stop
                         forward_stop_distance = distance
 
-        # 指定された列車と同一セクションに先行列車が存在しなければ次のセクションに移り、
-        # 先行列車が見つかるまで繰り返す
+        # 指定された列車と同一セクションに停止位置が存在しなければ次のセクションに移り、
+        # 停止位置が見つかるまで繰り返す
 
         section = train_state.current_section
         target_junction = train_state.target_junction
