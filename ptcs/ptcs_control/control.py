@@ -335,7 +335,7 @@ class Control:
         train_state = self.state.trains[train]
         section_config = self.config.sections[train_state.current_section]
 
-        forward_train: Train = None
+        forward_train: Train | None = None
         forward_train_distance: float = 99999999  # ありえない大きな値
 
         # 指定された列車と同一セクションに存在する、指定された列車とは異なる列車で、
