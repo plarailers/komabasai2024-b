@@ -15,22 +15,22 @@
 #include <SPI.h>
 #include <MFRC522.h>
 
+#define RST_PIN 	27
+#define SS_PIN 		5
+#define MISO_PIN 	19
+#define MOSI_PIN 	23
+#define SCK_PIN 	18
+
 class PositionID_Detector
 {
 	private:
-		int 				positionID;
-		MFRC522 			mfrc522;  // Create MFRC522 instance
+		int 		positionID;  
+		MFRC522 	mfrc522{SS_PIN, RST_PIN};  // Create MFRC522 instance
 		MFRC522::MIFARE_Key key;
-		const int 			RST_PIN;
-		const int 			SS_PIN;
-		const int 			MISO_PIN;  		 
-		const int 			MOSI_PIN;  		 
-		const int 			SCK_PIN;   		 
 		
     public:
 		PositionID_Detector();
         void    MFRC522Setup(); //RFIDリーダ(MFRC522)
         int     getPositionID();
-		void 	dump_byte_array(byte *buffer, byte bufferSize);
 };
 

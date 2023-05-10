@@ -2,9 +2,7 @@
 #include "BluetoothSerial.h"
 
 BluetoothSerial SerialBT;
-// Bluetooth受信(Receiver)側のMacアドレスを設定する。
-//String MACadd = "9C:9C:1F:CB:D9:F2";
-//uint8_t address[6]  = {0x9C, 0x9C, 0x1F, 0xCB, 0xD9, 0xF2};
+
 bool connected;
 const int BUFFER_SIZE = 32;
 char buf[BUFFER_SIZE];
@@ -16,7 +14,7 @@ void setup() {
   Serial.begin(115200);
   SerialBT.begin("ESP32_sender", true); 
   //上のtrueはmasterであることを示す
-  connected = SerialBT.connect("ESP32-Dr.");
+  connected = SerialBT.connect("ESP32-E6");
   //addressはname or Macaddressを引数にとる。前者はmax30ms後者はmax10ms程度の秒数で接続可能
   
     if(connected){

@@ -1,8 +1,6 @@
 #include "StopSensor.h"
 
 StopSensor::StopSensor() 
-:   BNO055_SAMPLERATE_DELAY_MS(100),
-    G(9.798) //gravity in Tokyo
 {
     this->acclt         = 0;
     this->acclt_bias    = 0;
@@ -15,8 +13,8 @@ StopSensor::StopSensor()
     this->time_old      = 0;
     this->count         = 0;
     this->dt            = 0;
-    this->F             = 5;
-    this->tau           = 1.0*(2*PI*F);
+    this->F             = 5; //カットオフ周波数　Hz
+    this->tau           = 1.0/(2*PI*F);
 }
 
 void StopSensor::BNO055Setup(void)
@@ -49,6 +47,9 @@ bool StopSensor::getStopping(void)
     time_old = time;
     time = micros();
     dt = double(time - time_old)/1000000.0;
+    Serial.print("dt:");
+    Serial.print(dt);
+    Serial.print(", ");
 
     // Possible vector values can be:
     // - VECTOR_ACCELEROMETER - m/s^2
@@ -79,19 +80,19 @@ bool StopSensor::getStopping(void)
         count++;
     }
 
-    // Serial.print("5:");
-    // Serial.print(5);
-    // Serial.print(", -5:");
-    // Serial.print(-5);
+    Serial.print("5:");
+    Serial.print(5);
+    Serial.print(", -5:");
+    Serial.print(-5);
     
-    // Serial.print(", Acclt:");
-    // Serial.print(acclt);
-    // Serial.print(", Acclt_lp:");
-    // Serial.print(acclt_lp);
-    // Serial.print(", Stop:");
-    // Serial.print(stop_flag);
-    // Serial.print(", Stop_flag2:");
-    // Serial.println(stop_flag2);
+    Serial.print(", Acclt:");
+    Serial.print(acclt);
+    Serial.print(", Acclt_lp:");
+    Serial.print(acclt_lp);
+    Serial.print(", Stop:");
+    Serial.print(stop_flag);
+    Serial.print(", Stop_flag2:");
+    Serial.println(stop_flag2);
 
     delay(1);
 

@@ -3,10 +3,12 @@
 #include <BluetoothSerial.h>
 #include <ArduinoJson.h>
 #include "src/StopSensor.h"
-#include "MotorRotationDetector.h"
 #include "src/PositionID_Detector.h"
+#include "src/PhotoPositionID_Detector.h"
+#include "MotorRotationDetector.h"
 
 #define BUFFER_SIZE 32
+#define JSON_BUFFER_SIZE 256
 
 class Train
 {
@@ -16,18 +18,19 @@ class Train
         int         MOTOR_INPUT_PIN;
         int         motorInput;
         char        buf[BUFFER_SIZE];
-        StaticJsonDocument<BUFFER_SIZE> doc_r;
-        StaticJsonDocument<BUFFER_SIZE> doc_s;
+        StaticJsonDocument<JSON_BUFFER_SIZE> doc_r;
+        StaticJsonDocument<JSON_BUFFER_SIZE> doc_s;
 
-        BluetoothSerial         SerialBT;
-        StopSensor              stopSensor;
-        PositionID_Detector     positionID_Detector;
+        BluetoothSerial             SerialBT;
+        StopSensor                  stopSensor;
+        PositionID_Detector         positionID_Detector;
+        PhotoPositionID_Detector    photoPositionID_Detector;
 
         Train(char* serialBTPortName);
 
         int     getMotorInput();
         void    moveMotor(int motorInput);
-        void    sendData(String key, String value);
+        void    sendData(String key, int value);
 };
 
 Train::Train(char* serialBTPortName)
@@ -50,12 +53,12 @@ int Train::getMotorInput() {
         delay(3);
         // 受信したjsonが終了したらmotorInputを更新
         if(buf[index]=='}'){
-            deserializeJson(doc_r, buf);
+            DeserializationError ret = deserializeJson(doc_r, buf);
             motorInput = doc_r["mI"].as<int>();
             // Serial.println(motorInput);
 
             // motorInputをエコーバックする
-            // sendData("mI", String(motorInput));
+            // sendData("mI", motorInput);
 
             // doc_r, buf, indexを初期化
             doc_r.clear();
@@ -76,7 +79,7 @@ void Train::moveMotor(int motorInput) {
     ledcWrite(0, motorInput);
 }
 
-void Train::sendData(String key, String value) {
+void Train::sendData(String key, int value) {
     String send_data="";
     doc_s.clear();
     doc_s[key]=value;

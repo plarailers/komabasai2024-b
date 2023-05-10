@@ -14,10 +14,13 @@
    2015/MAR/03  - First release (KTOWN)
 */
 
+/* Set the delay between fresh samples */
+#define BNO055_SAMPLERATE_DELAY_MS 100
+#define G 9.798 //gravity in Tokyo
+#define PI atan(1)*4
+
 class StopSensor {
     private:
-        const int       BNO055_SAMPLERATE_DELAY_MS; /* Set the delay between fresh samples */
-        const double    G;
         double          acclt,acclt_bias,acclt_lp;
         bool            stop_flag,stop_flag2;
         // double        accl_lp[3],accl_lp_old[3]; //Low-pass filtered unbiased accleration for x-direction

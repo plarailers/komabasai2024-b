@@ -1,13 +1,7 @@
 #include "PositionID_Detector.h"
 
 PositionID_Detector::PositionID_Detector()
-: 	mfrc522(SS_PIN, RST_PIN),
-	positionID(0),
-	RST_PIN(27),
-	SS_PIN(5),
-	MISO_PIN(19),
-	MOSI_PIN(23),
-	SCK_PIN(18) 
+: 	positionID(0)
 {}
 
 void PositionID_Detector::MFRC522Setup() {
@@ -20,14 +14,10 @@ void PositionID_Detector::MFRC522Setup() {
 
 int PositionID_Detector::getPositionID() {
     // Reset the loop if no new card present on the sensor/reader. This saves the entire process when idle.
-	if ( ! mfrc522.PICC_IsNewCardPresent()) {
-		return -1;
-	}
+	if ( ! mfrc522.PICC_IsNewCardPresent()) return -1;
 
 	// Select one of the cards
-	if ( ! mfrc522.PICC_ReadCardSerial()) {
-		return -1;
-	}
+	if ( ! mfrc522.PICC_ReadCardSerial()) return -1;
 	
 	positionID = mfrc522.uid.uidByte[0]; //UIDの最初の1バイトをPositionIDとする
 	Serial.print("PositionID: ");
@@ -36,11 +26,4 @@ int PositionID_Detector::getPositionID() {
 	mfrc522.PICC_HaltA(); // 卡片進入停止模式
 
     return positionID;
-}
-
-void PositionID_Detector::dump_byte_array(byte *buffer, byte bufferSize) {
-	for (byte i = 0; i < bufferSize; i++) {
-        Serial.print(buffer[i] < 0x10 ? " 0" : " ");
-        Serial.print(buffer[i], DEC);
-    }
 }
