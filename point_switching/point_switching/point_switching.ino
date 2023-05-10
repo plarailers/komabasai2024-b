@@ -14,7 +14,7 @@ const int SERVO_ANGLE_STRAIGHT[NUM_SERVO] = {25, 25, 25, 25};
 // サーボを曲げる際の角度。適宜いじってください。
 const int SERVO_ANGLE_CURVE[NUM_SERVO] = {75, 75, 75, 75};
 // サーボをアタッチするピンの指定。適宜いじってください。
-const int SERVO_ATTACH_PIN[NUM_SERVO] = {3, 5, 7, 9};
+const int SERVO_ATTACH_PIN[NUM_SERVO] = {3, 5, 9, 10};
 const byte STRAIGHT = 0;
 const byte CURVE = 1;
 // 各サーボの状態を格納。初期値は適宜いじってください。
