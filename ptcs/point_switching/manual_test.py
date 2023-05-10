@@ -1,6 +1,8 @@
 import serial
 
-arduino = serial.Serial("/dev/cu.usbmodem11301", 9600)
+# arduinoと繋いでいるportの名前に変更すること
+PORT = "/dev/cu.usbmodem11301"
+arduino = serial.Serial(PORT, 9600)
 
 while True:
     servo_id = int(input(f'servo_id (0~3): '))
