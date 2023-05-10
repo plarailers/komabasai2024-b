@@ -15,6 +15,8 @@ export type { RailwayConfig } from './models/RailwayConfig';
 export type { RailwayState } from './models/RailwayState';
 export type { SectionConfig } from './models/SectionConfig';
 export type { SectionState } from './models/SectionState';
+export type { StationConfig } from './models/StationConfig';
+export type { StopConfig } from './models/StopConfig';
 export type { TrainConfig } from './models/TrainConfig';
 export type { TrainState } from './models/TrainState';
 export type { UpdateJunctionParams } from './models/UpdateJunctionParams';

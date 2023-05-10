@@ -1,5 +1,6 @@
+from typing import Optional
 from pydantic import BaseModel, Field
-from .components import Direction, Junction, Section, Train
+from .components import Direction, Junction, Section, Stop, Train
 
 
 class RailwayState(BaseModel):
@@ -13,7 +14,9 @@ class RailwayState(BaseModel):
     sections: dict[Section, "SectionState"] = Field(default_factory=dict)
     trains: dict[Train, "TrainState"] = Field(default_factory=dict)
 
-    def define_junctions(self, *junction_tuples: tuple["Junction", "Direction"]) -> None:
+    def define_junctions(
+        self, *junction_tuples: tuple["Junction", "Direction"]
+    ) -> None:
         """
         分岐・合流点を一斉に初期化する。
 
@@ -31,10 +34,14 @@ class RailwayState(BaseModel):
         for (section_id,) in section_tuples:
             self.sections[section_id] = SectionState()
 
-    def define_trains(self, *train_tuples: tuple["Train", "Section", "Junction", float]) -> None:
+    def define_trains(
+        self, *train_tuples: tuple["Train", "Section", "Junction", float]
+    ) -> None:
         for train_id, current_section, target_junction, mileage in train_tuples:
             self.trains[train_id] = TrainState(
-                current_section=current_section, target_junction=target_junction, mileage=mileage
+                current_section=current_section,
+                target_junction=target_junction,
+                mileage=mileage,
             )
 
 
@@ -43,13 +50,14 @@ class JunctionState(BaseModel):
 
 
 class SectionState(BaseModel):
-    blocked: bool = Field(False, description="区間上に障害物が発生していて使えない状態になっているかどうか")
+    blocked: bool = Field(default=False, description="区間上に障害物が発生していて使えない状態になっているかどうか")
 
 
 class TrainState(BaseModel):
     current_section: "Section"
     target_junction: "Junction"
     mileage: float
+    stop: Optional["Stop"] = Field(default=None, description="列車の停止目標")
 
 
 RailwayState.update_forward_refs()

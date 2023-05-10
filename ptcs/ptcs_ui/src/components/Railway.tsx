@@ -4,6 +4,7 @@ import { Section } from "./Section";
 import { Train } from "./Train";
 import { Junction } from "./Junction";
 import { useContext } from "react";
+import { Stop } from "./Stop";
 
 export const Railway: React.FC<React.PropsWithChildren> = ({ children }) => {
   const ui = useContext(RailwayUIContext);
@@ -15,6 +16,9 @@ export const Railway: React.FC<React.PropsWithChildren> = ({ children }) => {
       <rect width={ui.width} height={ui.height} fill="#222222" />
       {Object.entries(ui.platforms).map(([id, platform]) => (
         <Platform key={id} position={platform.position} />
+      ))}
+      {Object.entries(ui.stops).map(([id, stop]) => (
+        <Stop key={id} id={id} />
       ))}
       {Object.entries(ui.sections).map(([id, section]) => (
         <Section key={id} id={id} points={section.points} />

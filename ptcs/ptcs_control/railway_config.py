@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from .components import Joint, Junction, Section, Train
+from .components import Joint, Junction, Section, Station, Stop, Train
 
 
 class RailwayConfig(BaseModel):
@@ -12,6 +12,8 @@ class RailwayConfig(BaseModel):
     junctions: dict[Junction, "JunctionConfig"] = Field(default_factory=dict)
     sections: dict[Section, "SectionConfig"] = Field(default_factory=dict)
     trains: dict[Train, "TrainConfig"] = Field(default_factory=dict)
+    stations: dict[Station, "StationConfig"] = Field(default_factory=dict)
+    stops: dict[Stop, "StopConfig"] = Field(default_factory=dict)
 
     def define_junctions(self, *junction_tuples: tuple["Junction"]) -> None:
         """
@@ -23,14 +25,24 @@ class RailwayConfig(BaseModel):
             self.junctions[junction_id] = JunctionConfig()
 
     def define_sections(
-        self, *section_tuples: tuple["Section", "Junction", "Joint", "Junction", "Joint", float]
+        self,
+        *section_tuples: tuple[
+            "Section", "Junction", "Joint", "Junction", "Joint", float
+        ]
     ) -> None:
         """
         区間を一斉に定義する。
 
         形式: `(ID, j0のID, j0との接続方法, j1のID, j1との接続方法, 長さ[mm])`
         """
-        for section_id, junction_0_id, junction_0_joint, junction_1_id, junction_1_joint, length in section_tuples:
+        for (
+            section_id,
+            junction_0_id,
+            junction_0_joint,
+            junction_1_id,
+            junction_1_joint,
+            length,
+        ) in section_tuples:
             self.junctions[junction_0_id].add_section(junction_0_joint, section_id)
             self.junctions[junction_1_id].add_section(junction_1_joint, section_id)
             self.sections[section_id] = SectionConfig(
@@ -69,6 +81,16 @@ class TrainConfig(BaseModel):
     pass
 
 
+class StationConfig(BaseModel):
+    stops: list["Stop"] = Field(default_factory=list)
+
+
+class StopConfig(BaseModel):
+    section: "Section"
+    target_junction: "Junction"
+    mileage: float
+
+
 RailwayConfig.update_forward_refs()
 
 
@@ -90,6 +112,15 @@ def init_config() -> RailwayConfig:
     t0 = Train("t0")
     t1 = Train("t1")
 
+    station_0 = Station("station_0")
+    station_1 = Station("station_1")
+
+    stop_0 = Stop("stop_0")
+    stop_1 = Stop("stop_1")
+    stop_2 = Stop("stop_2")
+    stop_3 = Stop("stop_3")
+    stop_4 = Stop("stop_4")
+
     config.define_junctions(
         (j0a,),
         (j0b,),
@@ -109,6 +140,23 @@ def init_config() -> RailwayConfig:
     config.define_trains(
         (t0,),
         (t1,),
+    )
+
+    config.stations.update(
+        {
+            station_0: StationConfig(stops=[stop_0, stop_1]),
+            station_1: StationConfig(stops=[stop_2, stop_3, stop_4]),
+        }
+    )
+
+    config.stops.update(
+        {
+            stop_0: StopConfig(section=s0, target_junction=j0b, mileage=24),
+            stop_1: StopConfig(section=s0, target_junction=j0b, mileage=77),
+            stop_2: StopConfig(section=s1, target_junction=j0b, mileage=10),
+            stop_3: StopConfig(section=s1, target_junction=j1b, mileage=90),
+            stop_4: StopConfig(section=s3, target_junction=j0a, mileage=75),
+        }
     )
 
     return config
