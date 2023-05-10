@@ -191,7 +191,48 @@ class Control:
 
         # ポイント変更
         for junction_id, direction in junction_direction:
-            self.update_junction(junction_id=junction_id, direction=direction)
+            if not self.junction_toggle_prohibited(junction_id):
+                self.update_junction(junction_id=junction_id, direction=direction)
+
+    def junction_toggle_prohibited(self, junction_id: "Junction") -> bool:
+        """
+        指定されたjunctionを列車が通過中であり、切り替えてはいけない場合にTrueを返す
+        """
+
+        MERGIN: float = 10  # ポイント通過後すぐに切り替えるとまずいので余裕距離をとる
+        TRAIN_LENGTH: float = 40  # 列車の長さ[cm] NOTE: 将来的には車両等のパラメータとして外に出す
+
+        for train_id, train_state in self.state.trains.items():
+
+            # 列車の最後尾からMERGIN離れた位置(tail_section, tail_mileage, tail_target_junction)を取得
+            current_section_config = self.config.sections[train_state.current_section]
+            (
+                tail_section,
+                tail_mileage,
+                tail_target_junction_opposite,
+            ) = self._get_new_position(
+                train_state.current_section,
+                train_state.mileage,
+                current_section_config.get_opposite_junction(  # 進行方向と反対向きにたどる
+                    train_state.target_junction
+                ),
+                TRAIN_LENGTH + MERGIN,
+            )
+            tail_section_config = self.config.sections[tail_section]
+            tail_target_junction = tail_section_config.get_opposite_junction(
+                tail_target_junction_opposite  # 進行方向と反対のjunctionなので元に戻す
+            )
+
+            # 列車の先頭は指定されたjunctionに向かっていないが、
+            # 列車の最後尾は指定されたjunctionに向かっている場合、
+            # 列車はそのjunctinoを通過中なので、切り替えを禁止する
+            if (
+                train_state.target_junction != junction_id
+                and tail_target_junction == junction_id
+            ):
+                return True
+
+        return False  # 誰も通過していなければFalseを返す
 
     def calc_speed(self) -> None:
         BREAK_ACCLT: float = 10  # ブレーキ減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
@@ -295,14 +336,14 @@ class Control:
             if speedlimit > MAX_SPEED:
                 speedlimit = MAX_SPEED
 
-            print(
-                train_id,
-                self._get_forward_train(train_id),
-                self._get_next_section_and_junction_strict(
-                    train_state.current_section, train_state.target_junction
-                ),
-                distance,
-            )
+            # print(
+            #     train_id,
+            #     self._get_forward_train(train_id),
+            #     self._get_next_section_and_junction_strict(
+            #         train_state.current_section, train_state.target_junction
+            #     ),
+            #     distance,
+            # )
 
             # [ATO]停車駅の情報から、停止位置を取得する
             # [ATO]ATPで計算した許容速度の範囲内で、停止位置で止まるための速度を計算する
