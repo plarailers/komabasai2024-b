@@ -525,10 +525,6 @@ class Control:
             forward_stop_and_distance = self._get_forward_stop(train_id)
             forward_stop = forward_stop_and_distance[0] if forward_stop_and_distance else None
 
-            # 発車時刻を過ぎているのに departure_time が残っていたら捨てる
-            if train_state.departure_time is not None and train_state.departure_time < self.state.time:
-                train_state.departure_time = None
-
             # 停止目標がないままのとき（None → None）
             # 停止目標を見つけたとき（None → not None）
             if train_state.stop is None:
