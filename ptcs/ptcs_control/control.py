@@ -28,6 +28,12 @@ class Control:
     def get_command(self) -> "RailwayCommand":
         return self.command
 
+    def tick(self, increment: int = 1) -> None:
+        """
+        内部時刻を進める。
+        """
+        self.state.time += increment
+
     def block_section(self, section_id: "Section") -> None:
         """
         指定された区間上に障害物を発生させ、使えなくさせる。
@@ -502,12 +508,43 @@ class Control:
         return next_section, next_target_junction
 
     def calc_stop(self) -> None:
+        """
+        列車の現在あるべき停止目標を割り出し、列車の状態として格納する。
+        この情報は列車の速度を計算するのに使われる。
+
+        実際の挙動は「列車より手前にある停止目標を計算し、ちょっと待ってから格納する」であり、
+        これは以下の仮定をおいた上でうまく動作する。
+          - 列車は停止目標付近で停止する（= IPS 信号がしばらく送られなくなる）。
+          - 停止したときに停止目標の位置を過ぎている。
+        """
+
+        STOPPAGE_TIME: int = 5  # 列車の停止時間[フレーム] NOTE: 将来的にはパラメータとして定義
+
         for train_id, train_state in self.state.trains.items():
+            # 列車より手前にある停止目標を取得する
             forward_stop_and_distance = self._get_forward_stop(train_id)
-            if forward_stop_and_distance:
-                train_state.stop = forward_stop_and_distance[0]
-            else:
-                train_state.stop = None
+            forward_stop = forward_stop_and_distance[0] if forward_stop_and_distance else None
+
+            # 発車時刻を過ぎているのに departure_time が残っていたら捨てる
+            if train_state.departure_time is not None and train_state.departure_time < self.state.time:
+                train_state.departure_time = None
+
+            # 停止目標がないままのとき（None → None）
+            # 停止目標を見つけたとき（None → not None）
+            if train_state.stop is None:
+                train_state.stop = forward_stop
+
+            # 停止目標を過ぎたとき（異なる）
+            # 停止目標を見失ったとき（not None → None）
+            elif train_state.stop != forward_stop:
+                # 最初は発車時刻を設定
+                if train_state.departure_time is None:
+                    train_state.departure_time = self.state.time + STOPPAGE_TIME
+
+                # 発車時刻になっていれば、次の停止目標に切り替える
+                elif self.state.time >= train_state.departure_time:
+                    train_state.departure_time = None
+                    train_state.stop = forward_stop
 
     def _get_forward_stop(self, train: Train) -> tuple[Stop, float] | None:
         """
