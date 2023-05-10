@@ -51,10 +51,21 @@ class RailwayConfig(BaseModel):
                 length=length,
             )
 
-    def define_trains(self, *train_tuples: tuple["Train", int, int, float]) -> None:
-        for train_id, min_input, max_input, max_speed in train_tuples:
+    def define_trains(
+        self, *train_tuples: tuple["Train", int, int, float, float]
+    ) -> None:
+        for (
+            train_id,
+            min_input,
+            max_input,
+            max_speed,
+            delta_per_motor_rotation,
+        ) in train_tuples:
             self.trains[train_id] = TrainConfig(
-                min_input=min_input, max_input=max_input, max_speed=max_speed
+                min_input=min_input,
+                max_input=max_input,
+                max_speed=max_speed,
+                delta_per_motor_rotation=delta_per_motor_rotation,
             )
 
 
@@ -83,6 +94,7 @@ class TrainConfig(BaseModel):
     min_input: int
     max_input: int
     max_speed: float
+    delta_per_motor_rotation: float  # モータ1回転で進む距離[cm]
 
     def get_input_from_speed(self, speed: float) -> int:
         if speed > self.max_speed:
@@ -153,8 +165,8 @@ def init_config() -> RailwayConfig:
     )
 
     config.define_trains(
-        (t0, 70, 110, 40.0),  # Train, min_input, max_input, max_speed
-        (t1, 70, 110, 40.0),  # Train, min_input, max_input, max_speed
+        (t0, 70, 110, 40.0, 0.3),
+        (t1, 70, 110, 40.0, 0.3),
     )
 
     config.stations.update(

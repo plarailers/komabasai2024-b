@@ -31,8 +31,8 @@ def create_app_with_bridge() -> FastAPI:
     def handle_receive(target: BridgeTarget, data: Any) -> None:
         print(target, data)
         # TODO: インターフェイスを定めてコマンドを判別する
-        if data["pID"]:
-            control.move_train(target, data["wR"] / 100)
+        if data["mR"]:
+            control.move_train_mr(target, data["mR"])
 
     bridges = BridgeManager(callback=handle_receive)
 
