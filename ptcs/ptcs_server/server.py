@@ -5,8 +5,9 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from usb_bt_bridge import Bridge
 from .bridges import BridgeManager, BridgeTarget
+from .points import PointSwitcher, PointSwitcherManager
 from ptcs_control import Control
-from ptcs_control.components import Train
+from ptcs_control.components import Train, Junction
 import uvicorn
 from .api import api_router
 
@@ -54,6 +55,18 @@ def create_app_with_bridge() -> FastAPI:
     bridges.start()
 
     app.state.bridges = bridges
+
+    # ポイント関係
+    point_switchers = PointSwitcherManager()
+    point_switcher = PointSwitcher("COM5")
+    point_switchers.register(Junction("j0a"), (point_switcher, 0))
+    point_switchers.register(Junction("j0b"), (point_switcher, 1))
+    point_switchers.register(Junction("j1a"), (point_switcher, 2))
+    point_switchers.register(Junction("j1b"), (point_switcher, 3))
+
+    point_switchers.start()
+
+    app.state.point_switchers = point_switchers
 
     return app
 
