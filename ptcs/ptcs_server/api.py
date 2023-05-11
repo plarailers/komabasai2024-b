@@ -95,6 +95,10 @@ def block_section(section_id: str, request: Request) -> None:
     control.block_section(section)
     # calc_directionデバック用
     control.calc_direction()
+    # calc_stopデバック用
+    control.calc_stop()
+    # calc_speedデバック用
+    control.calc_speed()
 
 
 @api_router.post("/state/sections/{section_id}/unblock")
@@ -108,3 +112,7 @@ def unblock_section(section_id: str, request: Request) -> None:
     control.unblock_section(section)
     # calc_directionデバック用
     control.calc_direction()
+    # calc_stopデバック用
+    control.calc_stop()
+    # calc_speedデバック用
+    control.calc_speed()

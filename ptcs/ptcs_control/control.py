@@ -286,7 +286,11 @@ class Control:
                 next_section_state = self.state.sections[next_section]
 
                 # いま見ているセクションが閉鎖 -> 即時停止
-                if current_section_state.blocked is True:
+                # ただしすでに列車が閉鎖セクションに入ってしまった場合は、駅まで動かしたいので、止めない
+                if (
+                    current_section != train_state.current_section
+                    and current_section_state.blocked is True
+                ):
                     distance += 0
                     break
 
@@ -628,24 +632,27 @@ class Control:
             # 停止目標を見つけたとき（None → not None）
             if train_state.stop is None:
                 train_state.stop = forward_stop
+                if forward_stop:
+                    train_state.stop_distance = forward_stop_distance
+                else:
+                    train_state.stop_distance = 0
 
             # 停止目標を過ぎたとき（異なる）
             # 停止目標を見失ったとき（not None → None）
+            # NOTE: セクションがblockされると停止目標を見失う場合がある。
+            # このときは駅に着いたと勘違いして止まってしまう現象が起きるが、
+            # 駅到着により見失う場合との区別が難しいので、無視する。
             elif train_state.stop != forward_stop:
                 # 最初は発車時刻を設定
                 if train_state.departure_time is None:
                     train_state.departure_time = self.state.time + STOPPAGE_TIME
+                    train_state.stop_distance = 0
 
                 # 発車時刻になっていれば、次の停止目標に切り替える
                 elif self.state.time >= train_state.departure_time:
                     train_state.departure_time = None
                     train_state.stop = forward_stop
-
-            # 停止目標までの距離の更新
-            if train_state.stop and train_state.stop == forward_stop:
-                train_state.stop_distance = forward_stop_distance
-            else:
-                train_state.stop_distance = 0
+                    train_state.stop_distance = forward_stop_distance
 
     def _get_forward_stop(self, train: Train) -> tuple[Stop, float] | None:
         """
