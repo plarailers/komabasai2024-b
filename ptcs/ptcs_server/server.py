@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from usb_bt_bridge import Bridge
 from .bridges import BridgeManager, BridgeTarget
 from .points import PointSwitcher, PointSwitcherManager
+from .button import Button
 from ptcs_control import Control
 from ptcs_control.components import Train, Junction, Section
 import uvicorn
@@ -75,6 +76,13 @@ def create_app_with_bridge() -> FastAPI:
     point_switchers.start()
 
     app.state.point_switchers = point_switchers
+
+    # 異常発生ボタン
+    button = Button("COM6", handle_button_receive)
+
+    button.start()
+
+    app.state.button = button
 
     return app
 
