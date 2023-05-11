@@ -3,7 +3,7 @@
 
 #include "Train.h"
 
-Train train("ESP32-E5");
+Train train("ESP32-E6");
 
 unsigned int old_time = 0;
 unsigned int new_time = 0;
@@ -26,7 +26,7 @@ void setup() {
     Serial.println("LEDC Setup done!!");
 
     /* モータ回転検知セットアップ */
-    motorRotationDetectorSetup();
+    adcSetup();
     Serial.println("MotorRotationDetector Setup done!!");
 
     /* BNO055セットアップ */
@@ -38,8 +38,8 @@ void setup() {
     Serial.println("MFRC522 Setup done!!");
 
     /* フォトリフレクタ セットアップ */
-    // train.photoPositionID_Detector.photoRefSetup();
-    // Serial.println("PhotoRef Setup done!!");
+    train.photoPositionID_Detector.photoRefSetup();
+    Serial.println("PhotoRef Setup done!!");
 
 }
 

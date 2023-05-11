@@ -83,7 +83,7 @@ void adcReadDone(uint16_t* data, size_t chNum) {
   motorRotationDetector.update(current_A, 1000000 / ADC_SAMPLING_RATE);
 }
 
-void motorRotationDetectorSetup() {
+void adcSetup() {
     // 電流・電圧のオフセット取得(64回analogReadして、平均値を取得)
     analogSetAttenuation(ADC_0db);
     for (int i = 0; i < 64; i++) {

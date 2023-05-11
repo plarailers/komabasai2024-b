@@ -14,7 +14,7 @@ void setup() {
   Serial.begin(115200);
   SerialBT.begin("ESP32_sender", true); 
   //上のtrueはmasterであることを示す
-  connected = SerialBT.connect("ESP32-E6");
+  connected = SerialBT.connect("ESP32-Dr");
   //addressはname or Macaddressを引数にとる。前者はmax30ms後者はmax10ms程度の秒数で接続可能
   
     if(connected){
