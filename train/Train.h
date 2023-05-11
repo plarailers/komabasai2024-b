@@ -5,7 +5,7 @@
 #include "src/StopSensor.h"
 #include "src/PositionID_Detector.h"
 #include "src/PhotoPositionID_Detector.h"
-#include "MotorRotationDetector.h"
+#include "adcRead.h"
 
 #define BUFFER_SIZE 32
 #define JSON_BUFFER_SIZE 256

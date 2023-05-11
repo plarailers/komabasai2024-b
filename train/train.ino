@@ -20,7 +20,7 @@ void setup() {
     Serial.println("SerialBT Start!!");
 
     /* ledcセットアップ */
-    ledcSetup(0, 700, 8);
+    ledcSetup(0, ADC_SAMPLING_RATE, 8);
     ledcAttachPin(train.MOTOR_INPUT_PIN, 0);
     train.moveMotor(0);
     Serial.println("LEDC Setup done!!");
