@@ -54,7 +54,7 @@ int Train::getMotorInput() {
         if(buf[index]=='}'){
             DeserializationError ret = deserializeJson(doc_r, buf);
             motorInput = doc_r["mI"].as<int>();
-            // Serial.println(motorInput);
+            Serial.println(motorInput);
 
             // motorInputをエコーバックする
             // sendData("mI", motorInput);

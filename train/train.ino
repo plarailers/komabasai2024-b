@@ -4,7 +4,7 @@
 #include "Train.h"
 #include "adcRead.h"
 
-Train train("ESP32-E5");
+Train train("ESP32-Dr");
 
 unsigned int old_time = 0;
 unsigned int new_time = 0;
@@ -56,7 +56,8 @@ void loop(){
 
         /* モータ回転数 */
         unsigned int   motorRotation   = motorRotationDetector.getRotation();
-        if (motorRotation > 0) train.sendData("mR", motorRotation);
+        // モータ回転しているときにmotorRotationを返す
+        if (motorRotation > 0 && motorInput != 0) train.sendData("mR", motorRotation);
 
         old_time = new_time;
     }

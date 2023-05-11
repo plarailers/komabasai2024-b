@@ -55,21 +55,21 @@ int PhotoPositionID_Detector::getPhotoPositionID() {
 		Serial.println(positionID);
 	}
 
-	Serial.print("Val1:");
-	Serial.print(sensorValue1);
-	Serial.print(", Val2:");
-	Serial.print(sensorValue2);
-	Serial.print(", Color1:");
-	Serial.print(detectedColor1*1000);
-	Serial.print(", Color2:");
-	Serial.print(detectedColor2*1000);
+	// Serial.print("Val1:");
+	// Serial.print(sensorValue1);
+	// Serial.print(", Val2:");
+	// Serial.print(sensorValue2);
+	// Serial.print(", Color1:");
+	// Serial.print(detectedColor1*1000);
+	// Serial.print(", Color2:");
+	// Serial.print(detectedColor2*1000);
 
-	Serial.print(", TOP:");
-	Serial.print("4096");
-	Serial.print(", BOTTOM:");
-	Serial.print("0");
+	// Serial.print(", TOP:");
+	// Serial.print("4096");
+	// Serial.print(", BOTTOM:");
+	// Serial.print("0");
 
-	Serial.println("");
+	// Serial.println("");
 
     return positionID;
 }

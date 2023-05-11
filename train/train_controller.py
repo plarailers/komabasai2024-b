@@ -13,17 +13,18 @@ def receive(ser):
 
 if __name__ == "__main__": 
     try:
-        port = '/dev/tty.usbserial-14420' # ポート名は環境に合わせて変更する
+        port = '/dev/tty.usbserial-14320' # ポート名は環境に合わせて変更する
         baudrate = 115200
         ser = serial.Serial(port, baudrate,timeout=3.0,write_timeout=3.0)
         ser.read_until(b'}')
         time.sleep(3)
         while(True):
-            motorInput = 150
+            motorInput = 170
             json_data=f'{{"mI":{motorInput}}}'
             # print(json_data)
             send(json_data,ser)
-            print(receive(ser))
+            if (receive(ser)):
+                print(receive(ser))
             time.sleep(0.002)
     except:
         motorInput = 0
