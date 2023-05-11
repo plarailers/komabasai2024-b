@@ -47,7 +47,7 @@ class PointSwitcherManager:
         for key, value in self.points.items():
             print(f"  {key} = {value}")
 
-    def register(self, target: PointTarget, servo_no: int, point_switcher: PointSwitcher) -> None:
+    def register(self, target: PointTarget, point_switcher: PointSwitcher, servo_no: int) -> None:
         """
         ポイントを登録する。
         """
