@@ -25,8 +25,7 @@ PhotoPositionID_Detector::PhotoPositionID_Detector()
 void PhotoPositionID_Detector::photoRefSetup() {
 	memset(gotData1, '\0', BIT);
 	memset(gotData2, '\0', BIT);
-	reset1();
-	reset2();
+	resetAll();
 }
 
 void PhotoPositionID_Detector::setPhotoRefAnalogValue(int sensorValue1, int sensorValue2) {
@@ -85,6 +84,11 @@ void PhotoPositionID_Detector::reset2(){
 	memset(gotData2, 0, BIT);
 }
 
+void PhotoPositionID_Detector::resetAll() {
+	reset1();
+	reset2();
+}
+
 void PhotoPositionID_Detector::measure1Clock2(){
 	if(detectedColor2 != preDetectedColor2){
 		gotData1[bitIndex1] = detectedColor1;
@@ -97,12 +101,11 @@ void PhotoPositionID_Detector::measure1Clock2(){
 		for(int j = 0; j < BIT; j++){
 			positionID += gotData1[BIT - j - 1] * (pow(2, BIT - j - 1) + 0.5);
 		}
-		reset1();
+		resetAll();
 	}
 
-	if(sensorValue1 > LEAVE_THRESHOLD || nowTime - bitDetectedTime1 > TIME_OUT){
-		reset1();
-	}
+	if(sensorValue1 > LEAVE_THRESHOLD) resetAll();
+	if(nowTime - bitDetectedTime1 > TIME_OUT) reset1();
 }
 
 void PhotoPositionID_Detector::measure2Clock1(){
@@ -115,12 +118,11 @@ void PhotoPositionID_Detector::measure2Clock1(){
 	if(bitIndex2 >= BIT){
 		positionID = 0;
 		for(int j = 0; j < BIT; j++){
-			positionID += gotData2[BIT - j - 1] * (pow(2, BIT - j - 1) + 0.5);
+			positionID += gotData2[j] * (pow(2,j) + 0.5);
 		}
-		reset2();
+		resetAll();
 	}
 
-	if(sensorValue2 > LEAVE_THRESHOLD || nowTime - bitDetectedTime2 > TIME_OUT){
-		reset2();
-	}
+	if(sensorValue2 > LEAVE_THRESHOLD) resetAll();
+	if(nowTime - bitDetectedTime2 > TIME_OUT) reset2();
 }

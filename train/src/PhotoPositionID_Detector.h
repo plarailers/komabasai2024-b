@@ -32,6 +32,7 @@ class PhotoPositionID_Detector
 		int gotData1[BIT], gotData2[BIT];
 		void reset1();
 		void reset2();
+		void resetAll();
 		void measure1Clock2();
 		void measure2Clock1();
     public:
