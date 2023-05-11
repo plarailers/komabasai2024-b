@@ -2,8 +2,9 @@
 /* メインの処理を行う  */
 
 #include "Train.h"
+#include "adcRead.h"
 
-Train train("ESP32-E6");
+Train train("ESP32-E5");
 
 unsigned int old_time = 0;
 unsigned int new_time = 0;

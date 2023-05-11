@@ -3,9 +3,9 @@
 PhotoPositionID_Detector::PhotoPositionID_Detector()
 : 	SENSOR1_PIN(34),
 	SENSOR2_PIN(35),
-	WHITE_THRESHOLD1(380),
-	WHITE_THRESHOLD2(300),
-	LEAVE_THRESHOLD(750),
+	WHITE_THRESHOLD1(380*4),
+	WHITE_THRESHOLD2(300*4),
+	LEAVE_THRESHOLD(750*4),
 	TIME_OUT(250)
 {
 	this->positionID = 0;
@@ -51,8 +51,21 @@ int PhotoPositionID_Detector::getPhotoPositionID() {
 	preDetectedColor1 = detectedColor1;
 	preDetectedColor2 = detectedColor2;
 
-	Serial.print("PositionID: ");
-	Serial.println(positionID);
+	if (positionID > 0) {
+		Serial.print("PositionID: ");
+		Serial.println(positionID);
+	}
+
+	Serial.print("Val1:");
+	Serial.print(sensorValue1);
+	Serial.print(", Val2:");
+	Serial.print(sensorValue2);
+	Serial.print(", Color1: ");
+	Serial.print(detectedColor1);
+	Serial.print(", Color2: ");
+	Serial.print(detectedColor2);
+
+	Serial.println("");
 
     return positionID;
 }
