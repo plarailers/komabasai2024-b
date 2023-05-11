@@ -3,7 +3,7 @@
 MotorRotationDetector::MotorRotationDetector()
 : PULSE_PER_ROTATION_(6),
   PULSE_IGNORE_DURATION_US_(500),
-  THRESHOLD_A_(-0.03f),
+  THRESHOLD_A_(-0.015f),  // E5, E6, Dr(換装後)の3車両で動作確認済の閾値
   reach_threshold_flag_(false),
   pulse_count_(0),
   time_from_pulse_us_(0),
