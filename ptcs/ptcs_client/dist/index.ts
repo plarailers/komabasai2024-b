@@ -11,6 +11,8 @@ export type { HTTPValidationError } from './models/HTTPValidationError';
 export type { JunctionConfig } from './models/JunctionConfig';
 export type { JunctionState } from './models/JunctionState';
 export type { MoveTrainParams } from './models/MoveTrainParams';
+export type { PositionConfig } from './models/PositionConfig';
+export type { PutTrainParams } from './models/PutTrainParams';
 export type { RailwayConfig } from './models/RailwayConfig';
 export type { RailwayState } from './models/RailwayState';
 export type { SectionConfig } from './models/SectionConfig';

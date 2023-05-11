@@ -2,6 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { MoveTrainParams } from '../models/MoveTrainParams';
+import type { PutTrainParams } from '../models/PutTrainParams';
 import type { RailwayConfig } from '../models/RailwayConfig';
 import type { RailwayState } from '../models/RailwayState';
 import type { UpdateJunctionParams } from '../models/UpdateJunctionParams';
@@ -64,6 +65,33 @@ export class DefaultService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/state/trains/{train_id}/move',
+            path: {
+                'train_id': trainId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+
+    /**
+     * Put Train
+     * 指定された列車の位置を修正する。
+     * デバッグ用。
+     * @param trainId
+     * @param requestBody
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static putTrain(
+        trainId: string,
+        requestBody: PutTrainParams,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/state/trains/{train_id}/put',
             path: {
                 'train_id': trainId,
             },

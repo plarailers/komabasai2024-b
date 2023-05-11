@@ -27,6 +27,11 @@ Stop = NewType("Stop", str)
 停止目標を表す識別子
 """
 
+Position = NewType("Position", str)
+"""
+センサー位置を表す識別子
+"""
+
 
 class Direction(Enum):
     r"""

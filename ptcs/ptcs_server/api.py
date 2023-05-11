@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request
 from ptcs_control import Control
-from ptcs_control.components import Direction, Junction, Section, Train
+from ptcs_control.components import Direction, Junction, Position, Section, Train
 from ptcs_control.railway_config import RailwayConfig
 from ptcs_control.railway_state import RailwayState
 import pydantic
@@ -39,6 +39,28 @@ def move_train(train_id: str, params: MoveTrainParams, request: Request) -> None
     control: Control = request.app.state.control
     train = Train(train_id)
     control.move_train(train, params.delta)
+    # calc_directionデバック用
+    control.calc_direction()
+    # calc_stopデバック用
+    control.calc_stop()
+    # calc_speedデバック用
+    control.calc_speed()
+
+
+class PutTrainParams(pydantic.BaseModel):
+    position_id: str
+
+
+@api_router.post("/state/trains/{train_id}/put")
+def put_train(train_id: str, params: PutTrainParams, request: Request) -> None:
+    """
+    指定された列車の位置を修正する。
+    デバッグ用。
+    """
+    control: Control = request.app.state.control
+    train = Train(train_id)
+    position = Position(params.position_id)
+    control.put_train(train, position)
     # calc_directionデバック用
     control.calc_direction()
     # calc_stopデバック用

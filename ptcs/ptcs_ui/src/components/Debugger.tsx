@@ -1,7 +1,7 @@
 import { Button, Code, Group } from "@mantine/core";
 import { DefaultService } from "ptcs_client";
 import React, { useContext } from "react";
-import { RailwayStateContext } from "../contexts";
+import { RailwayConfigContext, RailwayStateContext } from "../contexts";
 
 export const Debugger: React.FC = () => {
   return (
@@ -9,6 +9,7 @@ export const Debugger: React.FC = () => {
       <Group>
         <MoveTrainButton id="t0" delta={10} />
         <MoveTrainButton id="t1" delta={10} />
+        <PutTrainButton id="t0" positionId="position_0" />
         <BlockSectionButton id="s3" />
       </Group>
     </div>
@@ -34,6 +35,35 @@ const MoveTrainButton: React.FC<MoveTrainButtonProps> = ({ id, delta }) => {
       }}
     >
       MoveTrain({id}, {delta})
+    </Button>
+  );
+};
+
+interface PutTrainButtonProps {
+  id: string;
+  positionId: string;
+}
+
+const PutTrainButton: React.FC<PutTrainButtonProps> = ({ id, positionId }) => {
+  const railwayConfig = useContext(RailwayConfigContext);
+
+  if (!railwayConfig) return null;
+
+  const positionConfig = railwayConfig.positions![positionId];
+
+  return (
+    <Button
+      key={id}
+      styles={(theme) => ({
+        label: {
+          fontFamily: theme.fontFamilyMonospace,
+        },
+      })}
+      onClick={() => {
+        DefaultService.putTrain(id, { position_id: positionId });
+      }}
+    >
+      PutTrain({id}, ({positionConfig.section}, {positionConfig.mileage}))
     </Button>
   );
 };
