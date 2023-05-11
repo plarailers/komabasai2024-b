@@ -76,7 +76,7 @@ void loop() {//メインCPU(core1)で実行するプログラム
     // SerialBT.print(move_state);
     // SerialBT.println("}");
 
-    Serial.print("{\"button\":");
+    Serial.print("{\"blocked\":");
     Serial.print(move_state);
     Serial.println("}");
     
@@ -201,7 +201,7 @@ void loop() {//メインCPU(core1)で実行するプログラム
     // SerialBT.print(move_state);
     // SerialBT.println("}");
 
-    Serial.print("{\"button\":");
+    Serial.print("{\"blocked\":");
     Serial.print(move_state);
     Serial.println("}");
 
