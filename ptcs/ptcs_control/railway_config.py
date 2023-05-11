@@ -195,9 +195,9 @@ def init_config() -> RailwayConfig:
 
     config.positions.update(
         {
-            position_0: PositionConfig(section=s0, mileage=50),
-            position_1: PositionConfig(section=s0, mileage=90),
-            position_2: PositionConfig(section=s2, mileage=50),
+            position_0: PositionConfig(section=s0, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*6.5 + STRAIGHT_1_6_RAIL*2 + U_TURN_RAIL*1),
+            position_1: PositionConfig(section=s0, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*10.5 + STRAIGHT_1_6_RAIL*2 + U_TURN_RAIL*1),
+            position_2: PositionConfig(section=s2, mileage=WATARI_RAIL_A*1 + STRAIGHT_RAIL*2.5 + U_TURN_RAIL*1),
         }
     )
 
