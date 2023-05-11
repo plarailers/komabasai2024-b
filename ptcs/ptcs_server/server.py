@@ -7,7 +7,7 @@ from usb_bt_bridge import Bridge
 from .bridges import BridgeManager, BridgeTarget
 from .points import PointSwitcher, PointSwitcherManager
 from ptcs_control import Control
-from ptcs_control.components import Train, Junction
+from ptcs_control.components import Train, Junction, Section
 import uvicorn
 from .api import api_router
 
@@ -46,6 +46,14 @@ def create_app_with_bridge() -> FastAPI:
         # TODO: インターフェイスを定めてコマンドを判別する
         if data["mR"]:
             control.move_train_mr(target, data["mR"])
+
+    def handle_button_receive(data: Any) -> None:
+        s3 = Section("s3")
+        print(data)
+        if data["blocked"]:
+            control.block_section(s3)
+        else:
+            control.unblock_section(s3)
 
     bridges = BridgeManager(callback=handle_receive)
 
