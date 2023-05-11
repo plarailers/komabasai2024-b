@@ -76,7 +76,7 @@ void loop() {//メインCPU(core1)で実行するプログラム
     // SerialBT.print(move_state);
     // SerialBT.println("}");
 
-    Serial.print("{\"button\":");
+    Serial.print("{\"blocked\":");
     Serial.print(move_state);
     Serial.println("}");
     
@@ -85,7 +85,7 @@ void loop() {//メインCPU(core1)で実行するプログラム
     // Serial.print(digitalRead(33));
     // Serial.println(digitalRead(14));
 
-    ledcWrite(LEDC_CHANNEL_1,23); //制御パルス2ms
+    ledcWrite(LEDC_CHANNEL_1,13); //制御パルス2ms
     // myservo.write(40);
     // myservo.write(60);
     // myservo.write(80);
@@ -201,7 +201,7 @@ void loop() {//メインCPU(core1)で実行するプログラム
     // SerialBT.print(move_state);
     // SerialBT.println("}");
 
-    Serial.print("{\"button\":");
+    Serial.print("{\"blocked\":");
     Serial.print(move_state);
     Serial.println("}");
 
@@ -211,7 +211,7 @@ void loop() {//メインCPU(core1)で実行するプログラム
     // Serial.println(digitalRead(14));
 
     //myservo.write(20);//もとに戻る
-    ledcWrite(LEDC_CHANNEL_1,13); //制御パルス1ms
+    ledcWrite(LEDC_CHANNEL_1,23); //制御パルス1ms
     // Serial.print(move_state);
     // Serial.print(digitalRead(25));
     // Serial.print(digitalRead(33));
