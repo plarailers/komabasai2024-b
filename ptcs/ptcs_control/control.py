@@ -28,6 +28,12 @@ class Control:
     def get_command(self) -> "RailwayCommand":
         return self.command
 
+    def tick(self, increment: int = 1) -> None:
+        """
+        内部時刻を進める。
+        """
+        self.state.time += increment
+
     def block_section(self, section_id: "Section") -> None:
         """
         指定された区間上に障害物を発生させ、使えなくさせる。
@@ -60,6 +66,14 @@ class Control:
         """
 
         self.state.junctions[junction_id].direction = direction
+
+    def move_train_mr(self, train_id: "Train", motor_rotation: int) -> None:
+        """
+        指定された列車をモータ motor_rotation 回転分だけ進める
+        """
+
+        delta_per_motor_rotation = self.config.trains[train_id].delta_per_motor_rotation
+        self.move_train(train_id, motor_rotation * delta_per_motor_rotation)
 
     def move_train(self, train_id: "Train", delta: float) -> None:
         """
@@ -135,22 +149,30 @@ class Control:
         s5 = Section("s5")
         # 「とりうるルート」の列挙
         possible_junction_direction: dict[str, list[tuple[Junction, Direction]]] = {
-            "pattern1": [(j0a, Direction.STRAIGHT),
-                       (j0b, Direction.STRAIGHT),
-                       (j1a, Direction.STRAIGHT),
-                       (j1b, Direction.STRAIGHT)],
-            "pattern2": [(j0a, Direction.CURVE),
-                       (j0b, Direction.CURVE),
-                       (j1a, Direction.STRAIGHT),
-                       (j1b, Direction.STRAIGHT)],
-            "pattern3": [(j0a, Direction.CURVE),
-                         (j0b, Direction.STRAIGHT),
-                         (j1a, Direction.CURVE),
-                         (j1b, Direction.STRAIGHT)],
-            "pattern4": [(j0a, Direction.CURVE),
-                         (j0b, Direction.CURVE),
-                         (j1a, Direction.CURVE),
-                         (j1b, Direction.CURVE)]
+            "pattern1": [
+                (j0a, Direction.STRAIGHT),
+                (j0b, Direction.STRAIGHT),
+                (j1a, Direction.STRAIGHT),
+                (j1b, Direction.STRAIGHT),
+            ],
+            "pattern2": [
+                (j0a, Direction.CURVE),
+                (j0b, Direction.CURVE),
+                (j1a, Direction.STRAIGHT),
+                (j1b, Direction.STRAIGHT),
+            ],
+            "pattern3": [
+                (j0a, Direction.CURVE),
+                (j0b, Direction.STRAIGHT),
+                (j1a, Direction.CURVE),
+                (j1b, Direction.STRAIGHT),
+            ],
+            "pattern4": [
+                (j0a, Direction.CURVE),
+                (j0b, Direction.CURVE),
+                (j1a, Direction.CURVE),
+                (j1b, Direction.CURVE),
+            ],
         }
 
         # 列車位置と線路の状態（障害物の有無）に応じてどのルートを使うか判断する
@@ -194,15 +216,56 @@ class Control:
                 junction_direction = possible_junction_direction["pattern3"]
             elif not s1_j1b_exist and s5_exist:
                 junction_direction = possible_junction_direction["pattern4"]
-            else: 
+            else:
                 raise
-        
+
         # ポイント変更
         for junction_id, direction in junction_direction:
-            self.update_junction(junction_id=junction_id, direction=direction)
+            if not self.junction_toggle_prohibited(junction_id):
+                self.update_junction(junction_id=junction_id, direction=direction)
+
+    def junction_toggle_prohibited(self, junction_id: "Junction") -> bool:
+        """
+        指定されたjunctionを列車が通過中であり、切り替えてはいけない場合にTrueを返す
+        """
+
+        MERGIN: float = 10  # ポイント通過後すぐに切り替えるとまずいので余裕距離をとる
+        TRAIN_LENGTH: float = 40  # 列車の長さ[cm] NOTE: 将来的には車両等のパラメータとして外に出す
+
+        for train_id, train_state in self.state.trains.items():
+            # 列車の最後尾からMERGIN離れた位置(tail_section, tail_mileage, tail_target_junction)を取得
+            current_section_config = self.config.sections[train_state.current_section]
+            (
+                tail_section,
+                tail_mileage,
+                tail_target_junction_opposite,
+            ) = self._get_new_position(
+                train_state.current_section,
+                train_state.mileage,
+                current_section_config.get_opposite_junction(  # 進行方向と反対向きにたどる
+                    train_state.target_junction
+                ),
+                TRAIN_LENGTH + MERGIN,
+            )
+            tail_section_config = self.config.sections[tail_section]
+            tail_target_junction = tail_section_config.get_opposite_junction(
+                tail_target_junction_opposite  # 進行方向と反対のjunctionなので元に戻す
+            )
+
+            # 列車の先頭は指定されたjunctionに向かっていないが、
+            # 列車の最後尾は指定されたjunctionに向かっている場合、
+            # 列車はそのjunctinoを通過中なので、切り替えを禁止する
+            if (
+                train_state.target_junction != junction_id
+                and tail_target_junction == junction_id
+            ):
+                return True
+
+        return False  # 誰も通過していなければFalseを返す
 
     def calc_speed(self) -> None:
         BREAK_ACCLT: float = 10  # ブレーキ減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
+        NORMAL_ACCLT: float = 5  # 常用加減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
         MAX_SPEED: float = 40  # 最高速度[cm/s]  NOTE:将来的には車両のパラメータとしてとして定義
         MERGIN: float = 10  # 停止余裕距離[cm]
 
@@ -303,17 +366,41 @@ class Control:
             if speedlimit > MAX_SPEED:
                 speedlimit = MAX_SPEED
 
+            # [ATO]駅の停止目標までの距離と、ATP停止位置までの距離を比較して、より近い
+            # 停止位置までの距離`stop_distance`を計算
+
+            if train_state.stop:
+                stop_distance = min(train_state.stop_distance, distance)
+            else:
+                stop_distance = distance
+            if stop_distance < 0:
+                stop_distance = 0
+
+            # [ATO]運転速度を、許容速度の範囲内で計算する。
+            # まず、停止位置でちゃんと止まれる速度`stop_speed`を計算。
+
+            stop_speed = min(math.sqrt(2 * NORMAL_ACCLT * stop_distance), speedlimit)
+
+            # [ATO]急加速しないよう緩やかに速度を増やす
+
+            speed_command = self.command.trains[train_id].speed
+            loop_time = 1  # NOTE: 1回の制御ループが何秒で回るか？をあとで入れたい
+            if stop_speed > speed_command + NORMAL_ACCLT * loop_time:
+                speed_command = speed_command + NORMAL_ACCLT * loop_time
+            else:
+                speed_command = stop_speed
+
+            self.command.trains[train_id].speed = speed_command
+
             print(
                 train_id,
-                self._get_forward_train(train_id),
-                self._get_next_section_and_junction_strict(
-                    train_state.current_section, train_state.target_junction
-                ),
+                ", ATP StopDistance: ",
                 distance,
+                ", ATO StopDistance: ",
+                stop_distance,
+                ", speed: ",
+                speed_command,
             )
-
-            # [ATO]停車駅の情報から、停止位置を取得する
-            # [ATO]ATPで計算した許容速度の範囲内で、停止位置で止まるための速度を計算する
 
     def _get_new_position(
         self,
@@ -518,12 +605,47 @@ class Control:
         return next_section, next_target_junction
 
     def calc_stop(self) -> None:
+        """
+        列車の現在あるべき停止目標を割り出し、列車の状態として格納する。
+        この情報は列車の速度を計算するのに使われる。
+
+        実際の挙動は「列車より手前にある停止目標を計算し、ちょっと待ってから格納する」であり、
+        これは以下の仮定をおいた上でうまく動作する。
+          - 列車は停止目標付近で停止する（= IPS 信号がしばらく送られなくなる）。
+          - 停止したときに停止目標の位置を過ぎている。
+        """
+
+        STOPPAGE_TIME: int = 5  # 列車の停止時間[フレーム] NOTE: 将来的にはパラメータとして定義
+
         for train_id, train_state in self.state.trains.items():
+            # 列車より手前にある停止目標を取得する
             forward_stop_and_distance = self._get_forward_stop(train_id)
-            if forward_stop_and_distance:
-                train_state.stop = forward_stop_and_distance[0]
+            forward_stop, forward_stop_distance = (
+                forward_stop_and_distance if forward_stop_and_distance else (None, 0)
+            )
+
+            # 停止目標がないままのとき（None → None）
+            # 停止目標を見つけたとき（None → not None）
+            if train_state.stop is None:
+                train_state.stop = forward_stop
+
+            # 停止目標を過ぎたとき（異なる）
+            # 停止目標を見失ったとき（not None → None）
+            elif train_state.stop != forward_stop:
+                # 最初は発車時刻を設定
+                if train_state.departure_time is None:
+                    train_state.departure_time = self.state.time + STOPPAGE_TIME
+
+                # 発車時刻になっていれば、次の停止目標に切り替える
+                elif self.state.time >= train_state.departure_time:
+                    train_state.departure_time = None
+                    train_state.stop = forward_stop
+
+            # 停止目標までの距離の更新
+            if train_state.stop and train_state.stop == forward_stop:
+                train_state.stop_distance = forward_stop_distance
             else:
-                train_state.stop = None
+                train_state.stop_distance = 0
 
     def _get_forward_stop(self, train: Train) -> tuple[Stop, float] | None:
         """

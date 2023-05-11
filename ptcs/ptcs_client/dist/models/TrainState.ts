@@ -10,5 +10,9 @@ export type TrainState = {
      * 列車の停止目標
      */
     stop?: string;
+    /**
+     * 発車予定時刻
+     */
+    departure_time?: number;
 };
 
