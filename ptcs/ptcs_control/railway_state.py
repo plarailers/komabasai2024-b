@@ -60,6 +60,7 @@ class TrainState(BaseModel):
     target_junction: "Junction"
     mileage: float
     stop: Optional["Stop"] = Field(default=None, description="列車の停止目標")
+    stop_distance: Optional[float] = Field(default=0, description="停止目標までの距離[cm]")
     departure_time: Optional[int] = Field(default=None, description="発車予定時刻")
 
 

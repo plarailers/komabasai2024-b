@@ -217,7 +217,6 @@ class Control:
         TRAIN_LENGTH: float = 40  # 列車の長さ[cm] NOTE: 将来的には車両等のパラメータとして外に出す
 
         for train_id, train_state in self.state.trains.items():
-
             # 列車の最後尾からMERGIN離れた位置(tail_section, tail_mileage, tail_target_junction)を取得
             current_section_config = self.config.sections[train_state.current_section]
             (
@@ -250,6 +249,7 @@ class Control:
 
     def calc_speed(self) -> None:
         BREAK_ACCLT: float = 10  # ブレーキ減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
+        NORMAL_ACCLT: float = 5  # 常用加減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
         MAX_SPEED: float = 40  # 最高速度[cm/s]  NOTE:将来的には車両のパラメータとしてとして定義
         MERGIN: float = 10  # 停止余裕距離[cm]
 
@@ -350,17 +350,41 @@ class Control:
             if speedlimit > MAX_SPEED:
                 speedlimit = MAX_SPEED
 
-            # print(
-            #     train_id,
-            #     self._get_forward_train(train_id),
-            #     self._get_next_section_and_junction_strict(
-            #         train_state.current_section, train_state.target_junction
-            #     ),
-            #     distance,
-            # )
+            # [ATO]駅の停止目標までの距離と、ATP停止位置までの距離を比較して、より近い
+            # 停止位置までの距離`stop_distance`を計算
 
-            # [ATO]停車駅の情報から、停止位置を取得する
-            # [ATO]ATPで計算した許容速度の範囲内で、停止位置で止まるための速度を計算する
+            if train_state.stop:
+                stop_distance = min(train_state.stop_distance, distance)
+            else:
+                stop_distance = distance
+            if stop_distance < 0:
+                stop_distance = 0
+
+            # [ATO]運転速度を、許容速度の範囲内で計算する。
+            # まず、停止位置でちゃんと止まれる速度`stop_speed`を計算。
+
+            stop_speed = min(math.sqrt(2 * NORMAL_ACCLT * stop_distance), speedlimit)
+
+            # [ATO]急加速しないよう緩やかに速度を増やす
+
+            speed_command = self.command.trains[train_id].speed
+            loop_time = 1  # NOTE: 1回の制御ループが何秒で回るか？をあとで入れたい
+            if stop_speed > speed_command + NORMAL_ACCLT * loop_time:
+                speed_command = speed_command + NORMAL_ACCLT * loop_time
+            else:
+                speed_command = stop_speed
+
+            self.command.trains[train_id].speed = speed_command
+
+            print(
+                train_id,
+                ", ATP StopDistance: ",
+                distance,
+                ", ATO StopDistance: ",
+                stop_distance,
+                ", speed: ",
+                speed_command,
+            )
 
     def _get_new_position(
         self,
@@ -580,7 +604,9 @@ class Control:
         for train_id, train_state in self.state.trains.items():
             # 列車より手前にある停止目標を取得する
             forward_stop_and_distance = self._get_forward_stop(train_id)
-            forward_stop = forward_stop_and_distance[0] if forward_stop_and_distance else None
+            forward_stop, forward_stop_distance = (
+                forward_stop_and_distance if forward_stop_and_distance else (None, 0)
+            )
 
             # 停止目標がないままのとき（None → None）
             # 停止目標を見つけたとき（None → not None）
@@ -598,6 +624,12 @@ class Control:
                 elif self.state.time >= train_state.departure_time:
                     train_state.departure_time = None
                     train_state.stop = forward_stop
+
+            # 停止目標までの距離の更新
+            if train_state.stop and train_state.stop == forward_stop:
+                train_state.stop_distance = forward_stop_distance
+            else:
+                train_state.stop_distance = 0
 
     def _get_forward_stop(self, train: Train) -> tuple[Stop, float] | None:
         """
