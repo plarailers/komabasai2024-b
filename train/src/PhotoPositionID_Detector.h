@@ -37,5 +37,6 @@ class PhotoPositionID_Detector
     public:
 		PhotoPositionID_Detector();
         void photoRefSetup();
+		void setPhotoRefAnalogValue(int, int);
         int getPhotoPositionID();
 };

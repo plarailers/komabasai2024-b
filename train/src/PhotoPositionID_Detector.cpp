@@ -29,9 +29,12 @@ void PhotoPositionID_Detector::photoRefSetup() {
 	reset2();
 }
 
+void PhotoPositionID_Detector::setPhotoRefAnalogValue(int sensorValue1, int sensorValue2) {
+	this->sensorValue1 = sensorValue1;
+	this->sensorValue2 = sensorValue2;
+}
+
 int PhotoPositionID_Detector::getPhotoPositionID() {
-	sensorValue1 = analogRead(SENSOR1_PIN);
-	sensorValue2 = analogRead(SENSOR2_PIN);
 	nowTime = millis();
 
 	positionID = 0;

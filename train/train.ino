@@ -38,8 +38,8 @@ void setup() {
     Serial.println("MFRC522 Setup done!!");
 
     /* フォトリフレクタ セットアップ */
-    // train.photoPositionID_Detector.photoRefSetup();
-    // Serial.println("PhotoRef Setup done!!");
+    train.photoPositionID_Detector.photoRefSetup();
+    Serial.println("PhotoRef Setup done!!");
 
 }
 
@@ -69,7 +69,8 @@ void loop(){
     if (positionID > 0) train.sendData("pID", positionID);
 
     /* フォトリフレクタAPS */
-    // int     photoPositionID = train.photoPositionID_Detector.getPhotoPositionID();
-    // if (photoPositionID > 0) train.sendData("pID", photoPositionID);
+    train.photoPositionID_Detector.setPhotoRefAnalogValue(getPhoto1(), getPhoto2());
+    int     photoPositionID = train.photoPositionID_Detector.getPhotoPositionID();
+    if (photoPositionID > 0) train.sendData("pID", photoPositionID);
 
 }
