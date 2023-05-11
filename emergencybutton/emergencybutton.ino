@@ -18,6 +18,7 @@ int switchpin = 25;
 int servopin = 33;
 int buzzerpin = 27;
 int melo = 200;
+//bool block = true;
 volatile int counter = 0;
 volatile int lasttime = 0;
 
@@ -25,8 +26,14 @@ bool move_state = false;
 
 void IRAM_ATTR button_pushed(){
   if(millis() - lasttime >1000){
+    // if(move_state = false){
+    //   block = !block;  
+    // }
+    // else{
+    //   block = block;
+    // }
     move_state = !move_state;
-  counter = counter + 1;
+    counter = counter + 1;
   }
   else{
     move_state = move_state;
@@ -63,7 +70,8 @@ void loop() {//メインCPU(core1)で実行するプログラム
 
 
   if (move_state == HIGH) {
-    
+
+     
     // SerialBT.print("{\"button\":");
     // SerialBT.print(move_state);
     // SerialBT.println("}");
@@ -84,7 +92,7 @@ void loop() {//メインCPU(core1)で実行するプログラム
     // myservo.write(100);
     // myservo.write(120);//120度へ回転
     delay(100);
-    Serial.println(counter);
+    //Serial.println(counter);
 
     // Serial.print(move_state);
     // Serial.print(digitalRead(25));
@@ -170,6 +178,18 @@ void loop() {//メインCPU(core1)で実行するプログラム
     ledcWriteTone(LEDC_CHANNEL_2,0);
     delay(400);
 
+    // if (move_state = 0){
+    //   block = !block;
+    //   Serial.print("{\"button\":");
+    //   Serial.print(block);
+    //   Serial.println("}"); 
+    // }
+    // else{
+    //   block = block;
+    // }
+
+
+
     // Serial.print(move_state);
     // Serial.print(digitalRead(25));
     // Serial.print(digitalRead(33));
@@ -196,9 +216,10 @@ void loop() {//メインCPU(core1)で実行するプログラム
     // Serial.print(digitalRead(25));
     // Serial.print(digitalRead(33));
     // Serial.println(digitalRead(14));
-    Serial.println(counter);
+    //Serial.println(counter);
   
     ledcWriteTone(LEDC_CHANNEL_2,0);
+    delay(500);
 
     
 
