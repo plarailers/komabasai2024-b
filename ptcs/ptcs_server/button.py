@@ -52,3 +52,8 @@ class Button:
                     self.callback(data)
                 except json.decoder.JSONDecodeError:
                     pass
+    
+    def receive(self) -> str:
+        message = self.serial.readline()
+        message_string = message.decode("utf-8")
+        return message_string
