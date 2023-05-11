@@ -156,12 +156,12 @@ def init_config() -> RailwayConfig:
     )
 
     config.define_sections(
-        (s0, j0a, Joint.CONVERGING, j0b, Joint.THROUGH, 100),
-        (s1, j0b, Joint.CONVERGING, j1b, Joint.CONVERGING, 100),
-        (s2, j1b, Joint.THROUGH, j1a, Joint.CONVERGING, 100),
-        (s3, j1a, Joint.THROUGH, j0a, Joint.THROUGH, 100),
-        (s4, j0a, Joint.DIVERGING, j0b, Joint.DIVERGING, 100),
-        (s5, j1a, Joint.DIVERGING, j1b, Joint.DIVERGING, 100),
+        (s0, j0a, Joint.CONVERGING, j0b, Joint.THROUGH, WATARI_RAIL_B*1 + STRAIGHT_RAIL*12 + STRAIGHT_1_6_RAIL*2 + U_TURN_RAIL*1 + WATARI_RAIL_A*1),
+        (s1, j0b, Joint.CONVERGING, j1b, Joint.CONVERGING, STRAIGHT_RAIL*3 + WATARI_RAIL_B*2),
+        (s2, j1b, Joint.THROUGH, j1a, Joint.CONVERGING, STRAIGHT_RAIL*4 + U_TURN_RAIL*1 + WATARI_RAIL_A*1 + WATARI_RAIL_B*1),
+        (s3, j1a, Joint.THROUGH, j0a, Joint.THROUGH, STRAIGHT_RAIL*3 + WATARI_RAIL_A*2),
+        (s4, j0a, Joint.DIVERGING, j0b, Joint.DIVERGING, WATARI_RAIL_C),
+        (s5, j1a, Joint.DIVERGING, j1b, Joint.DIVERGING, WATARI_RAIL_C),
     )
 
     config.define_trains(
@@ -178,11 +178,11 @@ def init_config() -> RailwayConfig:
 
     config.stops.update(
         {
-            stop_0: StopConfig(section=s0, target_junction=j0b, mileage=24),
-            stop_1: StopConfig(section=s0, target_junction=j0b, mileage=77),
-            stop_2: StopConfig(section=s1, target_junction=j0b, mileage=10),
-            stop_3: StopConfig(section=s1, target_junction=j1b, mileage=90),
-            stop_4: StopConfig(section=s3, target_junction=j0a, mileage=75),
+            stop_0: StopConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*4.5),
+            stop_1: StopConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*9.5 + STRAIGHT_1_6_RAIL*2 + U_TURN_RAIL*1),
+            stop_2: StopConfig(section=s1, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*0.5),
+            stop_3: StopConfig(section=s1, target_junction=j1b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*2.5),
+            stop_4: StopConfig(section=s3, target_junction=j0a, mileage=WATARI_RAIL_A*1 + STRAIGHT_RAIL*2.5),
         }
     )
 
