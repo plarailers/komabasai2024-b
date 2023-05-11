@@ -14,16 +14,16 @@
 const int PIN_PWM = 25;
 const int PIN_SENSE_I = 32;
 const int PIN_SENSE_V = 33;
-const int PIN_PHOTO_CLK = 34;
-const int PIN_PHOTO_DAT = 35;
+const int PIN_PHOTO_SENSOR1 = 34;
+const int PIN_PHOTO_SENSOR2 = 35;
 
 // ADC関係(ユーザが指定する定数)
 const int ADC_SAMPLING_RATE = 20000;  // AD変換のサンプリングレート[Hz]
 const int ADC_N_CHANNEL = 4;      // AD変換したい信号の数。電圧、電流、clk、datの4つ
 const adc1_channel_t ADC_CH_CURRENT = (adc1_channel_t)(digitalPinToAnalogChannel(PIN_SENSE_I));
 const adc1_channel_t ADC_CH_VOLTAGE= (adc1_channel_t)(digitalPinToAnalogChannel(PIN_SENSE_V));
-const adc1_channel_t ADC_CH_CLK = (adc1_channel_t)(digitalPinToAnalogChannel(PIN_PHOTO_CLK));
-const adc1_channel_t ADC_CH_DAT = (adc1_channel_t)(digitalPinToAnalogChannel(PIN_PHOTO_DAT));
+const adc1_channel_t ADC_CH_SENSOR1 = (adc1_channel_t)(digitalPinToAnalogChannel(PIN_PHOTO_SENSOR1));
+const adc1_channel_t ADC_CH_SENSOR2 = (adc1_channel_t)(digitalPinToAnalogChannel(PIN_PHOTO_SENSOR2));
 const float R1_I = 1.0f;       // 電流検出用シャント抵抗
 const float R2_I = 470.0f;     // 電流検出信号の入力抵抗
 const float R3_I = 10000.0f;   // 電流検出信号のプルアップ抵抗
@@ -43,9 +43,8 @@ uint32_t current_offset_mV = 0;  // 0AのときのADC測定値[mV]
 uint32_t voltage_offset_mV = 0;  // 0VのときのADC測定値[mV]
 
 // 指令などなど
-int pwm_duty = 0;
-int photoreflector_clk = 0;  // フォトリフレクタのクロック線読み値(0～4096)  
-int photoreflector_dat = 0;  // フォトリフレクタのデータ線読み値(0～4096)
+int photo_sensor1 = 0;  // フォトリフレクタの読み値1(0～4096)  
+int photo_sensor2 = 0;  // フォトリフレクタの読み値2(0～4096)
 
 HighSpeedAnalogRead adc;
 MotorRotationDetector motorRotationDetector;
@@ -74,13 +73,21 @@ void adcReadDone(uint16_t* data, size_t chNum) {
       current_A = GAIN_I * (int32_t)(value_mV - current_offset_mV) / 1000.0f;
     } else if (channel == ADC_CH_VOLTAGE) {
       voltage_V = GAIN_V * (int32_t)(value_mV - voltage_offset_mV) / 1000.0f;
-    } else if (channel == ADC_CH_CLK) {
-      photoreflector_clk = value_raw;
-    } else if (channel == ADC_CH_DAT) {
-      photoreflector_dat = value_raw;
+    } else if (channel == ADC_CH_SENSOR1) {
+      photo_sensor1 = value_raw;
+    } else if (channel == ADC_CH_SENSOR2) {
+      photo_sensor2 = value_raw;
     }
   }
   motorRotationDetector.update(current_A, 1000000 / ADC_SAMPLING_RATE);
+}
+
+int getPhoto1() {
+  return photo_sensor1;
+}
+
+int getPhoto2() {
+  return photo_sensor2;
 }
 
 void adcSetup() {
@@ -104,8 +111,8 @@ void adcSetup() {
     // ADC測定対象チャンネルを追加し、測定開始
     adc.addChannel(ADC_CH_CURRENT, ADC_WIDTH_12Bit, ADC_ATTEN_0db);
     adc.addChannel(ADC_CH_VOLTAGE, ADC_WIDTH_12Bit, ADC_ATTEN_0db);
-    adc.addChannel(ADC_CH_CLK, ADC_WIDTH_12Bit, ADC_ATTEN_11db);
-    adc.addChannel(ADC_CH_DAT, ADC_WIDTH_12Bit, ADC_ATTEN_11db);
+    adc.addChannel(ADC_CH_SENSOR1, ADC_WIDTH_12Bit, ADC_ATTEN_11db);
+    adc.addChannel(ADC_CH_SENSOR2, ADC_WIDTH_12Bit, ADC_ATTEN_11db);
     adc.setSampleRateHz(ADC_SAMPLING_RATE);
     adc.attachInterrupt(adcReadDone);
     adc.start();
