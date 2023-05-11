@@ -59,10 +59,10 @@ def create_app_with_bridge() -> FastAPI:
     # ポイント関係
     point_switchers = PointSwitcherManager()
     point_switcher = PointSwitcher("COM5")
-    point_switchers.register(Junction("j0a"), (point_switcher, 0))
-    point_switchers.register(Junction("j0b"), (point_switcher, 1))
-    point_switchers.register(Junction("j1a"), (point_switcher, 2))
-    point_switchers.register(Junction("j1b"), (point_switcher, 3))
+    point_switchers.register(Junction("j0a"), point_switcher, 0)
+    point_switchers.register(Junction("j0b"), point_switcher, 1)
+    point_switchers.register(Junction("j1a"), point_switcher, 2)
+    point_switchers.register(Junction("j1b"), point_switcher, 3)
 
     point_switchers.start()
 
