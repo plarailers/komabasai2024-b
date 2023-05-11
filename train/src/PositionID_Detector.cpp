@@ -20,7 +20,7 @@ int PositionID_Detector::getPositionID() {
 	if ( ! mfrc522.PICC_ReadCardSerial()) return -1;
 	
 	positionID = mfrc522.uid.uidByte[0]; //UIDの最初の1バイトをPositionIDとする
-	Serial.print("PositionID: ");
+	Serial.print("pID: ");
 	Serial.println(positionID);
 
 	mfrc522.PICC_HaltA(); // 卡片進入停止模式

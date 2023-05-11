@@ -46,9 +46,10 @@ int Train::getMotorInput() {
     int     index           =   0;    // bufのインデックス
 
     // 基地局から受信
-    while(SerialBT.available() > 0) {
+    while(SerialBT.available() > 0 || Serial.available() > 0) {
 
-        buf[index] = SerialBT.read();
+        if (SerialBT.available() > 0) buf[index] = SerialBT.read();
+        if (Serial.available() > 0) buf[index] = Serial.read();
         delay(3);
         // 受信したjsonが終了したらmotorInputを更新
         if(buf[index]=='}'){
@@ -57,7 +58,7 @@ int Train::getMotorInput() {
             Serial.println(motorInput);
 
             // motorInputをエコーバックする
-            // sendData("mI", motorInput);
+            sendData("mI", motorInput);
 
             // doc_r, buf, indexを初期化
             doc_r.clear();
@@ -66,6 +67,10 @@ int Train::getMotorInput() {
             break;
         }
         if (index > BUFFER_SIZE - 1) {
+            // doc_r, buf, indexを初期化
+            doc_r.clear();
+            memset(buf, '\0', BUFFER_SIZE);
+            index = 0;
             break;
         }
         index++;
@@ -83,5 +88,6 @@ void Train::sendData(String key, int value) {
     doc_s.clear();
     doc_s[key]=value;
     serializeJson(doc_s,send_data);
+    SerialBT.println(""); //これが無いと何故かpIDが3回に1回しか送られない
     SerialBT.println(send_data);
 }
