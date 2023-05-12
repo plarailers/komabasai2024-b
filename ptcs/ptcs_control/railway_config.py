@@ -1,3 +1,4 @@
+import math
 from pydantic import BaseModel, Field
 from .components import Joint, Junction, Position, Section, Station, Stop, Train
 from .constants import (
@@ -110,7 +111,7 @@ class TrainConfig(BaseModel):
         elif speed <= 0:
             return 0
         else:
-            return (
+            return math.floor(
                 self.min_input
                 + (self.max_input - self.min_input) * speed / self.max_speed
             )
