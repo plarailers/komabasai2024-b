@@ -204,17 +204,17 @@ def init_config() -> RailwayConfig:
 
     config.stops.update(
         {
-            stop_0: StopConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*3.5),
-            stop_1: StopConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*8.5 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
-            stop_2: StopConfig(section=s1, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*2.5),
-            stop_3: StopConfig(section=s1, target_junction=j1b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*0.5),
-            stop_4: StopConfig(section=s3, target_junction=j0a, mileage=WATARI_RAIL_A*1 + STRAIGHT_RAIL*0.5),
+            stop_0: StopConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*4.5),
+            stop_1: StopConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*9.5 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
+            stop_2: StopConfig(section=s1, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*1.5),
+            stop_3: StopConfig(section=s1, target_junction=j1b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*1.5),
+            stop_4: StopConfig(section=s3, target_junction=j0a, mileage=WATARI_RAIL_A*1 + STRAIGHT_RAIL*1.5),
         }
     )
 
     config.positions.update(
         {
-            position_0: PositionConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*8.5 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
+            position_0: PositionConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*6.5 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
             position_1: PositionConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*12.5 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
             position_2: PositionConfig(section=s2, target_junction=j1a, mileage=WATARI_RAIL_A*1 + STRAIGHT_RAIL*4.5 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
         }
