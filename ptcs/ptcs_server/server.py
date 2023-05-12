@@ -55,7 +55,7 @@ def create_app_with_bridge() -> FastAPI:
             control.block_section(s3)
         else:
             control.unblock_section(s3)
-        control.calc_direction()
+        control.update()
         for junction_id, junction_state in control.state.junctions.items():
             point_switchers.send(junction_id, junction_state.direction)
 

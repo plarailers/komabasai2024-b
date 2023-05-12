@@ -131,7 +131,15 @@ class Control:
 
         raise NotImplementedError()
 
-    def calc_direction(self) -> None:
+    def update(self) -> None:
+        """
+        状態に変化が起こった後、すべてを再計算する。
+        """
+        self._calc_direction()
+        self._calc_stop()
+        self._calc_speed()
+
+    def _calc_direction(self) -> None:
         """
         ポイントをどちら向きにするかを計算する。
         """
@@ -263,7 +271,7 @@ class Control:
 
         return False  # 誰も通過していなければFalseを返す
 
-    def calc_speed(self) -> None:
+    def _calc_speed(self) -> None:
         BREAK_ACCLT: float = 10  # ブレーキ減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
         NORMAL_ACCLT: float = 5  # 常用加減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
         MAX_SPEED: float = 40  # 最高速度[cm/s]  NOTE:将来的には車両のパラメータとしてとして定義
@@ -608,7 +616,7 @@ class Control:
         )
         return next_section, next_target_junction
 
-    def calc_stop(self) -> None:
+    def _calc_stop(self) -> None:
         """
         列車の現在あるべき停止目標を割り出し、列車の状態として格納する。
         この情報は列車の速度を計算するのに使われる。
