@@ -8,7 +8,16 @@ class Bridge:
 
     def __init__(self, port: str) -> None:
         baudrate = 115200
-        self.serial = serial.Serial(port, baudrate, timeout=3.0, write_timeout=3.0)
+        self.serial = serial.Serial()
+        self.serial.port = port
+        self.serial.baudrate = baudrate
+        self.serial.timeout = 3.0
+        self.serial.write_timeout = 3.0
+        self.serial.rtscts = False  # 以下はポートopen時のESPリセット防止に必要
+        self.serial.dsrdtr = False
+        self.serial.dtr = 0
+        self.serial.rts = 0
+        self.serial.open()
 
     def send(self, message: str) -> None:
         self.serial.write(bytes(message, "ascii"))
