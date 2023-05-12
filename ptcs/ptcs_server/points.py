@@ -17,6 +17,7 @@ class PointSwitcher:
         servo_id, servo_state = message
         self.serial.write(servo_id.to_bytes(1, 'little'))
         self.serial.write(servo_state.to_bytes(1, 'little'))
+        self.serial.flush()
 
     def close(self) -> None:
         self.serial.close()
