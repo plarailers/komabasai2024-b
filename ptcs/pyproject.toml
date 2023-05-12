@@ -12,6 +12,7 @@ packages = [
 
 [tool.poetry.scripts]
 server = "ptcs_server.cli:main"
+scan = "serial.tools.list_ports:main"
 
 [tool.poetry.dependencies]
 python = "^3.10"
