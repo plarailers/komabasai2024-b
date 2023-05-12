@@ -29,6 +29,8 @@ void PhotoPositionID_Detector::update(int photo_sensor1, int photo_sensor2) {
 
 	positionID = 0;
 
+	setPhotoRefAnalogValue(photo_sensor1, photo_sensor2);
+
 	if(sensorValue1 < WHITE_THRESHOLD1){detectedColor1 = white;}
 	else{detectedColor1 = black;}
 
