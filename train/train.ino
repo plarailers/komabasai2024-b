@@ -14,6 +14,8 @@ void setup() {
     /* Serial */
     Serial.begin(train.serialSpeed);
     while (!Serial);
+    Serial.print(train.serialBTPortName);
+    Serial.print(" ");
     Serial.println("Serial Start!!");
 
     /* SerialBT */
@@ -68,7 +70,7 @@ void loop(){
 
     /* 絶対位置検知(APS) */
     int     positionID      = train.positionID_Detector.getPositionID();
-    if (positionID > 0) train.sendData("👺pID", positionID);
+    if (positionID > 0) train.sendData("pID", positionID);
 
     /* フォトリフレクタAPS */
     // train.photoPositionID_Detector.setPhotoRefAnalogValue(getPhoto1(), getPhoto2());

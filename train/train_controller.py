@@ -23,11 +23,11 @@ def receive(ser):
 
 if __name__ == "__main__": 
     try:
-        port = '/dev/tty.usbserial-14320' # ポート名は環境に合わせて変更する
+        port = '/dev/tty.usbserial-144130' # ポート名は環境に合わせて変更する
         baudrate = 115200
         ser = serial.Serial(port, baudrate,timeout=3.0,write_timeout=3.0)
         ser.read_until(b'}')
-        time.sleep(1)
+        time.sleep(3)
         while(True):
             new_time = time.time()
             dt = new_time - old_time
@@ -41,11 +41,12 @@ if __name__ == "__main__":
 
             if (receive(ser)):
                 recv_data = json.loads(receive(ser))
+                print(recv_data)
                 keys = recv_data.keys()
                 if 'mR' in keys:
                     motorRotation = recv_data['mR']
                     mileage_cm_ += motorRotation * GEAR_RATIO * WHEEL_DIAMETER_cm_ * PI
-                if '👺pID' in keys:
+                if 'pID' in keys:
                     print(mileage_cm_)
                     mileage_cm_ = 0
 
