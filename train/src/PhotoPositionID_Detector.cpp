@@ -36,8 +36,8 @@ void PhotoPositionID_Detector::update(int photo_sensor1, int photo_sensor2) {
 
 	setPhotoRefAnalogValue(photo_sensor1, photo_sensor2);
 
-	sensorValue1_lpf = (int)firstLpf.update((float)sensorValue1, (float)dt);
-	sensorValue2_lpf = (int)firstLpf.update((float)sensorValue2, (float)dt);
+	sensorValue1_lpf = (int)firstLpf.update((float)sensorValue1, 1.0/ADC_SAMPLING_RATE);
+	sensorValue2_lpf = (int)firstLpf.update((float)sensorValue2, 1.0/ADC_SAMPLING_RATE);
 
 	if(sensorValue1_lpf < WHITE_THRESHOLD1){detectedColor1 = white;}
 	else{detectedColor1 = black;}
@@ -49,6 +49,10 @@ void PhotoPositionID_Detector::update(int photo_sensor1, int photo_sensor2) {
 	// Serial.print(sensorValue1);
 	// Serial.print(", Val2:");
 	// Serial.print(sensorValue2);
+	// Serial.print("Val1:");
+	// Serial.print(sensorValue1_lpf);
+	// Serial.print(", Val2:");
+	// Serial.print(sensorValue2_lpf);
 	// Serial.print(", Color1:");
 	// Serial.print(detectedColor1*1000);
 	// Serial.print(", Color2:");
@@ -62,10 +66,10 @@ void PhotoPositionID_Detector::update(int photo_sensor1, int photo_sensor2) {
 	measure1Clock2();
 	measure2Clock1();
 
-	// if (positionID > 0) {
-	// 	Serial.print("PositionID: ");
-	// 	Serial.println(positionID);
-	// }
+	if (positionID > 0) {
+		Serial.print("PositionID: ");
+		Serial.println(positionID);
+	}
 
 	preDetectedColor1 = detectedColor1;
 	preDetectedColor2 = detectedColor2;
