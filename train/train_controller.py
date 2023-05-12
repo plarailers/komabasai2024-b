@@ -25,8 +25,16 @@ if __name__ == "__main__":
     try:
         port = '/dev/tty.usbserial-144130' # ポート名は環境に合わせて変更する
         baudrate = 115200
-        ser = serial.Serial(port, baudrate,timeout=3.0,write_timeout=3.0)
-        ser.read_until(b'}')
+        ser = serial.Serial()
+        ser.port = port
+        ser.baudrate = baudrate
+        ser.timeout = 3.0
+        ser.write_timeout = 3.0
+        ser.rtscts = False
+        ser.dsrdtr = False
+        ser.dtr = 0
+        ser.rts = 0
+        ser.open()
         time.sleep(3)
         while(True):
             new_time = time.time()
