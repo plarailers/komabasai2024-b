@@ -137,7 +137,7 @@ export const Home: React.FC = () => {
       DefaultService.getCommand().then((command) => {
         setRailwayCommand(command);
       });
-    }, 1000);
+    }, 500);
     return () => {
       clearInterval(interval);
     };
