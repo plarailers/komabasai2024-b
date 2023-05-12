@@ -1,6 +1,16 @@
 from typing import Optional
 from pydantic import BaseModel, Field
 from .components import Direction, Junction, Section, Stop, Train
+from .constants import (
+    STRAIGHT_RAIL,
+    STRAIGHT_1_4_RAIL,
+    STRAIGHT_1_6_RAIL,
+    CURVE_RAIL,
+    U_TURN_RAIL,
+    WATARI_RAIL_A,
+    WATARI_RAIL_B,
+    WATARI_RAIL_C,
+)
 
 
 class RailwayState(BaseModel):
@@ -102,8 +112,8 @@ def init_state() -> RailwayState:
     )
 
     state.define_trains(
-        (t0, s0, j0b, 0),
-        (t1, s2, j1a, 0),
+        (t0, s0, j0b, STRAIGHT_RAIL * 4.5 + WATARI_RAIL_B + 1),  # 次駅探索の都合上、stopを1cm通り過ぎた場所にしておく
+        (t1, s1, j1b, STRAIGHT_RAIL * 2.5 + WATARI_RAIL_B + 1),
     )
 
     return state
