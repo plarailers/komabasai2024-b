@@ -84,6 +84,6 @@ void Train::sendData(String key, int value) {
     doc_s.clear();
     doc_s[key]=value;
     serializeJson(doc_s,send_data);
-    SerialBT.println("");
     SerialBT.println(send_data);
+    SerialBT.flush();
 }

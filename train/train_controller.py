@@ -9,7 +9,7 @@ def receive(ser):
     # 基地局からmessageを受信する
     message=ser.readline()
     message_string=message.decode('utf-8')
-    return message_string
+    return message
 
 if __name__ == "__main__": 
     try:
@@ -21,7 +21,7 @@ if __name__ == "__main__":
         while(True):
             # motorInput = 60
             # json_data=f'{{"mI":{motorInput}}}'
-            # # print(json_data)
+            # # # print(json_data)
             # send(json_data,ser)
             print(receive(ser))
             # time.sleep(0.002)
