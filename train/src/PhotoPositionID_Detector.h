@@ -29,7 +29,7 @@ class PhotoPositionID_Detector
 		DetectedColor detectedColor1, detectedColor2;
 		DetectedColor preDetectedColor1, preDetectedColor2;
 		int bitIndex1, bitIndex2;
-		int bitDetectedTime1, bitDetectedTime2, oldTime, nowTime;
+		int bitDetectedTime1, bitDetectedTime2, nowTime;
 		int gotData1[BIT], gotData2[BIT];
 		void reset1();
 		void reset2();
@@ -38,7 +38,7 @@ class PhotoPositionID_Detector
 		void measure2Clock1();              
     public:
 		PhotoPositionID_Detector();
-		void update(int, int);
+		void update(int, int, float);
         void photoRefSetup();
 		void setPhotoRefAnalogValue(int, int);
         int getPhotoPositionID();

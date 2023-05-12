@@ -82,7 +82,7 @@ void adcReadDone(uint16_t* data, size_t chNum) {
     }
   }
   motorRotationDetector.update(current_A, 1000000 / ADC_SAMPLING_RATE);
-  photoPositionID_Detector.update(photo_sensor1, photo_sensor2);
+  photoPositionID_Detector.update(photo_sensor1, photo_sensor2, 1.0 / ADC_SAMPLING_RATE);
 }
 
 int getPhoto1() {
