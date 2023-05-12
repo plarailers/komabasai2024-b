@@ -1,0 +1,116 @@
+#include "PhotoPositionID_Detector.h"
+
+PhotoPositionID_Detector::PhotoPositionID_Detector() 
+: 	SENSOR1_PIN(34),
+	SENSOR2_PIN(35),
+	WHITE_THRESHOLD1(2000),
+	WHITE_THRESHOLD2(2000),
+	LEAVE_THRESHOLD(4000),
+	TIME_OUT(250)
+{
+	this->positionID = 0;
+	this->sensorValue1 = 0;
+	this->sensorValue2 = 0;
+	this->detectedColor1 = black;
+	this->detectedColor2 = black;
+	this->preDetectedColor1 = black;
+	this->preDetectedColor2 = black;
+	this->bitIndex1 = 0;
+	this->bitIndex2 = 0;
+	this->bitDetectedTime1 = 0;
+	this->bitDetectedTime2 = 0;
+	this->nowTime = 0;
+}
+
+void PhotoPositionID_Detector::photoRefSetup() {
+	memset(getData1, '\0', BIT);
+	memset(getData2, '\0', BIT);
+	resetAll();
+}
+
+void PhotoPositionID_Detector::setPhotoRefAnalogValue(int sensorValue1, int sensorValue2) {
+	this->sensorValue1 = sensorValue1;
+	this->sensorValue2 = sensorValue2;
+}
+
+int PhotoPositionID_Detector::getPhotoPositionID() {
+	nowTime = millis();
+
+	positionID = 0;
+
+	if(sensorValue1 < WHITE_THRESHOLD1){detectedColor1 = white;}
+	else{detectedColor1 = black;}
+
+	if(sensorValue2 < WHITE_THRESHOLD2){detectedColor2 = white;}
+	else{detectedColor2 = black;}
+
+	measure1Clock2();
+	measure2Clock1();
+
+	preDetectedColor1 = detectedColor1;
+	preDetectedColor2 = detectedColor2;
+
+	if(positionID > 0){
+		Serial.print("PositionID: ");
+		Serial.println(positionID);
+	}
+
+    return positionID;
+}
+
+void PhotoPositionID_Detector::reset1(){
+	bitIndex1 = 0;
+	for(int j = 0; j < BIT; j++){
+		getData1[j] = 0;
+	}	
+}
+
+void PhotoPositionID_Detector::reset2(){
+	bitIndex2 = 0;
+	for(int j = 0; j < BIT; j++){
+		getData2[j] = 0;
+	}
+}
+
+void PhotoPositionID_Detector::resetAll(){
+	reset1();
+	reset2();
+}
+
+void PhotoPositionID_Detector::measure1Clock2(){
+	if(detectedColor2 != preDetectedColor2){
+		getData1[bitIndex1] = detectedColor1;
+		bitIndex1 += 1;
+		bitDetectedTime1 = millis();
+	}
+
+	if(bitIndex1 >= BIT){
+		positionID = 0;
+		for(int j = 0; j < BIT; j++){
+			positionID += getData1[BIT - j - 1] * (pow(2, BIT - j - 1) + 0.5);
+		}
+		resetAll();
+	}
+
+	if(sensorValue1 > THRESHOLDLEAVE){resetAll();}
+	if(nowTime - bitDetectedTime1 > THRESHOLDTIME){reset1();}
+}
+
+void PhotoPositionID_Detector::measure2Clock1(){
+	if(detectedColor1 != preDetectedColor1){
+		getData2[bitIndex2] = detectedColor2;
+		bitIndex2 += 1;
+		bitDetectedTime2 = millis();
+	}
+
+	if(bitIndex2 >= BIT){
+		positionID = 0;
+		for(int j = 0; j < BIT; j++){
+			positionID += getData2[j] * (pow(2,j) + 0.5);
+		}
+		resetAll();
+	}
+
+	if(sensorValue2 > THRESHOLDLEAVE){resetAll();}
+	if(nowTime - bitDetectedTime2 > THRESHOLDTIME){reset2();}
+}

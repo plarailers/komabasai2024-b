@@ -3,9 +3,8 @@
 #include <BluetoothSerial.h>
 #include <ArduinoJson.h>
 #include "src/StopSensor.h"
-//#include "src/PositionID_Detector.h"
-#include "PhotoPositionID_Detector.h"
-#include "MotorRotationDetector.h"
+#include "src/PositionID_Detector.h"
+#include "src/PhotoPositionID_Detector.h"
 
 #define BUFFER_SIZE 32
 #define JSON_BUFFER_SIZE 256
@@ -23,8 +22,8 @@ class Train
 
         BluetoothSerial             SerialBT;
         StopSensor                  stopSensor;
-        //PositionID_Detector         positionID_Detector;
-        GetPositionID_Photo         photoPositionID_Detector;
+        PositionID_Detector         positionID_Detector;
+        PhotoPositionID_Detector    photoPositionID_Detector;
 
         Train(char* serialBTPortName);
 
