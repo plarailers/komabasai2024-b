@@ -1,8 +1,15 @@
 import serial
 import time
+import json
 
 old_time = 0
 new_time = 0
+mileage_cm_ = 0.0
+
+GEAR_RATIO = 175/8448
+WHEEL_DIAMETER_cm_ = 2.4
+PI = 3.14159265358979
+
 
 def send(message,ser):
     # messageを基地局に送信する
@@ -23,15 +30,24 @@ if __name__ == "__main__":
         time.sleep(1)
         while(True):
             new_time = time.time()
-            if new_time - old_time > 1:
-                motorInput = 170
+            dt = new_time - old_time
+
+            if dt > 1:
+                motorInput = 100
                 json_data=f'{{"mI":{motorInput}}}'
                 # print(json_data)
                 send(json_data,ser)
                 old_time = new_time
 
             if (receive(ser)):
-                print(receive(ser), end='')
+                recv_data = json.loads(receive(ser))
+                keys = recv_data.keys()
+                if 'mR' in keys:
+                    motorRotation = recv_data['mR']
+                    mileage_cm_ += motorRotation * GEAR_RATIO * WHEEL_DIAMETER_cm_ * PI
+                if '👺pID' in keys:
+                    print(mileage_cm_)
+                    mileage_cm_ = 0
 
     except:
         motorInput = 0
