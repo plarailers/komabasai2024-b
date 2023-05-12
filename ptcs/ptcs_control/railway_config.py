@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from .components import Joint, Junction, Position, Section, Station, Stop, Train
-from constants import (
+from .constants import (
     STRAIGHT_RAIL,
     STRAIGHT_1_4_RAIL,
     STRAIGHT_1_6_RAIL,
