@@ -82,6 +82,11 @@ def update_junction(junction_id: str, params: UpdateJunctionParams, request: Req
     control: Control = request.app.state.control
     junction = Junction(junction_id)
     control.update_junction(junction, params.direction)
+    try:
+        request.app.state.point_switchers.send(Junction(junction_id), params)
+    except Exception as e:
+        print(e)
+        pass
 
 
 @api_router.post("/state/sections/{section_id}/block")
