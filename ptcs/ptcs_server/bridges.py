@@ -4,23 +4,26 @@ import queue
 import threading
 from typing import Any, Callable, Optional
 import serial.tools.list_ports
-from ptcs_control.components import Train
+from ptcs_control.components import Position, Train
 from usb_bt_bridge.bridge import Bridge
 
 
 BridgeTarget = Train
 BridgeDict = dict[BridgeTarget, Bridge]
+PositionDict = dict[int, Position]
 BridgeCallback = Callable[[BridgeTarget, Any], None]
 
 
 class BridgeManager:
     bridges: BridgeDict
+    positions: PositionDict
     send_queue: queue.Queue[tuple[BridgeTarget, Any]]
     callback: BridgeCallback
     thread: Optional[threading.Thread]
 
     def __init__(self, callback: BridgeCallback) -> None:
         self.bridges = {}
+        self.positions = {}
         self.send_queue = queue.Queue()
         self.callback = callback
         self.thread = None
@@ -42,6 +45,15 @@ class BridgeManager:
         """
         self.bridges[target] = bridge
 
+    def register_position(self, position_id: Position, sensor_id: int) -> None:
+        """
+        サーボと位置の対応を登録する。
+        """
+        self.positions[sensor_id] = position_id
+
+    def get_position(self, sensor_id: int) -> Position:
+        return self.positions[sensor_id]
+
     def start(self) -> None:
         """
         送受信スレッドを開始する。
@@ -60,7 +72,7 @@ class BridgeManager:
         while True:
             # 受信
             for target, bridge in self.bridges.items():
-                if bridge.serial.in_waiting:
+                while bridge.serial.in_waiting:
                     message = bridge.receive()
                     try:
                         data = json.loads(message)
