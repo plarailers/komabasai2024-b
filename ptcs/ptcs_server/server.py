@@ -43,30 +43,38 @@ def create_app_with_bridge() -> FastAPI:
     control: Control = app.state.control
 
     # 列車からの信号
-    def handle_receive(target: BridgeTarget, data: Any) -> None:
+    def receive_from_train(train_id: BridgeTarget, data: Any) -> None:
         # モーター回転量
         if "mR" in data:
-            control.move_train_mr(target, data["mR"])
+            control.move_train_mr(train_id, data["mR"])
         # APS 信号
         elif "pId" in data:
-            control.put_train(target, bridges.get_position(data["pID"]))
+            control.put_train(train_id, bridges.get_position(data["pID"]))
         control.update()
 
     # 異常発生ボタンからの信号
-    def handle_button_receive(data: Any) -> None:
+    def receive_from_button(data: Any) -> None:
         s3 = Section("s3")
         if data["blocked"]:
             control.block_section(s3)
         else:
             control.unblock_section(s3)
         control.update()
+
+    # すべての列車への信号
+    def send_to_trains() -> None:
+        for train_id, train_command in control.command.trains.items():
+            bridges.send(train_id, {"mI": train_command.speed})
+
+    # すべてのポイントへの信号
+    def send_to_points() -> None:
         for junction_id, junction_state in control.state.junctions.items():
             point_switchers.send(junction_id, junction_state.direction)
 
     # TODO: ソースコードの変更なしに COM ポートを指定できるようにする
 
     # 列車
-    bridges = BridgeManager(callback=handle_receive)
+    bridges = BridgeManager(callback=receive_from_train)
     bridges.register(Train("t0"), Bridge("/dev/tty.usbserial-AC01UECP"))
     bridges.register_position(Position("position_0"), 173)
     bridges.register_position(Position("position_1"), 255)
@@ -85,7 +93,7 @@ def create_app_with_bridge() -> FastAPI:
     app.state.point_switchers = point_switchers
 
     # 異常発生ボタン
-    button = Button("/dev/tty.usbserial-1130", handle_button_receive)
+    button = Button("/dev/tty.usbserial-1130", callback=receive_from_button)
     button.start()
     app.state.button = button
 
