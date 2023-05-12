@@ -19,7 +19,7 @@ def receive(ser):
     # 基地局からmessageを受信する
     message=ser.readline()
     message_string=message.decode('utf-8')
-    return message_string
+    return message
 
 if __name__ == "__main__": 
     try:

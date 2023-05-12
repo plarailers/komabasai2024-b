@@ -1,14 +1,10 @@
-/* 
-	Photo-Refrector to ESP32 Connections
-	===========
-
-	=======
-	2023-05-07
-*/
-
 #include <Arduino.h>
 
-#define BIT 8		//positionIDのビット数
+#define BIT 8
+#define THRESHOLD1 1100
+#define THRESHOLD2 1750
+#define THRESHOLDLEAVE 3950
+#define THRESHOLDTIME 250
 
 class PhotoPositionID_Detector
 {
@@ -29,12 +25,12 @@ class PhotoPositionID_Detector
 		DetectedColor preDetectedColor1, preDetectedColor2;
 		int bitIndex1, bitIndex2;
 		int bitDetectedTime1, bitDetectedTime2, nowTime;
-		int gotData1[BIT], gotData2[BIT];
+		int getData1[BIT], getData2[BIT];
 		void reset1();
 		void reset2();
 		void resetAll();
 		void measure1Clock2();
-		void measure2Clock1();
+		void measure2Clock1();              
     public:
 		PhotoPositionID_Detector();
         void photoRefSetup();

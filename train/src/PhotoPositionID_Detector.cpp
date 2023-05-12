@@ -1,6 +1,6 @@
 #include "PhotoPositionID_Detector.h"
 
-PhotoPositionID_Detector::PhotoPositionID_Detector()
+PhotoPositionID_Detector::PhotoPositionID_Detector() 
 : 	SENSOR1_PIN(34),
 	SENSOR2_PIN(35),
 	WHITE_THRESHOLD1(2000),
@@ -38,11 +38,11 @@ int PhotoPositionID_Detector::getPhotoPositionID() {
 
 	positionID = 0;
 
-	if(sensorValue1 < WHITE_THRESHOLD1) detectedColor1 = white;
-	else detectedColor1 = black;
+	if(sensorValue1 < WHITE_THRESHOLD1){detectedColor1 = white;}
+	else{detectedColor1 = black;}
 
-	if(sensorValue2 < WHITE_THRESHOLD2) detectedColor2 = white;
-	else detectedColor2 = black;
+	if(sensorValue2 < WHITE_THRESHOLD2){detectedColor2 = white;}
+	else{detectedColor2 = black;}
 
 	measure1Clock2();
 	measure2Clock1();
@@ -76,12 +76,21 @@ int PhotoPositionID_Detector::getPhotoPositionID() {
 
 void PhotoPositionID_Detector::reset1(){
 	bitIndex1 = 0;
-	memset(gotData1, 0, BIT);
+	for(int j = 0; j < BIT; j++){
+		getData1[j] = 0;
+	}	
 }
 
 void PhotoPositionID_Detector::reset2(){
 	bitIndex2 = 0;
-	memset(gotData2, 0, BIT);
+	for(int j = 0; j < BIT; j++){
+		getData2[j] = 0;
+	}
+}
+
+void PhotoPositionID_Detector::resetAll(){
+	reset1();
+	reset2();
 }
 
 void PhotoPositionID_Detector::resetAll() {
@@ -91,15 +100,15 @@ void PhotoPositionID_Detector::resetAll() {
 
 void PhotoPositionID_Detector::measure1Clock2(){
 	if(detectedColor2 != preDetectedColor2){
-		gotData1[bitIndex1] = detectedColor1;
-		bitIndex1++;
+		getData1[bitIndex1] = detectedColor1;
+		bitIndex1 += 1;
 		bitDetectedTime1 = millis();
 	}
 
 	if(bitIndex1 >= BIT){
 		positionID = 0;
 		for(int j = 0; j < BIT; j++){
-			positionID += gotData1[BIT - j - 1] * (pow(2, BIT - j - 1) + 0.5);
+			positionID += getData1[BIT - j - 1] * (pow(2, BIT - j - 1) + 0.5);
 		}
 		resetAll();
 	}
@@ -110,8 +119,8 @@ void PhotoPositionID_Detector::measure1Clock2(){
 
 void PhotoPositionID_Detector::measure2Clock1(){
 	if(detectedColor1 != preDetectedColor1){
-		gotData2[bitIndex2] = detectedColor2;
-		bitIndex2++;
+		getData2[bitIndex2] = detectedColor2;
+		bitIndex2 += 1;
 		bitDetectedTime2 = millis();
 	}
 
