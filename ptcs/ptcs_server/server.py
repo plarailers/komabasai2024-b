@@ -1,3 +1,4 @@
+import logging
 import threading
 import time
 from typing import Any
@@ -14,6 +15,8 @@ from .api import api_router
 
 
 def create_app() -> FastAPI:
+    logging.basicConfig(level=logging.INFO)
+
     control = Control()
 
     # control 内部の時計を現実世界の時間において進める
