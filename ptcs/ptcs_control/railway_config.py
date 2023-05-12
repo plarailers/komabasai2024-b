@@ -182,8 +182,9 @@ def init_config() -> RailwayConfig:
     )
 
     config.define_trains(
-        (t0, 70, 110, 40.0, 0.3),
-        (t1, 70, 110, 40.0, 0.3),
+        (t0, 70, 170, 40.0, 0.1562),  # Dr
+        (t1, 70, 170, 40.0, 0.1562),  # E6
+        # E5はAPS故障につきまだ運用しない
     )
 
     config.stations.update(
