@@ -72,7 +72,7 @@ class BridgeManager:
         while True:
             # 受信
             for target, bridge in self.bridges.items():
-                if bridge.serial.in_waiting:
+                while bridge.serial.in_waiting:
                     message = bridge.receive()
                     try:
                         data = json.loads(message)
