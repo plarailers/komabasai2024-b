@@ -130,6 +130,13 @@ class PositionConfig(BaseModel):
     section: "Section"
     mileage: float
 
+    target_junction: "Junction"
+    """
+    NOTE: 将来的にはここに向きの情報を持たせなくて良いようにする。
+    具体的には、通った向きがわかるようなセンシング技術を用いるか、
+    計算で向きを予測するか（限界はある）のどちらか。
+    """
+
 
 RailwayConfig.update_forward_refs()
 
@@ -206,9 +213,9 @@ def init_config() -> RailwayConfig:
 
     config.positions.update(
         {
-            position_0: PositionConfig(section=s0, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*8.5 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
-            position_1: PositionConfig(section=s0, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*12.5 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
-            position_2: PositionConfig(section=s2, mileage=WATARI_RAIL_A*1 + STRAIGHT_RAIL*4.5 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
+            position_0: PositionConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*8.5 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
+            position_1: PositionConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*12.5 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
+            position_2: PositionConfig(section=s2, target_junction=j1a, mileage=WATARI_RAIL_A*1 + STRAIGHT_RAIL*4.5 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
         }
     )
 

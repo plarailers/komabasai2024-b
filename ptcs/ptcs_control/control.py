@@ -124,12 +124,9 @@ class Control:
         train_state = self.state.trains[train_id]
         position_config = self.config.positions[position]
 
-        if False:
-            train_state.current_section = position_config.section
-            train_state.target_junction = ...
-            train_state.mileage = position_config.mileage
-
-        raise NotImplementedError()
+        train_state.current_section = position_config.section
+        train_state.target_junction = position_config.target_junction
+        train_state.mileage = position_config.mileage
 
     def update(self) -> None:
         """
