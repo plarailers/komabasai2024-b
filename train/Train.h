@@ -88,6 +88,7 @@ void Train::sendData(String key, int value) {
     doc_s.clear();
     doc_s[key]=value;
     serializeJson(doc_s,send_data);
-    SerialBT.println(""); //これが無いと何故かpIDが3回に1回しか送られない
     SerialBT.println(send_data);
+    SerialBT.flush();  // SerialBTで正しく送信するために必要
+    Serial.println(send_data);
 }
