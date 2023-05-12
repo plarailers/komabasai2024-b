@@ -59,7 +59,7 @@ def create_app_with_bridge() -> FastAPI:
         if "mR" in data:
             control.move_train_mr(train_id, data["mR"])
         # APS 信号
-        elif "pId" in data:
+        elif "pID" in data:
             control.put_train(train_id, bridges.get_position(data["pID"]))
         control.update()
 
