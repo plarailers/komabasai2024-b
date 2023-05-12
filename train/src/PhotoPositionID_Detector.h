@@ -33,6 +33,7 @@ class PhotoPositionID_Detector
 		void measure2Clock1();              
     public:
 		PhotoPositionID_Detector();
+		void update(int, int);
         void photoRefSetup();
 		void setPhotoRefAnalogValue(int, int);
         int getPhotoPositionID();

@@ -22,18 +22,9 @@ PhotoPositionID_Detector::PhotoPositionID_Detector()
 	this->nowTime = 0;
 }
 
-void PhotoPositionID_Detector::photoRefSetup() {
-	memset(gotData1, '\0', BIT);
-	memset(gotData2, '\0', BIT);
-	resetAll();
-}
+/* フォトリフクレクタの読み取り値photo_sensor1, photo_sensor2からphotoPositionIDをアップデートする */
+void PhotoPositionID_Detector::update(int photo_sensor1, int photo_sensor2) {
 
-void PhotoPositionID_Detector::setPhotoRefAnalogValue(int sensorValue1, int sensorValue2) {
-	this->sensorValue1 = sensorValue1;
-	this->sensorValue2 = sensorValue2;
-}
-
-int PhotoPositionID_Detector::getPhotoPositionID() {
 	nowTime = millis();
 
 	positionID = 0;
@@ -43,17 +34,6 @@ int PhotoPositionID_Detector::getPhotoPositionID() {
 
 	if(sensorValue2 < WHITE_THRESHOLD2){detectedColor2 = white;}
 	else{detectedColor2 = black;}
-
-	measure1Clock2();
-	measure2Clock1();
-
-	preDetectedColor1 = detectedColor1;
-	preDetectedColor2 = detectedColor2;
-
-	if (positionID > 0) {
-		Serial.print("PositionID: ");
-		Serial.println(positionID);
-	}
 
 	// Serial.print("Val1:");
 	// Serial.print(sensorValue1);
@@ -69,8 +49,31 @@ int PhotoPositionID_Detector::getPhotoPositionID() {
 	// Serial.print(", BOTTOM:");
 	// Serial.print("0");
 
-	// Serial.println("");
+	measure1Clock2();
+	measure2Clock1();
 
+	// if (positionID > 0) {
+	// 	Serial.print("PositionID: ");
+	// 	Serial.println(positionID);
+	// }
+
+	preDetectedColor1 = detectedColor1;
+	preDetectedColor2 = detectedColor2;
+
+}
+
+void PhotoPositionID_Detector::photoRefSetup() {
+	memset(gotData1, '\0', BIT);
+	memset(gotData2, '\0', BIT);
+	resetAll();
+}
+
+void PhotoPositionID_Detector::setPhotoRefAnalogValue(int sensorValue1, int sensorValue2) {
+	this->sensorValue1 = sensorValue1;
+	this->sensorValue2 = sensorValue2;
+}
+
+int PhotoPositionID_Detector::getPhotoPositionID() {
     return positionID;
 }
 
