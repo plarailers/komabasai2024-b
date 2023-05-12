@@ -3,7 +3,7 @@
 #include <BluetoothSerial.h>
 #include <ArduinoJson.h>
 #include "src/StopSensor.h"
-#include "src/PositionID_Detector.h"
+//#include "src/PositionID_Detector.h"
 #include "PhotoPositionID_Detector.h"
 #include "MotorRotationDetector.h"
 
@@ -23,7 +23,7 @@ class Train
 
         BluetoothSerial             SerialBT;
         StopSensor                  stopSensor;
-        PositionID_Detector         positionID_Detector;
+        //PositionID_Detector         positionID_Detector;
         GetPositionID_Photo         photoPositionID_Detector;
 
         Train(char* serialBTPortName);
@@ -84,5 +84,6 @@ void Train::sendData(String key, int value) {
     doc_s.clear();
     doc_s[key]=value;
     serializeJson(doc_s,send_data);
+    SerialBT.println("");
     SerialBT.println(send_data);
 }

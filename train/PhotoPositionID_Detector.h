@@ -1,7 +1,7 @@
 #define BIT 8
-#define THRESHOLD1 380
-#define THRESHOLD2 300
-#define THRESHOLDLEAVE 750
+#define THRESHOLD1 1100
+#define THRESHOLD2 1750
+#define THRESHOLDLEAVE 3950
 #define THRESHOLDTIME 250
 
 class GetPositionID_Photo
@@ -62,8 +62,10 @@ int GetPositionID_Photo::getPositionID_Photo() {
 	bool1_before = bool1;
 	bool2_before = bool2;
 
-	Serial.print("PositionID: ");
-	Serial.println(positionID);
+	if(positionID > 0){
+		Serial.print("PositionID: ");
+		Serial.println(positionID);
+	}
 
     return positionID;
 }

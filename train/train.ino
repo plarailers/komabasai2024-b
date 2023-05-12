@@ -26,16 +26,16 @@ void setup() {
     Serial.println("LEDC Setup done!!");
 
     /* モータ回転検知セットアップ */
-    motorRotationDetectorSetup();
-    Serial.println("MotorRotationDetector Setup done!!");
+    //motorRotationDetectorSetup();
+    //Serial.println("MotorRotationDetector Setup done!!");
 
     /* BNO055セットアップ */
     // train.stopSensor.BNO055Setup();
     // Serial.println("BNO055 Setup done!!");
 
     /* MFRC522セットアップ */
-    train.positionID_Detector.MFRC522Setup();
-    Serial.println("MFRC522 Setup done!!");
+    //train.positionID_Detector.MFRC522Setup();
+    //Serial.prinFRC522 Setup done!!");tln("M
 
     /* フォトリフレクタ セットアップ */
     train.photoPositionID_Detector.photoRefSetup();
@@ -50,23 +50,23 @@ void loop(){
     train.moveMotor(motorInput);
 
     /* 100ms毎にモータ回転数を行う */
-    new_time = millis();
-    if (new_time - old_time > 100) {
+    // new_time = millis();
+    // if (new_time - old_time > 100) {
 
-        /* モータ回転数 */
-        unsigned int   motorRotation   = motorRotationDetector.getRotation();
-        if (motorRotation > 0) train.sendData("mR", motorRotation);
+    //     /* モータ回転数 */
+    //     unsigned int   motorRotation   = motorRotationDetector.getRotation();
+    //     if (motorRotation > 0) train.sendData("mR", motorRotation);
 
-        old_time = new_time;
-    }
+    //     old_time = new_time;
+    // }
     
     /* 停止検知(SS) */
     // bool    isStopping      = train.stopSensor.getStopping();
     // if (isStopping) train.sendData("iS", isStopping);
 
     /* 絶対位置検知(APS) */
-    int     positionID      = train.positionID_Detector.getPositionID();
-    if (positionID > 0) train.sendData("pID", positionID);
+    //int     positionID      = train.positionID_Detector.getPositionID();
+    //if (positionID > 0) train.sendData("pID", positionID);
 
     /* フォトリフレクタAPS */
     int     photoPositionID = train.photoPositionID_Detector.getPositionID_Photo();
