@@ -21,6 +21,7 @@ class Bridge:
 
     def send(self, message: str) -> None:
         self.serial.write(bytes(message, "ascii"))
+        self.serial.flush()
 
     def receive(self) -> str:
         message = self.serial.readline()
