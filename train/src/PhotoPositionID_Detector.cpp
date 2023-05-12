@@ -77,14 +77,14 @@ int PhotoPositionID_Detector::getPhotoPositionID() {
 void PhotoPositionID_Detector::reset1(){
 	bitIndex1 = 0;
 	for(int j = 0; j < BIT; j++){
-		getData1[j] = 0;
+		gotData1[j] = 0;
 	}	
 }
 
 void PhotoPositionID_Detector::reset2(){
 	bitIndex2 = 0;
 	for(int j = 0; j < BIT; j++){
-		getData2[j] = 0;
+		gotData2[j] = 0;
 	}
 }
 
@@ -93,14 +93,9 @@ void PhotoPositionID_Detector::resetAll(){
 	reset2();
 }
 
-void PhotoPositionID_Detector::resetAll() {
-	reset1();
-	reset2();
-}
-
 void PhotoPositionID_Detector::measure1Clock2(){
 	if(detectedColor2 != preDetectedColor2){
-		getData1[bitIndex1] = detectedColor1;
+		gotData1[bitIndex1] = detectedColor1;
 		bitIndex1 += 1;
 		bitDetectedTime1 = millis();
 	}
@@ -108,7 +103,7 @@ void PhotoPositionID_Detector::measure1Clock2(){
 	if(bitIndex1 >= BIT){
 		positionID = 0;
 		for(int j = 0; j < BIT; j++){
-			positionID += getData1[BIT - j - 1] * (pow(2, BIT - j - 1) + 0.5);
+			positionID += gotData1[BIT - j - 1] * (pow(2, BIT - j - 1) + 0.5);
 		}
 		resetAll();
 	}
@@ -119,7 +114,7 @@ void PhotoPositionID_Detector::measure1Clock2(){
 
 void PhotoPositionID_Detector::measure2Clock1(){
 	if(detectedColor1 != preDetectedColor1){
-		getData2[bitIndex2] = detectedColor2;
+		gotData2[bitIndex2] = detectedColor2;
 		bitIndex2 += 1;
 		bitDetectedTime2 = millis();
 	}

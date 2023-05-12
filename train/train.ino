@@ -65,8 +65,8 @@ void loop(){
     }
     
     /* 停止検知(SS) */
-    bool    isStopping      = train.stopSensor.getStopping();
-    if (isStopping) train.sendData("iS", isStopping);
+    // bool    isStopping      = train.stopSensor.getStopping();
+    // if (isStopping) train.sendData("iS", isStopping);
 
     /* 絶対位置検知(APS) */
     int     positionID      = train.positionID_Detector.getPositionID();

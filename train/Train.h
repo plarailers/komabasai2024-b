@@ -21,7 +21,7 @@ class Train
         StaticJsonDocument<JSON_BUFFER_SIZE> doc_s;
 
         BluetoothSerial             SerialBT;
-        // StopSensor                  stopSensor;
+        StopSensor                  stopSensor;
         PositionID_Detector         positionID_Detector;
         PhotoPositionID_Detector    photoPositionID_Detector;
 

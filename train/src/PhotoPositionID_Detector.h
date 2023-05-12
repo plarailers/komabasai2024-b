@@ -25,7 +25,7 @@ class PhotoPositionID_Detector
 		DetectedColor preDetectedColor1, preDetectedColor2;
 		int bitIndex1, bitIndex2;
 		int bitDetectedTime1, bitDetectedTime2, nowTime;
-		int getData1[BIT], getData2[BIT];
+		int gotData1[BIT], gotData2[BIT];
 		void reset1();
 		void reset2();
 		void resetAll();
