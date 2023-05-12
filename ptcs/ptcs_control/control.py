@@ -659,6 +659,10 @@ class Control:
                     train_state.stop = forward_stop
                     train_state.stop_distance = forward_stop_distance
 
+            # 停止目標が変わらないとき
+            else:
+                train_state.stop_distance = forward_stop_distance
+
     def _get_forward_stop(self, train: Train) -> tuple[Stop, float] | None:
         """
         指定された列車が次にたどり着く停止位置とそこまでの距離を取得する。
