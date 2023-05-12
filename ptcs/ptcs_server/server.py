@@ -42,15 +42,18 @@ def create_app_with_bridge() -> FastAPI:
     app = create_app()
     control: Control = app.state.control
 
+    # 列車からの信号
     def handle_receive(target: BridgeTarget, data: Any) -> None:
-        print(target, data)
-        # TODO: インターフェイスを定めてコマンドを判別する
-        if data["mR"]:
+        # モーター回転量
+        if "mR" in data:
             control.move_train_mr(target, data["mR"])
+        # APS 信号
+        elif "pId" in data:
+            pass  # 未実装
 
+    # 異常発生ボタンからの信号
     def handle_button_receive(data: Any) -> None:
         s3 = Section("s3")
-        print(data)
         if data["blocked"]:
             control.block_section(s3)
         else:
@@ -59,32 +62,27 @@ def create_app_with_bridge() -> FastAPI:
         for junction_id, junction_state in control.state.junctions.items():
             point_switchers.send(junction_id, junction_state.direction)
 
-    bridges = BridgeManager(callback=handle_receive)
-
     # TODO: ソースコードの変更なしに COM ポートを指定できるようにする
+
+    # 列車
+    bridges = BridgeManager(callback=handle_receive)
     bridges.register(Train("t0"), Bridge("/dev/tty.usbserial-AC01UECP"))
-
     bridges.start()
-
     app.state.bridges = bridges
 
-    # ポイント関係
+    # ポイント
     point_switchers = PointSwitcherManager()
     point_switcher = PointSwitcher("/dev/tty.usbserial-1140")
     point_switchers.register(Junction("j0a"), point_switcher, 0)
     point_switchers.register(Junction("j0b"), point_switcher, 1)
     point_switchers.register(Junction("j1a"), point_switcher, 2)
     point_switchers.register(Junction("j1b"), point_switcher, 3)
-
     point_switchers.start()
-
     app.state.point_switchers = point_switchers
 
     # 異常発生ボタン
     button = Button("/dev/tty.usbserial-1130", handle_button_receive)
-
     button.start()
-
     app.state.button = button
 
     return app
