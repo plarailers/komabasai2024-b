@@ -11,6 +11,8 @@ PhotoPositionID_Detector::PhotoPositionID_Detector()
 	this->positionID = 0;
 	this->sensorValue1 = 0;
 	this->sensorValue2 = 0;
+	this->sensorValue1_lpf = 0;
+	this->sensorValue2_lpf = 0;
 	this->detectedColor1 = black;
 	this->detectedColor2 = black;
 	this->preDetectedColor1 = black;
@@ -19,22 +21,28 @@ PhotoPositionID_Detector::PhotoPositionID_Detector()
 	this->bitIndex2 = 0;
 	this->bitDetectedTime1 = 0;
 	this->bitDetectedTime2 = 0;
+	this->oldTime = 0;
 	this->nowTime = 0;
 }
 
 /* フォトリフクレクタの読み取り値photo_sensor1, photo_sensor2からphotoPositionIDをアップデートする */
 void PhotoPositionID_Detector::update(int photo_sensor1, int photo_sensor2) {
 
+	oldTime = nowTime;
 	nowTime = millis();
+	int dt = nowTime - oldTime;
 
 	positionID = 0;
 
 	setPhotoRefAnalogValue(photo_sensor1, photo_sensor2);
 
-	if(sensorValue1 < WHITE_THRESHOLD1){detectedColor1 = white;}
+	sensorValue1_lpf = (int)firstLpf.update((float)sensorValue1, (float)dt);
+	sensorValue2_lpf = (int)firstLpf.update((float)sensorValue2, (float)dt);
+
+	if(sensorValue1_lpf < WHITE_THRESHOLD1){detectedColor1 = white;}
 	else{detectedColor1 = black;}
 
-	if(sensorValue2 < WHITE_THRESHOLD2){detectedColor2 = white;}
+	if(sensorValue2_lpf < WHITE_THRESHOLD2){detectedColor2 = white;}
 	else{detectedColor2 = black;}
 
 	// Serial.print("Val1:");
@@ -65,6 +73,7 @@ void PhotoPositionID_Detector::update(int photo_sensor1, int photo_sensor2) {
 }
 
 void PhotoPositionID_Detector::photoRefSetup() {
+	firstLpf.setFc(100.0);  // カットオフ周波数100Hz
 	memset(gotData1, '\0', BIT);
 	memset(gotData2, '\0', BIT);
 	resetAll();
@@ -113,7 +122,7 @@ void PhotoPositionID_Detector::measure1Clock2(){
 		resetAll();
 	}
 
-	if(sensorValue1 > LEAVE_THRESHOLD) resetAll();
+	if(sensorValue1_lpf > LEAVE_THRESHOLD) resetAll();
 	if(nowTime - bitDetectedTime1 > TIME_OUT) reset1();
 }
 
@@ -132,6 +141,6 @@ void PhotoPositionID_Detector::measure2Clock1(){
 		resetAll();
 	}
 
-	if(sensorValue2 > LEAVE_THRESHOLD) resetAll();
+	if(sensorValue2_lpf > LEAVE_THRESHOLD) resetAll();
 	if(nowTime - bitDetectedTime2 > TIME_OUT) reset2();
 }

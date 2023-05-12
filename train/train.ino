@@ -74,6 +74,7 @@ void loop(){
 
     /* フォトリフレクタAPS */
     int     photoPositionID = photoPositionID_Detector.getPhotoPositionID();
-    if (photoPositionID > 0) train.sendData("pID", photoPositionID);
-
+    if (photoPositionID > 0) {
+        train.sendData("pID", photoPositionID);
+    }
 }

@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include "Filter.h"
 
 #define BIT 8
 #define THRESHOLD1 1100
@@ -15,8 +16,12 @@ class PhotoPositionID_Detector
 		const int WHITE_THRESHOLD2;
 		const int LEAVE_THRESHOLD; //これを上回ったら車両が浮いている
 		const int TIME_OUT; //最後のビット検出時刻からTIME_OUT以上経ったらリセット
+
+		FirstLPF firstLpf;
+
 		int positionID;
 		int sensorValue1, sensorValue2;
+		int sensorValue1_lpf, sensorValue2_lpf;
 		typedef enum {
 			black,
 			white,
@@ -24,7 +29,7 @@ class PhotoPositionID_Detector
 		DetectedColor detectedColor1, detectedColor2;
 		DetectedColor preDetectedColor1, preDetectedColor2;
 		int bitIndex1, bitIndex2;
-		int bitDetectedTime1, bitDetectedTime2, nowTime;
+		int bitDetectedTime1, bitDetectedTime2, oldTime, nowTime;
 		int gotData1[BIT], gotData2[BIT];
 		void reset1();
 		void reset2();
