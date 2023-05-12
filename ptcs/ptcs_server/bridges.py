@@ -19,14 +19,16 @@ class BridgeManager:
     positions: PositionDict
     send_queue: queue.Queue[tuple[BridgeTarget, Any]]
     callback: BridgeCallback
-    thread: Optional[threading.Thread]
+    send_thread: Optional[threading.Thread]
+    recv_thread: Optional[threading.Thread]
 
     def __init__(self, callback: BridgeCallback) -> None:
         self.bridges = {}
         self.positions = {}
         self.send_queue = queue.Queue()
         self.callback = callback
-        self.thread = None
+        self.send_thread = None
+        self.recv_thread = None
 
     def print_ports(self) -> None:
         print("ports:")
@@ -56,17 +58,35 @@ class BridgeManager:
 
     def start(self) -> None:
         """
-        送受信スレッドを開始する。
+        送信スレッドと受信スレッドを開始する。
         """
-        thread = threading.Thread(target=self._run, daemon=True)
-        thread.start()
-        self.thread = thread
+        send_thread = threading.Thread(target=self._run_send, daemon=True)
+        send_thread.start()
+        self.send_thread = send_thread
 
-    def _run(self) -> None:
+        recv_thread = threading.Thread(target=self._run_recv, daemon=True)
+        recv_thread.start()
+        self.recv_thread = recv_thread
+
+    def _run_send(self) -> None:
         """
-        スレッドの中身。
-        ブリッジから受信したデータがあれば、コールバックを呼び出す。
+        送信スレッドの中身。
         送信キューにデータがあれば、ブリッジに送信する。
+        """
+
+        while True:
+            # 送信
+            while not self.send_queue.empty():
+                target, data = self.send_queue.get()
+                logging.info(f"SEND {target} {data}")
+                bridge = self.bridges[target]
+                message = json.dumps(data)
+                bridge.send(message)
+
+    def _run_recv(self) -> None:
+        """
+        受信スレッドの中身。
+        ブリッジから受信したデータがあれば、コールバックを呼び出す。
         """
 
         while True:
@@ -80,14 +100,6 @@ class BridgeManager:
                         self.callback(target, data)
                     except json.decoder.JSONDecodeError:
                         pass
-
-            # 送信
-            while not self.send_queue.empty():
-                target, data = self.send_queue.get()
-                logging.info(f"SEND {target} {data}")
-                bridge = self.bridges[target]
-                message = json.dumps(data)
-                bridge.send(message)
 
     def send(self, target: BridgeTarget, data: Any) -> None:
         """
