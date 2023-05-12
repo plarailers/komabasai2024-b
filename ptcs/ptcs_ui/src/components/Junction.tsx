@@ -1,4 +1,5 @@
 import { useContext } from "react";
+import { useMantineTheme } from "@mantine/core";
 import {
   RailwayConfigContext,
   RailwayStateContext,
@@ -13,6 +14,8 @@ interface JunctionProps {
 }
 
 export const Junction: React.FC<JunctionProps> = ({ id, position }) => {
+  const theme = useMantineTheme();
+
   const railwayConfig = useContext(RailwayConfigContext);
   const railwayState = useContext(RailwayStateContext);
   const railwayUI = useContext(RailwayUIContext);
@@ -54,11 +57,17 @@ export const Junction: React.FC<JunctionProps> = ({ id, position }) => {
     }
   }
 
-  const radius = 5;
+  const radius = 6;
 
   return (
     <g transform={`translate(${position.x}, ${position.y})`}>
-      <circle cx={0} cy={0} r={radius} fill="white" stroke="gray" />
+      <circle
+        cx={0}
+        cy={0}
+        r={radius}
+        fill={theme.white}
+        stroke={theme.colors.gray[6]}
+      />
       <polyline
         points={[
           {
@@ -77,7 +86,7 @@ export const Junction: React.FC<JunctionProps> = ({ id, position }) => {
           .map((p) => `${p.x},${p.y}`)
           .join(" ")}
         fill="none"
-        stroke="red"
+        stroke={theme.colors.blue[7]}
         strokeWidth={4}
       />
     </g>

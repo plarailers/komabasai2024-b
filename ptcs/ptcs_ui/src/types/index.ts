@@ -22,6 +22,9 @@ export interface SectionUI {
   points: { x: number; y: number }[];
 }
 
-export interface TrainUI {}
+export interface TrainUI {
+  fill: string;
+  stroke: string;
+}
 
 export interface StopUI {}

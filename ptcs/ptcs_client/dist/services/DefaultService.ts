@@ -3,6 +3,7 @@
 /* eslint-disable */
 import type { MoveTrainParams } from '../models/MoveTrainParams';
 import type { PutTrainParams } from '../models/PutTrainParams';
+import type { RailwayCommand } from '../models/RailwayCommand';
 import type { RailwayConfig } from '../models/RailwayConfig';
 import type { RailwayState } from '../models/RailwayState';
 import type { UpdateJunctionParams } from '../models/UpdateJunctionParams';
@@ -46,6 +47,18 @@ export class DefaultService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/state',
+        });
+    }
+
+    /**
+     * Get Command
+     * @returns RailwayCommand Successful Response
+     * @throws ApiError
+     */
+    public static getCommand(): CancelablePromise<RailwayCommand> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/command',
         });
     }
 
