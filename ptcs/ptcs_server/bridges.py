@@ -75,13 +75,11 @@ class BridgeManager:
         """
 
         while True:
-            # 送信
-            while not self.send_queue.empty():
-                target, data = self.send_queue.get()
-                logging.info(f"SEND {target} {data}")
-                bridge = self.bridges[target]
-                message = json.dumps(data)
-                bridge.send(message)
+            target, data = self.send_queue.get()  # ブロッキング処理
+            logging.info(f"SEND {target} {data}")
+            bridge = self.bridges[target]
+            message = json.dumps(data)
+            bridge.send(message)
 
     def _run_recv(self) -> None:
         """
@@ -90,10 +88,9 @@ class BridgeManager:
         """
 
         while True:
-            # 受信
             for target, bridge in self.bridges.items():
                 if bridge.serial.in_waiting:
-                    message = bridge.receive()
+                    message = bridge.receive()  # ブロッキング処理
                     try:
                         data = json.loads(message)
                         logging.info(f"RECV {target} {data}")
