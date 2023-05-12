@@ -55,11 +55,14 @@ def create_app_with_bridge() -> FastAPI:
             control.block_section(s3)
         else:
             control.unblock_section(s3)
+        control.calc_direction()
+        for junction_id, junction_state in control.state.junctions.items():
+            point_switchers.send(junction_id, junction_state.direction)
 
     bridges = BridgeManager(callback=handle_receive)
 
     # TODO: ソースコードの変更なしに COM ポートを指定できるようにする
-    bridges.register(Train("t0"), Bridge("COM4"))
+    bridges.register(Train("t0"), Bridge("/dev/tty.usbserial-AC01UECP"))
 
     bridges.start()
 
@@ -67,7 +70,7 @@ def create_app_with_bridge() -> FastAPI:
 
     # ポイント関係
     point_switchers = PointSwitcherManager()
-    point_switcher = PointSwitcher("COM5")
+    point_switcher = PointSwitcher("/dev/tty.usbserial-1140")
     point_switchers.register(Junction("j0a"), point_switcher, 0)
     point_switchers.register(Junction("j0b"), point_switcher, 1)
     point_switchers.register(Junction("j1a"), point_switcher, 2)
@@ -78,7 +81,7 @@ def create_app_with_bridge() -> FastAPI:
     app.state.point_switchers = point_switchers
 
     # 異常発生ボタン
-    button = Button("COM6", handle_button_receive)
+    button = Button("/dev/tty.usbserial-1130", handle_button_receive)
 
     button.start()
 
