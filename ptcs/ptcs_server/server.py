@@ -8,7 +8,7 @@ from .bridges import BridgeManager, BridgeTarget
 from .points import PointSwitcher, PointSwitcherManager
 from .button import Button
 from ptcs_control import Control
-from ptcs_control.components import Train, Junction, Section
+from ptcs_control.components import Position, Train, Junction, Section
 import uvicorn
 from .api import api_router
 
@@ -49,7 +49,8 @@ def create_app_with_bridge() -> FastAPI:
             control.move_train_mr(target, data["mR"])
         # APS 信号
         elif "pId" in data:
-            pass  # 未実装
+            control.put_train(target, bridges.get_position(data["pID"]))
+        control.update()
 
     # 異常発生ボタンからの信号
     def handle_button_receive(data: Any) -> None:
@@ -67,6 +68,9 @@ def create_app_with_bridge() -> FastAPI:
     # 列車
     bridges = BridgeManager(callback=handle_receive)
     bridges.register(Train("t0"), Bridge("/dev/tty.usbserial-AC01UECP"))
+    bridges.register_position(Position("position_0"), 173)
+    bridges.register_position(Position("position_1"), 255)
+    bridges.register_position(Position("position_2"), 80)
     bridges.start()
     app.state.bridges = bridges
 
