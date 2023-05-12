@@ -45,6 +45,14 @@ def create_app_with_bridge() -> FastAPI:
     app = create_app()
     control: Control = app.state.control
 
+    # TODO: ソースコードの変更なしに COM ポートを指定できるようにする
+    ENABLE_TRAINS = True
+    ENABLE_POINTS = True
+    ENABLE_BUTTON = True
+    TRAIN_PORTS = {"t0": "COM3", "t1": "COM5"}
+    POINTS_PORT = "/dev/tty.usbserial-1140"
+    BUTTON_PORT = "/dev/tty.usbserial-1130"
+
     # 列車からの信号
     def receive_from_train(train_id: BridgeTarget, data: Any) -> None:
         # モーター回転量
@@ -76,31 +84,47 @@ def create_app_with_bridge() -> FastAPI:
         for junction_id, junction_state in control.state.junctions.items():
             point_switchers.send(junction_id, junction_state.direction)
 
-    # TODO: ソースコードの変更なしに COM ポートを指定できるようにする
-
     # 列車
-    bridges = BridgeManager(callback=receive_from_train)
-    bridges.register(Train("t0"), Bridge("/dev/tty.usbserial-AC01UECP"))
-    bridges.register_position(Position("position_0"), 173)
-    bridges.register_position(Position("position_1"), 255)
-    bridges.register_position(Position("position_2"), 80)
-    bridges.start()
-    app.state.bridges = bridges
+    if ENABLE_TRAINS:
+        bridges = BridgeManager(callback=receive_from_train)
+        bridges.print_ports()
+        bridges.register(Train("t0"), Bridge(TRAIN_PORTS["t0"]))
+        bridges.register(Train("t1"), Bridge(TRAIN_PORTS["t1"]))
+        bridges.register_position(Position("position_0"), 173)
+        bridges.register_position(Position("position_1"), 255)
+        bridges.register_position(Position("position_2"), 80)
+        bridges.start()
+        app.state.bridges = bridges
 
     # ポイント
-    point_switchers = PointSwitcherManager()
-    point_switcher = PointSwitcher("/dev/tty.usbserial-1140")
-    point_switchers.register(Junction("j0a"), point_switcher, 0)
-    point_switchers.register(Junction("j0b"), point_switcher, 1)
-    point_switchers.register(Junction("j1a"), point_switcher, 2)
-    point_switchers.register(Junction("j1b"), point_switcher, 3)
-    point_switchers.start()
-    app.state.point_switchers = point_switchers
+    if ENABLE_POINTS:
+        point_switchers = PointSwitcherManager()
+        point_switcher = PointSwitcher(POINTS_PORT)
+        point_switchers.register(Junction("j0a"), point_switcher, 0)
+        point_switchers.register(Junction("j0b"), point_switcher, 1)
+        point_switchers.register(Junction("j1a"), point_switcher, 2)
+        point_switchers.register(Junction("j1b"), point_switcher, 3)
+        point_switchers.start()
+        app.state.point_switchers = point_switchers
 
     # 異常発生ボタン
-    button = Button("/dev/tty.usbserial-1130", callback=receive_from_button)
-    button.start()
-    app.state.button = button
+    if ENABLE_BUTTON:
+        button = Button(BUTTON_PORT, callback=receive_from_button)
+        button.start()
+        app.state.button = button
+
+    def run_sender() -> None:
+        while True:
+            time.sleep(0.5)
+            control.update()
+            if ENABLE_TRAINS:
+                send_to_trains()
+            if ENABLE_POINTS:
+                send_to_points()
+
+    sender_thread = threading.Thread(target=run_sender, daemon=True)
+    sender_thread.start()
+    app.state.sender_thread = sender_thread
 
     return app
 
