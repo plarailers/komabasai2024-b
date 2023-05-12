@@ -1,5 +1,10 @@
-import { Code, Container, DEFAULT_THEME, Stack } from "@mantine/core";
-import { DefaultService, RailwayConfig, RailwayState } from "ptcs_client";
+import { Code, Container, DEFAULT_THEME, Grid, Stack } from "@mantine/core";
+import {
+  DefaultService,
+  RailwayCommand,
+  RailwayConfig,
+  RailwayState,
+} from "ptcs_client";
 import { Layout } from "../components/Layout";
 import { useEffect, useState } from "react";
 import { Railway } from "../components/Railway";
@@ -112,6 +117,9 @@ export const Home: React.FC = () => {
     null
   );
   const [railwayState, setRailwayState] = useState<RailwayState | null>(null);
+  const [railwayCommand, setRailwayCommand] = useState<RailwayCommand | null>(
+    null
+  );
   const [time, setTime] = useState<Date>();
 
   useEffect(() => {
@@ -122,9 +130,12 @@ export const Home: React.FC = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
+      setTime(new Date());
       DefaultService.getState().then((state) => {
         setRailwayState(state);
-        setTime(new Date());
+      });
+      DefaultService.getCommand().then((command) => {
+        setRailwayCommand(command);
       });
     }, 1000);
     return () => {
@@ -142,7 +153,14 @@ export const Home: React.FC = () => {
                 {time?.toLocaleString()}
                 <Railway />
                 <Debugger />
-                <Code block>{JSON.stringify(railwayState, null, 4)}</Code>
+                <Grid>
+                  <Grid.Col span={6}>
+                    <Code block>{JSON.stringify(railwayState, null, 4)}</Code>
+                  </Grid.Col>
+                  <Grid.Col span={6}>
+                    <Code block>{JSON.stringify(railwayCommand, null, 4)}</Code>
+                  </Grid.Col>
+                </Grid>
               </Stack>
             </Container>
           </Layout>

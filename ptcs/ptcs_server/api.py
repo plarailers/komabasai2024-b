@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request
 from ptcs_control import Control
 from ptcs_control.components import Direction, Junction, Position, Section, Train
+from ptcs_control.railway_command import RailwayCommand
 from ptcs_control.railway_config import RailwayConfig
 from ptcs_control.railway_state import RailwayState
 import pydantic
@@ -24,6 +25,12 @@ def get_config(request: Request) -> "RailwayConfig":
 def get_state(request: Request) -> "RailwayState":
     control: Control = request.app.state.control
     return control.get_state()
+
+
+@api_router.get("/command", response_model=RailwayCommand)
+def get_command(request: Request) -> "RailwayCommand":
+    control: Control = request.app.state.control
+    return control.get_command()
 
 
 class MoveTrainParams(pydantic.BaseModel):
