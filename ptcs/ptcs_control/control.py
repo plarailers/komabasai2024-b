@@ -270,7 +270,7 @@ class Control:
 
     def _calc_speed(self) -> None:
         BREAK_ACCLT: float = 10  # ブレーキ減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
-        NORMAL_ACCLT: float = 5  # 常用加減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
+        NORMAL_ACCLT: float = 8  # 常用加減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
         MAX_SPEED: float = 40  # 最高速度[cm/s]  NOTE:将来的には車両のパラメータとしてとして定義
         MERGIN: float = 10  # 停止余裕距離[cm]
 
@@ -393,7 +393,7 @@ class Control:
             # [ATO]急加速しないよう緩やかに速度を増やす
 
             speed_command = self.command.trains[train_id].speed
-            loop_time = 1  # NOTE: 1回の制御ループが何秒で回るか？をあとで入れたい
+            loop_time = 0.1  # NOTE: 1回の制御ループが何秒で回るか？をあとで入れたい
             if stop_speed > speed_command + NORMAL_ACCLT * loop_time:
                 speed_command = speed_command + NORMAL_ACCLT * loop_time
             else:
@@ -624,7 +624,7 @@ class Control:
           - 停止したときに停止目標の位置を過ぎている。
         """
 
-        STOPPAGE_TIME: int = 5  # 列車の停止時間[フレーム] NOTE: 将来的にはパラメータとして定義
+        STOPPAGE_TIME: int = 50  # 列車の停止時間[フレーム] NOTE: 将来的にはパラメータとして定義
 
         for train_id, train_state in self.state.trains.items():
             # 列車より手前にある停止目標を取得する

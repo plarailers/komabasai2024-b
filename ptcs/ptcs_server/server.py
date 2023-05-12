@@ -22,8 +22,9 @@ def create_app() -> FastAPI:
     # control 内部の時計を現実世界の時間において進める
     def run_clock() -> None:
         while True:
-            time.sleep(1)
+            time.sleep(0.1)
             control.tick()
+            control.update()
 
     clock_thread = threading.Thread(target=run_clock, daemon=True)
     clock_thread.start()
@@ -61,7 +62,6 @@ def create_app_with_bridge() -> FastAPI:
         # APS 信号
         elif "pID" in data:
             control.put_train(train_id, bridges.get_position(data["pID"]))
-        control.update()
 
     # 異常発生ボタンからの信号
     def receive_from_button(data: Any) -> None:
@@ -70,7 +70,6 @@ def create_app_with_bridge() -> FastAPI:
             control.block_section(s3)
         else:
             control.unblock_section(s3)
-        control.update()
 
     # すべての列車への信号
     def send_to_trains() -> None:
@@ -116,7 +115,6 @@ def create_app_with_bridge() -> FastAPI:
     def run_sender() -> None:
         while True:
             time.sleep(0.5)
-            control.update()
             if ENABLE_TRAINS:
                 send_to_trains()
             if ENABLE_POINTS:
