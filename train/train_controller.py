@@ -39,16 +39,22 @@ if __name__ == "__main__":
                 send(json_data,ser)
                 old_time = new_time
 
-            if (receive(ser)):
-                recv_data = json.loads(receive(ser))
-                print(recv_data)
-                keys = recv_data.keys()
-                if 'mR' in keys:
-                    motorRotation = recv_data['mR']
-                    mileage_cm_ += motorRotation * GEAR_RATIO * WHEEL_DIAMETER_cm_ * PI
-                if 'pID' in keys:
-                    print(mileage_cm_)
-                    mileage_cm_ = 0
+            recv_message = receive(ser)
+            if (recv_message):
+                try:
+                    recv_data = json.loads(recv_message)
+                    print(recv_data)
+                    keys = recv_data.keys()
+                    if 'mR' in keys:
+                        motorRotation = recv_data['mR']
+                        mileage_cm_ += motorRotation * GEAR_RATIO * WHEEL_DIAMETER_cm_ * PI
+                    if 'pID' in keys:
+                        print(mileage_cm_)
+                        mileage_cm_ = 0
+                except json.decoder.JSONDecodeError:
+                    print("[main] json decode failed. recv_message is: ")
+                    print(recv_message)
+                    pass  # デコードできなかった場合は何もしない
 
     except:
         motorInput = 0
