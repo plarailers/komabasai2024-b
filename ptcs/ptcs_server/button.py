@@ -44,7 +44,7 @@ class Button:
 
         while True:
             # 受信
-            while self.serial.in_waiting:
+            if self.serial.in_waiting:
                 message = self.receive()
                 try:
                     data = json.loads(message)
