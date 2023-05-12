@@ -15,8 +15,8 @@ class PointSwitcher:
 
     def send(self, message: tuple[int, int]) -> None:
         servo_id, servo_state = message
-        self.serial.write(servo_id.to_bytes(1, 'little'))
-        self.serial.write(servo_state.to_bytes(1, 'little'))
+        self.serial.write(servo_id.to_bytes(1, "little"))
+        self.serial.write(servo_state.to_bytes(1, "little"))
         self.serial.flush()
 
     def close(self) -> None:
@@ -30,12 +30,12 @@ PointDict = dict[PointTarget, tuple[PointSwitcher, int]]
 class PointSwitcherManager:
     points: PointDict
     send_queue: queue.Queue[tuple[PointTarget, Any]]
-    thread: Optional[threading.Thread]
+    send_thread: Optional[threading.Thread]
 
     def __init__(self) -> None:
         self.points = {}
         self.send_queue = queue.Queue()
-        self.thread = None
+        self.send_thread = None
 
     def print_ports(self) -> None:
         print("ports:")
@@ -56,26 +56,24 @@ class PointSwitcherManager:
 
     def start(self) -> None:
         """
-        送受信スレッドを開始する。
+        送信スレッドを開始する。
         """
-        thread = threading.Thread(target=self._run, daemon=True)
-        thread.start()
-        self.thread = thread
+        send_thread = threading.Thread(target=self._run_send, daemon=True)
+        send_thread.start()
+        self.send_thread = send_thread
 
-    def _run(self) -> None:
+    def _run_send(self) -> None:
         """
-        スレッドの中身。
+        送信スレッドの中身。
         送信キューにデータがあれば、arduinoに送信する。
         """
 
         while True:
-            # 送信
-            while not self.send_queue.empty():
-                target, direction = self.send_queue.get()
-                logging.info(f"SEND {target} {direction}")
-                point_switcher, servo_no = self.points[target]
-                servo_state = 0 if direction == Direction.STRAIGHT else 1
-                point_switcher.send((servo_no, servo_state))
+            target, direction = self.send_queue.get()  # ブロッキング処理
+            logging.info(f"SEND {target} {direction}")
+            point_switcher, servo_no = self.points[target]
+            servo_state = 0 if direction == Direction.STRAIGHT else 1
+            point_switcher.send((servo_no, servo_state))
 
     def send(self, target: PointTarget, direction: Direction) -> None:
         """
