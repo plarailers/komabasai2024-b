@@ -35,13 +35,15 @@ export const Train: React.FC<TrainProps> = ({ id }) => {
   }
   const angle = (Math.atan2(direction.y, direction.x) / Math.PI) * 180;
 
+  const ui = railwayUI.trains[id];
+
   return (
     <g transform={`translate(${position.x}, ${position.y})`}>
       <g transform={`rotate(${angle})`}>
         <polyline
           points="-5,-5 -5,5 5,5 10,0 5,-5"
-          fill="white"
-          stroke="gray"
+          fill={ui.fill}
+          stroke={ui.stroke}
         />
       </g>
       {state.departure_time != null && (

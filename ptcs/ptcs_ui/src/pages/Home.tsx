@@ -1,4 +1,4 @@
-import { Code, Container, Stack } from "@mantine/core";
+import { Code, Container, DEFAULT_THEME, Stack } from "@mantine/core";
 import { DefaultService, RailwayConfig, RailwayState } from "ptcs_client";
 import { Layout } from "../components/Layout";
 import { useEffect, useState } from "react";
@@ -89,8 +89,14 @@ const ui: RailwayUI = {
     },
   },
   trains: {
-    t0: {},
-    t1: {},
+    t0: {
+      fill: DEFAULT_THEME.colors.yellow[4],
+      stroke: DEFAULT_THEME.colors.yellow[9],
+    },
+    t1: {
+      fill: DEFAULT_THEME.colors.red[5],
+      stroke: DEFAULT_THEME.colors.red[9],
+    },
   },
   stops: {
     stop_0: {},
