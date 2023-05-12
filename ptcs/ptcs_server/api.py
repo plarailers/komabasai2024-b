@@ -39,12 +39,7 @@ def move_train(train_id: str, params: MoveTrainParams, request: Request) -> None
     control: Control = request.app.state.control
     train = Train(train_id)
     control.move_train(train, params.delta)
-    # calc_directionデバック用
-    control.calc_direction()
-    # calc_stopデバック用
-    control.calc_stop()
-    # calc_speedデバック用
-    control.calc_speed()
+    control.update()
 
 
 class PutTrainParams(pydantic.BaseModel):
@@ -61,12 +56,7 @@ def put_train(train_id: str, params: PutTrainParams, request: Request) -> None:
     train = Train(train_id)
     position = Position(params.position_id)
     control.put_train(train, position)
-    # calc_directionデバック用
-    control.calc_direction()
-    # calc_stopデバック用
-    control.calc_stop()
-    # calc_speedデバック用
-    control.calc_speed()
+    control.update()
 
 
 class UpdateJunctionParams(pydantic.BaseModel):
@@ -93,12 +83,7 @@ def block_section(section_id: str, request: Request) -> None:
     control: Control = request.app.state.control
     section = Section(section_id)
     control.block_section(section)
-    # calc_directionデバック用
-    control.calc_direction()
-    # calc_stopデバック用
-    control.calc_stop()
-    # calc_speedデバック用
-    control.calc_speed()
+    control.update()
 
 
 @api_router.post("/state/sections/{section_id}/unblock")
@@ -110,9 +95,4 @@ def unblock_section(section_id: str, request: Request) -> None:
     control: Control = request.app.state.control
     section = Section(section_id)
     control.unblock_section(section)
-    # calc_directionデバック用
-    control.calc_direction()
-    # calc_stopデバック用
-    control.calc_stop()
-    # calc_speedデバック用
-    control.calc_speed()
+    control.update()
