@@ -3,12 +3,13 @@
 PhotoPositionID_Detector::PhotoPositionID_Detector() 
 : 	SENSOR1_PIN(34),
 	SENSOR2_PIN(35),
-	WHITE_THRESHOLD1(1100),
-	WHITE_THRESHOLD2(1750),
+	WHITE_THRESHOLD1(1800),
+	WHITE_THRESHOLD2(1600),
 	LEAVE_THRESHOLD(3950),
 	TIME_OUT(250)
 {
 	this->positionID = 0;
+	this->positionID_stored = 0;
 	this->sensorValue1 = 0;
 	this->sensorValue2 = 0;
 	this->sensorValue1_lpf = 0;
@@ -64,6 +65,8 @@ void PhotoPositionID_Detector::update(int photo_sensor1, int photo_sensor2, floa
 	measure2Clock1();
 
 	if (positionID > 0) {
+		positionID_stored = positionID;
+		
 		Serial.print("PositionID: ");
 		Serial.println(positionID);
 	}
@@ -86,7 +89,7 @@ void PhotoPositionID_Detector::setPhotoRefAnalogValue(int sensorValue1, int sens
 }
 
 int PhotoPositionID_Detector::getPhotoPositionID() {
-    return positionID;
+    return positionID_stored;
 }
 
 void PhotoPositionID_Detector::reset1(){

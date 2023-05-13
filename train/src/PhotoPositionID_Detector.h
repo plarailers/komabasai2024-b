@@ -2,10 +2,6 @@
 #include "Filter.h"
 
 #define BIT 8
-#define THRESHOLD1 1100
-#define THRESHOLD2 1750
-#define THRESHOLDLEAVE 3950
-#define THRESHOLDTIME 250
 
 class PhotoPositionID_Detector
 {
@@ -38,6 +34,7 @@ class PhotoPositionID_Detector
 		void measure2Clock1();              
     public:
 		PhotoPositionID_Detector();
+		int positionID_stored;
 		void update(int, int, float);
         void photoRefSetup();
 		void setPhotoRefAnalogValue(int, int);

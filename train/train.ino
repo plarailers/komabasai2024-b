@@ -4,7 +4,7 @@
 #include "Train.h"
 #include "adcRead.h"
 
-Train train("ESP32-Dr");
+Train train("ESP32-E5");
 
 unsigned int old_time = 0;
 unsigned int new_time = 0;
@@ -76,5 +76,6 @@ void loop(){
     int     photoPositionID = photoPositionID_Detector.getPhotoPositionID();
     if (photoPositionID > 0) {
         train.sendData("pID", photoPositionID);
+        photoPositionID_Detector.positionID_stored = 0;
     }
 }
