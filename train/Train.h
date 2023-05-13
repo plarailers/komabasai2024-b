@@ -89,12 +89,6 @@ void Train::sendData(String key, int value) {
     doc_s[key]=value;
     serializeJson(doc_s,send_data);
     SerialBT.println(send_data);
-    unsigned int flush_start_time = millis();
-    SerialBT.flush();  // SerialBTで正しく送信するために必要
-    // flushに500ms以上要した場合、基地局から切断されたと判断して止まる
-    if (millis() - flush_start_time > 500) {
-        motorInput = 0;
-        Serial.println("[sendData] too long times required for flush()!");
-    }
+    delay(1);
     Serial.println(send_data);
 }

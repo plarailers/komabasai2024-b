@@ -50,6 +50,10 @@ void loop(){
 
     /* モータ駆動 */
     int     motorInput      = train.getMotorInput();
+    // 基地局から切断された時はモータ停止
+    if (!train.SerialBT.connected()) {
+        motorInput = 0;
+    }
     train.moveMotor(motorInput);
 
     /* 100ms毎にモータ回転数を行う */
