@@ -50,9 +50,9 @@ def create_app_with_bridge() -> FastAPI:
     ENABLE_TRAINS = True
     ENABLE_POINTS = True
     ENABLE_BUTTON = True
-    TRAIN_PORTS = {"t0": "COM3", "t1": "COM5"}
-    POINTS_PORT = "/dev/tty.usbserial-1140"
-    BUTTON_PORT = "/dev/tty.usbserial-1130"
+    TRAIN_PORTS = {"t0": "COM5", "t1": "COM3"}
+    POINTS_PORT = "COM9"
+    BUTTON_PORT = "COM6"
 
     # 列車からの信号
     def receive_from_train(train_id: BridgeTarget, data: Any) -> None:
@@ -123,6 +123,12 @@ def create_app_with_bridge() -> FastAPI:
     sender_thread = threading.Thread(target=run_sender, daemon=True)
     sender_thread.start()
     app.state.sender_thread = sender_thread
+
+    @app.on_event("shutdown")
+    def on_shutdown() -> None:
+        print("shutting down...")
+        for train_id in control.command.trains.keys():
+            bridges.send(train_id, {"mI": 0})
 
     return app
 
