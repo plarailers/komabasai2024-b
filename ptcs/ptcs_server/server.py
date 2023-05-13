@@ -61,7 +61,9 @@ def create_app_with_bridge() -> FastAPI:
             control.move_train_mr(train_id, data["mR"])
         # APS 信号
         elif "pID" in data:
-            control.put_train(train_id, bridges.get_position(data["pID"]))
+            position_id = bridges.get_position(data["pID"])
+            if position_id is not None:
+                control.put_train(train_id, position_id)
 
     # 異常発生ボタンからの信号
     def receive_from_button(data: Any) -> None:
@@ -89,9 +91,10 @@ def create_app_with_bridge() -> FastAPI:
         bridges.print_ports()
         bridges.register(Train("t0"), Bridge(TRAIN_PORTS["t0"]))
         bridges.register(Train("t1"), Bridge(TRAIN_PORTS["t1"]))
-        bridges.register_position(Position("position_0"), 173)
-        bridges.register_position(Position("position_1"), 255)
-        bridges.register_position(Position("position_2"), 80)
+        bridges.register_position(Position("position_80"), 80)
+        bridges.register_position(Position("position_173"), 173)
+        bridges.register_position(Position("position_138"), 138)
+        bridges.register_position(Position("position_255"), 255)
         bridges.start()
         app.state.bridges = bridges
 
