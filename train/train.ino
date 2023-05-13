@@ -75,6 +75,8 @@ void loop(){
     /* フォトリフレクタAPS */
     int     photoPositionID = photoPositionID_Detector.getPhotoPositionID();
     if (photoPositionID > 0) {
+        //Serial.print("positionID:");
+        //Serial.println(photoPositionID);
         train.sendData("pID", photoPositionID);
         photoPositionID_Detector.positionID_stored = 0;
     }

@@ -13,7 +13,7 @@ class PhotoPositionID_Detector
 		const int LEAVE_THRESHOLD; //これを上回ったら車両が浮いている
 		const int TIME_OUT; //最後のビット検出時刻からTIME_OUT以上経ったらリセット
 
-		FirstLPF firstLpf;
+		FirstLPF firstLpf1, firstLpf2;
 
 		int positionID;
 		int sensorValue1, sensorValue2;
