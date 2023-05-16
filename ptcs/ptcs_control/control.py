@@ -234,8 +234,8 @@ class Control:
         指定されたjunctionを列車が通過中であり、切り替えてはいけない場合にTrueを返す
         """
 
-        MERGIN: float = 10  # ポイント通過後すぐに切り替えるとまずいので余裕距離をとる
-        TRAIN_LENGTH: float = 40  # 列車の長さ[cm] NOTE: 将来的には車両等のパラメータとして外に出す
+        MERGIN: float = 40  # ポイント通過後すぐに切り替えるとまずいので余裕距離をとる
+        TRAIN_LENGTH: float = 60  # 列車の長さ[cm] NOTE: 将来的には車両等のパラメータとして外に出す
 
         for train_id, train_state in self.state.trains.items():
             # 列車の最後尾からMERGIN離れた位置(tail_section, tail_mileage, tail_target_junction)を取得
@@ -270,7 +270,7 @@ class Control:
 
     def _calc_speed(self) -> None:
         BREAK_ACCLT: float = 10  # ブレーキ減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
-        NORMAL_ACCLT: float = 8  # 常用加減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
+        NORMAL_ACCLT: float = 5  # 常用加減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
         MAX_SPEED: float = 40  # 最高速度[cm/s]  NOTE:将来的には車両のパラメータとしてとして定義
         MERGIN: float = 10  # 停止余裕距離[cm]
 
@@ -463,7 +463,7 @@ class Control:
         ジャンクションの開通方向によっては先行列車に到達できない場合があり、そのときはNoneを返す。
         """
 
-        TRAIN_LENGTH: float = 40  # 列車の長さ[cm] NOTE:将来的には車両のパラメータとして定義
+        TRAIN_LENGTH: float = 60  # 列車の長さ[cm] NOTE:将来的には車両のパラメータとして定義
 
         train_state = self.state.trains[train]
         section_config = self.config.sections[train_state.current_section]
