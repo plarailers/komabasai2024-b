@@ -4,7 +4,7 @@
 #include "Train.h"
 #include "adcRead.h"
 
-Train train("ESP32-Dr");
+Train train("ESP32-E5");
 
 unsigned int old_time = 0;
 unsigned int new_time = 0;
@@ -41,7 +41,7 @@ void setup() {
     Serial.println("MFRC522 Setup done!!");
 
     /* フォトリフレクタ セットアップ */
-    train.photoPositionID_Detector.photoRefSetup();
+    photoPositionID_Detector.photoRefSetup();
     Serial.println("PhotoRef Setup done!!");
 
 }
@@ -77,8 +77,11 @@ void loop(){
     if (positionID > 0) train.sendData("pID", positionID);
 
     /* フォトリフレクタAPS */
-    // train.photoPositionID_Detector.setPhotoRefAnalogValue(getPhoto1(), getPhoto2());
-    // int     photoPositionID = train.photoPositionID_Detector.getPhotoPositionID();
-    // if (photoPositionID > 0) train.sendData("pID", photoPositionID);
-
+    int     photoPositionID = photoPositionID_Detector.getPhotoPositionID();
+    if (photoPositionID > 0) {
+        //Serial.print("positionID:");
+        //Serial.println(photoPositionID);
+        train.sendData("pID", photoPositionID);
+        photoPositionID_Detector.positionID_stored = 0;
+    }
 }

@@ -7,6 +7,7 @@
 #include "src/Filter.h"
 #include "src/HighSpeedAnalogRead.h"
 #include "src/MotorRotationDetector.h"
+#include "src/PhotoPositionID_Detector.h"
 
 #define SERIAL_LEN 16
 
@@ -48,6 +49,7 @@ int photo_sensor2 = 0;  // フォトリフレクタの読み値2(0～4096)
 
 HighSpeedAnalogRead adc;
 MotorRotationDetector motorRotationDetector;
+PhotoPositionID_Detector photoPositionID_Detector;
 
 /**
  * @brief ADCによる1サンプリングが完了したときに実行される関数。
@@ -80,6 +82,7 @@ void adcReadDone(uint16_t* data, size_t chNum) {
     }
   }
   motorRotationDetector.update(current_A, 1000000 / ADC_SAMPLING_RATE);
+  photoPositionID_Detector.update(photo_sensor1, photo_sensor2, 1.0 / ADC_SAMPLING_RATE);
 }
 
 int getPhoto1() {

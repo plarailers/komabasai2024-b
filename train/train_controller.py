@@ -23,7 +23,7 @@ def receive(ser):
 
 if __name__ == "__main__": 
     try:
-        port = '/dev/tty.usbserial-144130' # ポート名は環境に合わせて変更する
+        port = 'COM7' # ポート名は環境に合わせて変更する
         baudrate = 115200
         ser = serial.Serial()
         ser.port = port
@@ -41,7 +41,7 @@ if __name__ == "__main__":
             dt = new_time - old_time
 
             if dt > 1:
-                motorInput = 100
+                motorInput = 120
                 json_data=f'{{"mI":{motorInput}}}'
                 # print(json_data)
                 send(json_data,ser)
