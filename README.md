@@ -1,6 +1,6 @@
-# 第96回五月祭
+# Maker Faire Tokyo 2023
 
-開催日：2023年5月??日～??日
+開催日：2023年10月14日（土）～15日（日）
 
 ## 内容
 
@@ -16,5 +16,5 @@
 ## インストール
 
 ```sh
-git clone https://github.com/plarailers/gogatsusai2023.git
+git clone https://github.com/plarailers/mft2023.git
 ```
