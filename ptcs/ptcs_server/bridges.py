@@ -53,8 +53,8 @@ class BridgeManager:
         """
         self.positions[sensor_id] = position_id
 
-    def get_position(self, sensor_id: int) -> Position:
-        return self.positions[sensor_id]
+    def get_position(self, sensor_id: int) -> Position | None:
+        return self.positions.get(sensor_id)
 
     def start(self) -> None:
         """
@@ -77,9 +77,10 @@ class BridgeManager:
         while True:
             target, data = self.send_queue.get()  # ブロッキング処理
             logging.info(f"SEND {target} {data}")
-            bridge = self.bridges[target]
-            message = json.dumps(data)
-            bridge.send(message)
+            bridge = self.bridges.get(target)
+            if bridge is not None:
+                message = json.dumps(data)
+                bridge.send(message)
 
     def _run_recv(self) -> None:
         """

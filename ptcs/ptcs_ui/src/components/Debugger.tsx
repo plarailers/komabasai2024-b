@@ -9,7 +9,6 @@ export const Debugger: React.FC = () => {
       <Group>
         <MoveTrainButton id="t0" delta={10} />
         <MoveTrainButton id="t1" delta={10} />
-        <PutTrainButton id="t0" positionId="position_0" />
         <BlockSectionButton id="s3" />
       </Group>
     </div>

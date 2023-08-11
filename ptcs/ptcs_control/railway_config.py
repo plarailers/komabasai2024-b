@@ -169,9 +169,10 @@ def init_config() -> RailwayConfig:
     stop_3 = Stop("stop_3")
     stop_4 = Stop("stop_4")
 
-    position_0 = Position("position_0")
-    position_1 = Position("position_1")
-    position_2 = Position("position_2")
+    position_80 = Position("position_80")
+    position_138 = Position("position_138")
+    position_173 = Position("position_173")
+    position_255 = Position("position_255")
 
     config.define_junctions(
         (j0a,),
@@ -190,8 +191,8 @@ def init_config() -> RailwayConfig:
     )
 
     config.define_trains(
-        (t0, 70, 130, 40.0, 0.1562),  # Dr
-        (t1, 70, 130, 40.0, 0.1562),  # E6
+        (t0, 70, 130, 40.0, 0.2435 * 0.9),  # Dr
+        (t1, 90, 130, 40.0, 0.1919 * 1.1 * 0.9),  # E6
         # E5はAPS故障につきまだ運用しない
     )
 
@@ -205,18 +206,19 @@ def init_config() -> RailwayConfig:
     config.stops.update(
         {
             stop_0: StopConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*4.5),
-            stop_1: StopConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*11.5 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
-            stop_2: StopConfig(section=s1, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*0.5),
-            stop_3: StopConfig(section=s1, target_junction=j1b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*2.5),
-            stop_4: StopConfig(section=s3, target_junction=j0a, mileage=WATARI_RAIL_A*1 + STRAIGHT_RAIL*2.5),
+            stop_1: StopConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*10.0 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
+            stop_2: StopConfig(section=s1, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*1.5),
+            stop_3: StopConfig(section=s1, target_junction=j1b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*1.5),
+            stop_4: StopConfig(section=s3, target_junction=j0a, mileage=WATARI_RAIL_A*1 + STRAIGHT_RAIL*1.5),
         }
     )
 
     config.positions.update(
         {
-            position_0: PositionConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*8.5 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
-            position_1: PositionConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*12.5 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
-            position_2: PositionConfig(section=s2, target_junction=j1a, mileage=WATARI_RAIL_A*1 + STRAIGHT_RAIL*4.5 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
+            position_173: PositionConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*2.5),
+            position_138: PositionConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*9.5 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
+            position_80: PositionConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*13.5 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
+            position_255: PositionConfig(section=s2, target_junction=j1a, mileage=WATARI_RAIL_A*1 + STRAIGHT_RAIL*5.5 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
         }
     )
 

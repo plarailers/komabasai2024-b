@@ -234,8 +234,8 @@ class Control:
         指定されたjunctionを列車が通過中であり、切り替えてはいけない場合にTrueを返す
         """
 
-        MERGIN: float = 10  # ポイント通過後すぐに切り替えるとまずいので余裕距離をとる
-        TRAIN_LENGTH: float = 40  # 列車の長さ[cm] NOTE: 将来的には車両等のパラメータとして外に出す
+        MERGIN: float = 40  # ポイント通過後すぐに切り替えるとまずいので余裕距離をとる
+        TRAIN_LENGTH: float = 60  # 列車の長さ[cm] NOTE: 将来的には車両等のパラメータとして外に出す
 
         for train_id, train_state in self.state.trains.items():
             # 列車の最後尾からMERGIN離れた位置(tail_section, tail_mileage, tail_target_junction)を取得
@@ -393,7 +393,7 @@ class Control:
             # [ATO]急加速しないよう緩やかに速度を増やす
 
             speed_command = self.command.trains[train_id].speed
-            loop_time = 1  # NOTE: 1回の制御ループが何秒で回るか？をあとで入れたい
+            loop_time = 0.1  # NOTE: 1回の制御ループが何秒で回るか？をあとで入れたい
             if stop_speed > speed_command + NORMAL_ACCLT * loop_time:
                 speed_command = speed_command + NORMAL_ACCLT * loop_time
             else:
@@ -463,7 +463,7 @@ class Control:
         ジャンクションの開通方向によっては先行列車に到達できない場合があり、そのときはNoneを返す。
         """
 
-        TRAIN_LENGTH: float = 40  # 列車の長さ[cm] NOTE:将来的には車両のパラメータとして定義
+        TRAIN_LENGTH: float = 60  # 列車の長さ[cm] NOTE:将来的には車両のパラメータとして定義
 
         train_state = self.state.trains[train]
         section_config = self.config.sections[train_state.current_section]
@@ -624,7 +624,7 @@ class Control:
           - 停止したときに停止目標の位置を過ぎている。
         """
 
-        STOPPAGE_TIME: int = 5  # 列車の停止時間[フレーム] NOTE: 将来的にはパラメータとして定義
+        STOPPAGE_TIME: int = 50  # 列車の停止時間[フレーム] NOTE: 将来的にはパラメータとして定義
 
         for train_id, train_state in self.state.trains.items():
             # 列車より手前にある停止目標を取得する

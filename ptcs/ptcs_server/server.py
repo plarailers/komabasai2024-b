@@ -22,8 +22,9 @@ def create_app() -> FastAPI:
     # control 内部の時計を現実世界の時間において進める
     def run_clock() -> None:
         while True:
-            time.sleep(1)
+            time.sleep(0.1)
             control.tick()
+            control.update()
 
     clock_thread = threading.Thread(target=run_clock, daemon=True)
     clock_thread.start()
@@ -49,9 +50,9 @@ def create_app_with_bridge() -> FastAPI:
     ENABLE_TRAINS = True
     ENABLE_POINTS = True
     ENABLE_BUTTON = True
-    TRAIN_PORTS = {"t0": "COM3", "t1": "COM5"}
-    POINTS_PORT = "/dev/tty.usbserial-1140"
-    BUTTON_PORT = "/dev/tty.usbserial-1130"
+    TRAIN_PORTS = {"t0": "COM5", "t1": "COM3"}
+    POINTS_PORT = "COM9"
+    BUTTON_PORT = "COM6"
 
     # 列車からの信号
     def receive_from_train(train_id: BridgeTarget, data: Any) -> None:
@@ -60,8 +61,9 @@ def create_app_with_bridge() -> FastAPI:
             control.move_train_mr(train_id, data["mR"])
         # APS 信号
         elif "pID" in data:
-            control.put_train(train_id, bridges.get_position(data["pID"]))
-        control.update()
+            position_id = bridges.get_position(data["pID"])
+            if position_id is not None:
+                control.put_train(train_id, position_id)
 
     # 異常発生ボタンからの信号
     def receive_from_button(data: Any) -> None:
@@ -70,7 +72,6 @@ def create_app_with_bridge() -> FastAPI:
             control.block_section(s3)
         else:
             control.unblock_section(s3)
-        control.update()
 
     # すべての列車への信号
     def send_to_trains() -> None:
@@ -90,9 +91,10 @@ def create_app_with_bridge() -> FastAPI:
         bridges.print_ports()
         bridges.register(Train("t0"), Bridge(TRAIN_PORTS["t0"]))
         bridges.register(Train("t1"), Bridge(TRAIN_PORTS["t1"]))
-        bridges.register_position(Position("position_0"), 173)
-        bridges.register_position(Position("position_1"), 255)
-        bridges.register_position(Position("position_2"), 80)
+        bridges.register_position(Position("position_80"), 80)
+        bridges.register_position(Position("position_173"), 173)
+        bridges.register_position(Position("position_138"), 138)
+        bridges.register_position(Position("position_255"), 255)
         bridges.start()
         app.state.bridges = bridges
 
@@ -116,7 +118,6 @@ def create_app_with_bridge() -> FastAPI:
     def run_sender() -> None:
         while True:
             time.sleep(0.5)
-            control.update()
             if ENABLE_TRAINS:
                 send_to_trains()
             if ENABLE_POINTS:
@@ -125,6 +126,12 @@ def create_app_with_bridge() -> FastAPI:
     sender_thread = threading.Thread(target=run_sender, daemon=True)
     sender_thread.start()
     app.state.sender_thread = sender_thread
+
+    @app.on_event("shutdown")
+    def on_shutdown() -> None:
+        print("shutting down...")
+        for train_id in control.command.trains.keys():
+            bridges.send(train_id, {"mI": 0})
 
     return app
 
