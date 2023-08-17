@@ -2,7 +2,6 @@
 
 #include <BluetoothSerial.h>
 #include <ArduinoJson.h>
-#include "src/StopSensor.h"
 #include "src/PositionID_Detector.h"
 
 #define BUFFER_SIZE 32
