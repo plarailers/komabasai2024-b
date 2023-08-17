@@ -4,9 +4,7 @@ BluetoothSerial SerialBT;
 /*------------------------------------------*/
 const int INPUT_PIN = A18; // モーターのピンGPIO25
 const int SENSOR_PIN = 4;  // ホールセンサーのピンGPIO4
-int INPUT_MAX = 255;  // inputの上限
-int INPUT_MIN = 0;    // inputの下限
-int input = 0;  // モータへの入力(0～255)
+int motorInput = 0;  // モータへの入力(0～255)
 int sensor_value = LOW;
 int prev_sensor_value = LOW;
 /*---------------------------------------------*/
