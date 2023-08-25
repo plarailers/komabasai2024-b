@@ -28,6 +28,8 @@ python main.py
 
 - ESP32 のアドレス
   - E5: `9c:9c:1f:cb:d9:f2`
+  - E6: `24:62:ab:e3:67:9a`
+  - Dr: `9c:9c:1f:cf:ea:de`
 
 - Service ID と Characteristic ID (勝手に決めてよい)
   - Service ID: `63cb613b-6562-4aa5-b602-030f103834a4`
