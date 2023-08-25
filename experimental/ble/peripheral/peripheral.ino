@@ -16,7 +16,7 @@ std::string getTrainName() {
     case 0x9867e3ab6224:
       return "E6";
     case 0xdceacf1f9c9c:
-      return "Dr";
+      return "Dr.";
     default:
       return "unknown";
   }
