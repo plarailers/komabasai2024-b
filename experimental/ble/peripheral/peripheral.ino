@@ -1,7 +1,7 @@
 #include <BLEDevice.h>
 
-#define SERVICE_UUID "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
-#define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
+static const char SERVICE_UUID[] = "63cb613b-6562-4aa5-b602-030f103834a4";
+static const char CHARACTERISTIC_UUID[] = "88c9d9ae-bd53-4ab3-9f42-b3547575a743";
 
 BLEServer *pServer = NULL;
 BLEService *pService = NULL;

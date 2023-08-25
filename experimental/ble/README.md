@@ -30,8 +30,8 @@ python main.py
   - E5: `9c:9c:1f:cb:d9:f2`
 
 - Service ID と Characteristic ID (勝手に決めてよい)
-  - Service ID: `4fafc201-1fb5-459e-8fcc-c5c9c331914b`
-  - Characteristic ID: `beb5483e-36e1-4688-b7f5-ea07361b26a8`
+  - Service ID: `63cb613b-6562-4aa5-b602-030f103834a4`
+  - Characteristic ID: `88c9d9ae-bd53-4ab3-9f42-b3547575a743`
 
 - ペリフェラル側ライブラリ
   - https://github.com/espressif/arduino-esp32/tree/master/libraries/BLE
