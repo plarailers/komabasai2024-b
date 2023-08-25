@@ -3,14 +3,25 @@
 #define SERVICE_UUID "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
 #define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
 
-BLEServer *server = NULL;
-BLEService *service = NULL;
-BLECharacteristic *characteristic = NULL;
-BLEAdvertising *advertising = NULL;
+BLEServer *pServer = NULL;
+BLEService *pService = NULL;
+BLECharacteristic *pCharacteristic = NULL;
+BLEAdvertising *pAdvertising = NULL;
+
+class MyServerCallbacks : public BLEServerCallbacks {
+  void onConnect(BLEServer* pServer) {
+    Serial.println("Connected");
+  }
+
+  void onDisconnect(BLEServer *pServer) {
+    Serial.println("Disconnected");
+    pServer->startAdvertising();
+  }
+};
 
 class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
-  void onWrite(BLECharacteristic *characteristic) {
-    std::string value = characteristic->getValue();
+  void onWrite(BLECharacteristic *pCharacteristic) {
+    std::string value = pCharacteristic->getValue();
 
     if (value.length() > 0) {
       Serial.print("Written: ");
@@ -26,26 +37,29 @@ void setup() {
   Serial.begin(115200);
   Serial.println("Starting BLE");
 
-  BLEDevice::init("Device Hoge");
+  BLEDevice::init("ESPlarail");
 
   Serial.print("Address: ");
   Serial.println(BLEDevice::getAddress().toString().c_str());
 
-  server = BLEDevice::createServer();
-  service = server->createService(SERVICE_UUID);
-  characteristic = service->createCharacteristic(
+  pServer = BLEDevice::createServer();
+  pServer->setCallbacks(new MyServerCallbacks());
+
+  pService = pServer->createService(SERVICE_UUID);
+
+  pCharacteristic = pService->createCharacteristic(
     CHARACTERISTIC_UUID,
     BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE
   );
-  characteristic->setCallbacks(new MyCharacteristicCallbacks());
-  characteristic->setValue("Characteristic Hoge");
+  pCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
+  pCharacteristic->setValue("Initial value");
 
-  service->start();
+  pService->start();
 
-  advertising = BLEDevice::getAdvertising();
-  advertising->addServiceUUID(SERVICE_UUID);
-  advertising->start();
-  Serial.println("Advertising");
+  pAdvertising = BLEDevice::getAdvertising();
+  pAdvertising->addServiceUUID(SERVICE_UUID);
+  pAdvertising->start();
+  Serial.println("Advertising started");
 }
 
 void loop() {
