@@ -8,6 +8,20 @@ BLEService *pService = NULL;
 BLECharacteristic *pCharacteristic = NULL;
 BLEAdvertising *pAdvertising = NULL;
 
+std::string getTrainName() {
+  uint64_t chipId = ESP.getEfuseMac();
+  switch (chipId) {
+    case 0xf0d9cb1f9c9c:
+      return "E5";
+    case 0x9867e3ab6224:
+      return "E6";
+    case 0xdceacf1f9c9c:
+      return "Dr";
+    default:
+      return "unknown";
+  }
+}
+
 class MyServerCallbacks : public BLEServerCallbacks {
   void onConnect(BLEServer* pServer) {
     Serial.println("Connected");
@@ -37,7 +51,10 @@ void setup() {
   Serial.begin(115200);
   Serial.println("Starting BLE");
 
-  BLEDevice::init("ESPlarail");
+  Serial.print("Chip ID: ");
+  Serial.println(ESP.getEfuseMac());
+
+  BLEDevice::init("ESPlarail (" + getTrainName() + ")");
 
   Serial.print("Address: ");
   Serial.println(BLEDevice::getAddress().toString().c_str());

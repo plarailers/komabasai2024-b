@@ -26,7 +26,12 @@ python main.py
 
 ## 開発する人向け情報
 
-- ESP32 のアドレス
+- ESP32 のチップ ID
+  - E5: 0xf0d9cb1f9c9c
+  - E6: 0x9867e3ab6224
+  - Dr: 0xdceacf1f9c9c
+
+- ESP32 の BLE デバイスアドレス
   - E5: `9c:9c:1f:cb:d9:f2`
   - E6: `24:62:ab:e3:67:9a`
   - Dr: `9c:9c:1f:cf:ea:de`
