@@ -2,7 +2,7 @@ name: Lint and format ptcs
 
 on:
   pull_request:
-    branches-ignore:
+    branches:
       - main
     paths:
       - '.github/workflows/ptcs-ci.yml'
