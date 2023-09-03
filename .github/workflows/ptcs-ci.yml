@@ -45,9 +45,14 @@ jobs:
         run: |
           poetry install
 
-      - name: Format
+      - name: Sort imports
         run: |
           poetry run isort ptcs_control ptcs_server usb_bt_bridge 2>&1 | reviewdog -reporter=github-pr-review -f=isort
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Format
+        run: |
           poetry run black ptcs_control ptcs_server usb_bt_bridge 2>&1 | reviewdog -reporter=github-pr-review -f=black
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -57,9 +62,14 @@ jobs:
         with:
           default_author: github_actions
 
-      - name: Lint and typecheck
+      - name: Lint
         run: |
           poetry run flake8 ptcs_control ptcs_server usb_bt_bridge 2>&1 | reviewdog -reporter=github-pr-review -f=flake8
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Typecheck
+        run: |
           poetry run mypy ptcs_control ptcs_server usb_bt_bridge 2>&1 | reviewdog -reporter=github-pr-review -f=mypy
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
