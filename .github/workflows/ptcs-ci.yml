@@ -1,7 +1,7 @@
 name: Lint and format ptcs
 
 on:
-  push:
+  pull_request:
     branches-ignore:
       - main
     paths:
