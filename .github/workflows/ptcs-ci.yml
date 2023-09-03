@@ -5,6 +5,7 @@ on:
     branches-ignore:
       - main
     paths:
+      - '.github/workflows/ptcs-ci.yml'
       - 'ptcs/ptcs_control/**'
       - 'ptcs/ptcs_server/**'
       - 'ptcs/usb_bt_bridge/**'
