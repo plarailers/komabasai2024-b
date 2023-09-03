@@ -24,6 +24,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - uses: reviewdog/action-setup@v1
+        with:
+          reviewdog_version: latest
+
       - name: Setup Python 3.11
         uses: actions/setup-python@v4
         with:
@@ -43,8 +47,10 @@ jobs:
 
       - name: Format
         run: |
-          poetry run isort ptcs_control ptcs_server usb_bt_bridge
-          poetry run black ptcs_control ptcs_server usb_bt_bridge
+          poetry run isort ptcs_control ptcs_server usb_bt_bridge | reviewdog -reporter=github-pr-review -f=isort
+          poetry run black ptcs_control ptcs_server usb_bt_bridge | reviewdog -reporter=github-pr-review -f=black
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Add and commit
         uses: EndBug/add-and-commit@v9
@@ -53,5 +59,7 @@ jobs:
 
       - name: Lint and typecheck
         run: |
-          poetry run flake8 ptcs_control ptcs_server usb_bt_bridge
-          poetry run mypy ptcs_control ptcs_server usb_bt_bridge
+          poetry run flake8 ptcs_control ptcs_server usb_bt_bridge | reviewdog -reporter=github-pr-review -f=flake8
+          poetry run mypy ptcs_control ptcs_server usb_bt_bridge | reviewdog -reporter=github-pr-review -f=mypy
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
