@@ -1,7 +1,6 @@
 from enum import Enum
 from typing import NewType
 
-
 Junction = NewType("Junction", str)
 """
 線路の分岐・合流点を表す識別子

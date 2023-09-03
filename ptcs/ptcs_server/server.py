@@ -2,16 +2,19 @@ import logging
 import threading
 import time
 from typing import Any
+
+import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from usb_bt_bridge import Bridge
-from .bridges import BridgeManager, BridgeTarget
-from .points import PointSwitcher, PointSwitcherManager
-from .button import Button
+
 from ptcs_control import Control
-from ptcs_control.components import Position, Train, Junction, Section
-import uvicorn
+from ptcs_control.components import Junction, Position, Section, Train
+from usb_bt_bridge import Bridge
+
 from .api import api_router
+from .bridges import BridgeManager, BridgeTarget
+from .button import Button
+from .points import PointSwitcher, PointSwitcherManager
 
 
 def create_app() -> FastAPI:

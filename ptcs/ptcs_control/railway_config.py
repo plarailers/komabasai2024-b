@@ -1,11 +1,13 @@
 import math
+
 from pydantic import BaseModel, Field
+
 from .components import Joint, Junction, Position, Section, Station, Stop, Train
 from .constants import (
-    STRAIGHT_RAIL,
+    CURVE_RAIL,
     STRAIGHT_1_4_RAIL,
     STRAIGHT_1_6_RAIL,
-    CURVE_RAIL,
+    STRAIGHT_RAIL,
     U_TURN_RAIL,
     WATARI_RAIL_A,
     WATARI_RAIL_B,
@@ -60,9 +62,7 @@ class RailwayConfig(BaseModel):
                 length=length,
             )
 
-    def define_trains(
-        self, *train_tuples: tuple["Train", int, int, float, float]
-    ) -> None:
+    def define_trains(self, *train_tuples: tuple["Train", int, int, float, float]) -> None:
         for (
             train_id,
             min_input,
@@ -111,10 +111,7 @@ class TrainConfig(BaseModel):
         elif speed <= 0:
             return 0
         else:
-            return math.floor(
-                self.min_input
-                + (self.max_input - self.min_input) * speed / self.max_speed
-            )
+            return math.floor(self.min_input + (self.max_input - self.min_input) * speed / self.max_speed)
 
 
 class StationConfig(BaseModel):
@@ -182,10 +179,24 @@ def init_config() -> RailwayConfig:
     )
 
     config.define_sections(
-        (s0, j0a, Joint.CONVERGING, j0b, Joint.THROUGH, WATARI_RAIL_B*1 + STRAIGHT_RAIL*14 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1 + WATARI_RAIL_A*1),
-        (s1, j0b, Joint.CONVERGING, j1b, Joint.CONVERGING, STRAIGHT_RAIL*3 + WATARI_RAIL_B*2),
-        (s2, j1b, Joint.THROUGH, j1a, Joint.CONVERGING, WATARI_RAIL_A*1 + STRAIGHT_RAIL*6 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1 + WATARI_RAIL_B*1),
-        (s3, j1a, Joint.THROUGH, j0a, Joint.THROUGH, WATARI_RAIL_A*2 + STRAIGHT_RAIL*3),
+        (
+            s0,
+            j0a,
+            Joint.CONVERGING,
+            j0b,
+            Joint.THROUGH,
+            WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 14 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1 + WATARI_RAIL_A * 1,
+        ),
+        (s1, j0b, Joint.CONVERGING, j1b, Joint.CONVERGING, STRAIGHT_RAIL * 3 + WATARI_RAIL_B * 2),
+        (
+            s2,
+            j1b,
+            Joint.THROUGH,
+            j1a,
+            Joint.CONVERGING,
+            WATARI_RAIL_A * 1 + STRAIGHT_RAIL * 6 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1 + WATARI_RAIL_B * 1,
+        ),
+        (s3, j1a, Joint.THROUGH, j0a, Joint.THROUGH, WATARI_RAIL_A * 2 + STRAIGHT_RAIL * 3),
         (s4, j0a, Joint.DIVERGING, j0b, Joint.DIVERGING, WATARI_RAIL_C),
         (s5, j1a, Joint.DIVERGING, j1b, Joint.DIVERGING, WATARI_RAIL_C),
     )
@@ -205,20 +216,38 @@ def init_config() -> RailwayConfig:
 
     config.stops.update(
         {
-            stop_0: StopConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*4.5),
-            stop_1: StopConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*10.0 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
-            stop_2: StopConfig(section=s1, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*1.5),
-            stop_3: StopConfig(section=s1, target_junction=j1b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*1.5),
-            stop_4: StopConfig(section=s3, target_junction=j0a, mileage=WATARI_RAIL_A*1 + STRAIGHT_RAIL*1.5),
+            stop_0: StopConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 4.5),
+            stop_1: StopConfig(
+                section=s0,
+                target_junction=j0b,
+                mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 10.0 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
+            ),
+            stop_2: StopConfig(section=s1, target_junction=j0b, mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 1.5),
+            stop_3: StopConfig(section=s1, target_junction=j1b, mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 1.5),
+            stop_4: StopConfig(section=s3, target_junction=j0a, mileage=WATARI_RAIL_A * 1 + STRAIGHT_RAIL * 1.5),
         }
     )
 
     config.positions.update(
         {
-            position_173: PositionConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*2.5),
-            position_138: PositionConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*9.5 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
-            position_80: PositionConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B*1 + STRAIGHT_RAIL*13.5 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
-            position_255: PositionConfig(section=s2, target_junction=j1a, mileage=WATARI_RAIL_A*1 + STRAIGHT_RAIL*5.5 + CURVE_RAIL*8 + STRAIGHT_1_4_RAIL*1),
+            position_173: PositionConfig(
+                section=s0, target_junction=j0b, mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 2.5
+            ),
+            position_138: PositionConfig(
+                section=s0,
+                target_junction=j0b,
+                mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 9.5 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
+            ),
+            position_80: PositionConfig(
+                section=s0,
+                target_junction=j0b,
+                mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 13.5 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
+            ),
+            position_255: PositionConfig(
+                section=s2,
+                target_junction=j1a,
+                mileage=WATARI_RAIL_A * 1 + STRAIGHT_RAIL * 5.5 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
+            ),
         }
     )
 
