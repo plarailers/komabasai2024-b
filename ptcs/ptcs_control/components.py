@@ -1,32 +1,32 @@
 from enum import Enum
 from typing import NewType
 
-Junction = NewType("Junction", str)
+JunctionId = NewType("JunctionId", str)
 """
 線路の分岐・合流点を表す識別子
 """
 
-Section = NewType("Section", str)
+SectionId = NewType("SectionId", str)
 """
 線路の区間を表す識別子
 """
 
-Train = NewType("Train", str)
+TrainId = NewType("TrainId", str)
 """
 列車を表す識別子
 """
 
-Station = NewType("Station", str)
+StationId = NewType("StationId", str)
 """
 駅を表す識別子
 """
 
-Stop = NewType("Stop", str)
+StopId = NewType("StopId", str)
 """
 停止目標を表す識別子
 """
 
-Position = NewType("Position", str)
+PositionId = NewType("PositionId", str)
 """
 センサー位置を表す識別子
 """

@@ -2,7 +2,13 @@ import pydantic
 from fastapi import APIRouter, Request
 
 from ptcs_control import Control
-from ptcs_control.components import Direction, Junction, Position, Section, Train
+from ptcs_control.components import (
+    Direction,
+    JunctionId,
+    PositionId,
+    SectionId,
+    TrainId,
+)
 from ptcs_control.railway_command import RailwayCommand
 from ptcs_control.railway_config import RailwayConfig
 from ptcs_control.railway_state import RailwayState
@@ -44,7 +50,7 @@ def move_train(train_id: str, params: MoveTrainParams, request: Request) -> None
     デバッグ用。
     """
     control: Control = request.app.state.control
-    train = Train(train_id)
+    train = TrainId(train_id)
     control.move_train(train, params.delta)
     control.update()
 
@@ -60,8 +66,8 @@ def put_train(train_id: str, params: PutTrainParams, request: Request) -> None:
     デバッグ用。
     """
     control: Control = request.app.state.control
-    train = Train(train_id)
-    position = Position(params.position_id)
+    train = TrainId(train_id)
+    position = PositionId(params.position_id)
     control.put_train(train, position)
     control.update()
 
@@ -77,7 +83,7 @@ def update_junction(junction_id: str, params: UpdateJunctionParams, request: Req
     デバッグ用。
     """
     control: Control = request.app.state.control
-    junction = Junction(junction_id)
+    junction = JunctionId(junction_id)
     control.update_junction(junction, params.direction)
 
 
@@ -88,7 +94,7 @@ def block_section(section_id: str, request: Request) -> None:
     デバッグ用。
     """
     control: Control = request.app.state.control
-    section = Section(section_id)
+    section = SectionId(section_id)
     control.block_section(section)
     control.update()
 
@@ -100,6 +106,6 @@ def unblock_section(section_id: str, request: Request) -> None:
     デバッグ用。
     """
     control: Control = request.app.state.control
-    section = Section(section_id)
+    section = SectionId(section_id)
     control.unblock_section(section)
     control.update()

@@ -1,6 +1,14 @@
 import math
 
-from .components import Direction, Joint, Junction, Position, Section, Stop, Train
+from .components import (
+    Direction,
+    Joint,
+    JunctionId,
+    PositionId,
+    SectionId,
+    StopId,
+    TrainId,
+)
 from .railway_command import RailwayCommand, init_command
 from .railway_config import RailwayConfig, init_config
 from .railway_state import RailwayState, init_state
@@ -35,40 +43,40 @@ class Control:
         """
         self.state.time += increment
 
-    def block_section(self, section_id: "Section") -> None:
+    def block_section(self, section_id: "SectionId") -> None:
         """
         指定された区間上に障害物を発生させ、使えなくさせる。
         """
         self.state.sections[section_id].blocked = True
 
-    def unblock_section(self, section_id: "Section") -> None:
+    def unblock_section(self, section_id: "SectionId") -> None:
         """
         指定された区間上の障害物を取り除き、使えるようにする。
         """
         self.state.sections[section_id].blocked = False
 
-    def toggle_junction(self, junction_id: "Junction", direction: "Direction") -> None:
+    def toggle_junction(self, junction_id: "JunctionId", direction: "Direction") -> None:
         """
         指定された分岐・合流点の方向を指示する。
         """
 
         self.command.junctions[junction_id] = direction
 
-    def set_speed(self, train_id: "Train", speed: float) -> None:
+    def set_speed(self, train_id: "TrainId", speed: float) -> None:
         """
         指定された列車の速度を指示する。
         """
 
         self.command.trains[train_id].speed = speed
 
-    def update_junction(self, junction_id: "Junction", direction: "Direction") -> None:
+    def update_junction(self, junction_id: "JunctionId", direction: "Direction") -> None:
         """
         指定された分岐・合流点の方向を更新する。
         """
 
         self.state.junctions[junction_id].direction = direction
 
-    def move_train_mr(self, train_id: "Train", motor_rotation: int) -> None:
+    def move_train_mr(self, train_id: "TrainId", motor_rotation: int) -> None:
         """
         指定された列車をモータ motor_rotation 回転分だけ進める
         """
@@ -76,7 +84,7 @@ class Control:
         delta_per_motor_rotation = self.config.trains[train_id].delta_per_motor_rotation
         self.move_train(train_id, motor_rotation * delta_per_motor_rotation)
 
-    def move_train(self, train_id: "Train", delta: float) -> None:
+    def move_train(self, train_id: "TrainId", delta: float) -> None:
         """
         指定された列車を距離 delta 分だけ進める。
         """
@@ -113,7 +121,7 @@ class Control:
             else:
                 raise
 
-    def put_train(self, train_id: "Train", position: "Position") -> None:
+    def put_train(self, train_id: "TrainId", position: "PositionId") -> None:
         """
         指定された列車の位置を修正する。
         TODO: 向きを割り出すためにどうするか
@@ -140,18 +148,18 @@ class Control:
         """
 
         # junction定義
-        j0a = Junction("j0")
-        j0b = Junction("j1")
-        j1a = Junction("j2")
-        j1b = Junction("j3")
+        j0a = JunctionId("j0")
+        j0b = JunctionId("j1")
+        j1a = JunctionId("j2")
+        j1b = JunctionId("j3")
         # sectionの定義
-        s1 = Section("s1")
-        s2 = Section("s2")
-        s3 = Section("s3")
-        s4 = Section("s4")
-        s5 = Section("s5")
+        s1 = SectionId("s1")
+        s2 = SectionId("s2")
+        s3 = SectionId("s3")
+        s4 = SectionId("s4")
+        s5 = SectionId("s5")
         # 「とりうるルート」の列挙
-        possible_junction_direction: dict[str, list[tuple[Junction, Direction]]] = {
+        possible_junction_direction: dict[str, list[tuple[JunctionId, Direction]]] = {
             "pattern1": [
                 (j0a, Direction.STRAIGHT),
                 (j0b, Direction.STRAIGHT),
@@ -202,7 +210,7 @@ class Control:
                 s5_exist = True
 
         # ポイントの向きを判定
-        junction_direction: list[tuple[Junction, Direction]]
+        junction_direction: list[tuple[JunctionId, Direction]]
         if s3_blocked:
             if not s1_j0b_exist and (s1_j1b_exist or not s5_exist):
                 junction_direction = possible_junction_direction["pattern3"]
@@ -227,7 +235,7 @@ class Control:
             if not self.junction_toggle_prohibited(junction_id):
                 self.update_junction(junction_id=junction_id, direction=direction)
 
-    def junction_toggle_prohibited(self, junction_id: "Junction") -> bool:
+    def junction_toggle_prohibited(self, junction_id: "JunctionId") -> bool:
         """
         指定されたjunctionを列車が通過中であり、切り替えてはいけない場合にTrueを返す
         """
@@ -382,11 +390,11 @@ class Control:
 
     def _get_new_position(
         self,
-        section: "Section",
+        section: "SectionId",
         mileage: float,
-        target_junction: "Junction",
+        target_junction: "JunctionId",
         delta: float,
-    ) -> tuple[Section, float, Junction]:
+    ) -> tuple[SectionId, float, JunctionId]:
         """
         指定された section と mileage から、target_junction 方向に delta 進んだ場所の
         section と mileage と target_junction を取得する
@@ -423,7 +431,7 @@ class Control:
 
         return (section, mileage, target_junction)
 
-    def _get_forward_train(self, train: Train) -> tuple[Train, float] | None:
+    def _get_forward_train(self, train: TrainId) -> tuple[TrainId, float] | None:
         """
         指定された列車の先行列車とその最後尾までの距離を取得する。
         一周して指定された列車自身にたどりついた場合は、指定された列車自身を先行列車とみなす。
@@ -435,7 +443,7 @@ class Control:
         train_state = self.state.trains[train]
         section_config = self.config.sections[train_state.current_section]
 
-        forward_train: Train | None = None
+        forward_train: TrainId | None = None
         forward_train_distance: float = 99999999  # ありえない大きな値
 
         # 指定された列車と同一セクションに存在する、指定された列車とは異なる列車で、
@@ -504,8 +512,8 @@ class Control:
             return None
 
     def _get_next_section_and_junction(
-        self, current_section: Section, target_junction: Junction
-    ) -> tuple[Section, Junction]:
+        self, current_section: SectionId, target_junction: JunctionId
+    ) -> tuple[SectionId, JunctionId]:
         """
         与えられたセクションと目指すジャンクションから、次のセクションと目指すジャンクションを計算する。
         """
@@ -532,8 +540,8 @@ class Control:
         return next_section, next_target_junction
 
     def _get_next_section_and_junction_strict(
-        self, current_section: Section, target_junction: Junction
-    ) -> tuple[Section, Junction] | None:
+        self, current_section: SectionId, target_junction: JunctionId
+    ) -> tuple[SectionId, JunctionId] | None:
         """
         与えられたセクションと目指すジャンクションから、次のセクションと目指すジャンクションを計算する。
         ジャンクションが開通しておらず先に進めない場合は、Noneを返す。
@@ -618,7 +626,7 @@ class Control:
             else:
                 train_state.stop_distance = forward_stop_distance
 
-    def _get_forward_stop(self, train: Train) -> tuple[Stop, float] | None:
+    def _get_forward_stop(self, train: TrainId) -> tuple[StopId, float] | None:
         """
         指定された列車が次にたどり着く停止位置とそこまでの距離を取得する。
         停止位置に到達できない場合は None を返す。
@@ -628,7 +636,7 @@ class Control:
         train_state = self.state.trains[train]
         section_config = self.config.sections[train_state.current_section]
 
-        forward_stop: Stop | None = None
+        forward_stop: StopId | None = None
         forward_stop_distance: float = 99999999  # ありえない大きな値
 
         # 指定された列車と同一セクションに存在する、
@@ -667,7 +675,7 @@ class Control:
             raise
 
         # 無限ループ検出用
-        visited: set[tuple[Section, Junction]] = set()
+        visited: set[tuple[SectionId, JunctionId]] = set()
 
         while forward_stop is None:
             next_section_and_junction = self._get_next_section_and_junction_strict(section, target_junction)

@@ -6,12 +6,12 @@ from typing import Any, Callable, Optional
 
 import serial.tools.list_ports
 
-from ptcs_control.components import Position, Train
+from ptcs_control.components import PositionId, TrainId
 from usb_bt_bridge.bridge import Bridge
 
-BridgeTarget = Train
+BridgeTarget = TrainId
 BridgeDict = dict[BridgeTarget, Bridge]
-PositionDict = dict[int, Position]
+PositionDict = dict[int, PositionId]
 BridgeCallback = Callable[[BridgeTarget, Any], None]
 
 
@@ -48,13 +48,13 @@ class BridgeManager:
         """
         self.bridges[target] = bridge
 
-    def register_position(self, position_id: Position, sensor_id: int) -> None:
+    def register_position(self, position_id: PositionId, sensor_id: int) -> None:
         """
         サーボと位置の対応を登録する。
         """
         self.positions[sensor_id] = position_id
 
-    def get_position(self, sensor_id: int) -> Position | None:
+    def get_position(self, sensor_id: int) -> PositionId | None:
         return self.positions.get(sensor_id)
 
     def start(self) -> None:

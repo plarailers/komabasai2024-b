@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from ptcs_control import Control
-from ptcs_control.components import Junction, Position, Section, Train
+from ptcs_control.components import JunctionId, PositionId, SectionId, TrainId
 from usb_bt_bridge import Bridge
 
 from .api import api_router
@@ -70,7 +70,7 @@ def create_app_with_bridge() -> FastAPI:
 
     # 異常発生ボタンからの信号
     def receive_from_button(data: Any) -> None:
-        s3 = Section("s3")
+        s3 = SectionId("s3")
         if data["blocked"]:
             control.block_section(s3)
         else:
@@ -92,12 +92,12 @@ def create_app_with_bridge() -> FastAPI:
     if ENABLE_TRAINS:
         bridges = BridgeManager(callback=receive_from_train)
         bridges.print_ports()
-        bridges.register(Train("t0"), Bridge(TRAIN_PORTS["t0"]))
-        bridges.register(Train("t1"), Bridge(TRAIN_PORTS["t1"]))
-        bridges.register_position(Position("position_80"), 80)
-        bridges.register_position(Position("position_173"), 173)
-        bridges.register_position(Position("position_138"), 138)
-        bridges.register_position(Position("position_255"), 255)
+        bridges.register(TrainId("t0"), Bridge(TRAIN_PORTS["t0"]))
+        bridges.register(TrainId("t1"), Bridge(TRAIN_PORTS["t1"]))
+        bridges.register_position(PositionId("position_80"), 80)
+        bridges.register_position(PositionId("position_173"), 173)
+        bridges.register_position(PositionId("position_138"), 138)
+        bridges.register_position(PositionId("position_255"), 255)
         bridges.start()
         app.state.bridges = bridges
 
@@ -105,10 +105,10 @@ def create_app_with_bridge() -> FastAPI:
     if ENABLE_POINTS:
         point_switchers = PointSwitcherManager()
         point_switcher = PointSwitcher(POINTS_PORT)
-        point_switchers.register(Junction("j0"), point_switcher, 0)
-        point_switchers.register(Junction("j1"), point_switcher, 1)
-        point_switchers.register(Junction("j2"), point_switcher, 2)
-        point_switchers.register(Junction("j3"), point_switcher, 3)
+        point_switchers.register(JunctionId("j0"), point_switcher, 0)
+        point_switchers.register(JunctionId("j1"), point_switcher, 1)
+        point_switchers.register(JunctionId("j2"), point_switcher, 2)
+        point_switchers.register(JunctionId("j3"), point_switcher, 3)
         point_switchers.start()
         app.state.point_switchers = point_switchers
 

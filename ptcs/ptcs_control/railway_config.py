@@ -2,7 +2,15 @@ import math
 
 from pydantic import BaseModel, Field
 
-from .components import Joint, Junction, Position, Section, Station, Stop, Train
+from .components import (
+    Joint,
+    JunctionId,
+    PositionId,
+    SectionId,
+    StationId,
+    StopId,
+    TrainId,
+)
 from .constants import (
     CURVE_RAIL,
     STRAIGHT_1_4_RAIL,
@@ -22,14 +30,14 @@ class RailwayConfig(BaseModel):
 
     # NOTE: Junction などを "" で囲むと ForwardRef に関するエラーが起こる
 
-    junctions: dict[Junction, "JunctionConfig"] = Field(default_factory=dict)
-    sections: dict[Section, "SectionConfig"] = Field(default_factory=dict)
-    trains: dict[Train, "TrainConfig"] = Field(default_factory=dict)
-    stations: dict[Station, "StationConfig"] = Field(default_factory=dict)
-    stops: dict[Stop, "StopConfig"] = Field(default_factory=dict)
-    positions: dict[Position, "PositionConfig"] = Field(default_factory=dict)
+    junctions: dict[JunctionId, "JunctionConfig"] = Field(default_factory=dict)
+    sections: dict[SectionId, "SectionConfig"] = Field(default_factory=dict)
+    trains: dict[TrainId, "TrainConfig"] = Field(default_factory=dict)
+    stations: dict[StationId, "StationConfig"] = Field(default_factory=dict)
+    stops: dict[StopId, "StopConfig"] = Field(default_factory=dict)
+    positions: dict[PositionId, "PositionConfig"] = Field(default_factory=dict)
 
-    def define_junctions(self, *junction_tuples: tuple["Junction"]) -> None:
+    def define_junctions(self, *junction_tuples: tuple["JunctionId"]) -> None:
         """
         分岐・合流点を一斉に定義する。
 
@@ -39,7 +47,7 @@ class RailwayConfig(BaseModel):
             self.junctions[junction_id] = JunctionConfig()
 
     def define_sections(
-        self, *section_tuples: tuple["Section", "Junction", "Joint", "Junction", "Joint", float]
+        self, *section_tuples: tuple["SectionId", "JunctionId", "Joint", "JunctionId", "Joint", float]
     ) -> None:
         """
         区間を一斉に定義する。
@@ -62,7 +70,7 @@ class RailwayConfig(BaseModel):
                 length=length,
             )
 
-    def define_trains(self, *train_tuples: tuple["Train", int, int, float, float]) -> None:
+    def define_trains(self, *train_tuples: tuple["TrainId", int, int, float, float]) -> None:
         for (
             train_id,
             min_input,
@@ -79,18 +87,18 @@ class RailwayConfig(BaseModel):
 
 
 class JunctionConfig(BaseModel):
-    sections: dict[Joint, "Section"] = Field(default_factory=dict)
+    sections: dict[Joint, "SectionId"] = Field(default_factory=dict)
 
-    def add_section(self, joint: "Joint", section: "Section") -> None:
+    def add_section(self, joint: "Joint", section: "SectionId") -> None:
         self.sections[joint] = section
 
 
 class SectionConfig(BaseModel):
-    junction_0: "Junction"
-    junction_1: "Junction"
+    junction_0: "JunctionId"
+    junction_1: "JunctionId"
     length: float
 
-    def get_opposite_junction(self, junction: "Junction") -> "Junction":
+    def get_opposite_junction(self, junction: "JunctionId") -> "JunctionId":
         if junction == self.junction_0:
             return self.junction_1
         elif junction == self.junction_1:
@@ -115,20 +123,20 @@ class TrainConfig(BaseModel):
 
 
 class StationConfig(BaseModel):
-    stops: list["Stop"] = Field(default_factory=list)
+    stops: list["StopId"] = Field(default_factory=list)
 
 
 class StopConfig(BaseModel):
-    section: "Section"
-    target_junction: "Junction"
+    section: "SectionId"
+    target_junction: "JunctionId"
     mileage: float
 
 
 class PositionConfig(BaseModel):
-    section: "Section"
+    section: "SectionId"
     mileage: float
 
-    target_junction: "Junction"
+    target_junction: "JunctionId"
     """
     NOTE: 将来的にはここに向きの情報を持たせなくて良いようにする。
     具体的には、通った向きがわかるようなセンシング技術を用いるか、
@@ -142,34 +150,34 @@ RailwayConfig.update_forward_refs()
 def init_config() -> RailwayConfig:
     config = RailwayConfig()
 
-    j0a = Junction("j0")
-    j0b = Junction("j1")
-    j1a = Junction("j2")
-    j1b = Junction("j3")
+    j0a = JunctionId("j0")
+    j0b = JunctionId("j1")
+    j1a = JunctionId("j2")
+    j1b = JunctionId("j3")
 
-    s0 = Section("s0")
-    s1 = Section("s1")
-    s2 = Section("s2")
-    s3 = Section("s3")
-    s4 = Section("s4")
-    s5 = Section("s5")
+    s0 = SectionId("s0")
+    s1 = SectionId("s1")
+    s2 = SectionId("s2")
+    s3 = SectionId("s3")
+    s4 = SectionId("s4")
+    s5 = SectionId("s5")
 
-    t0 = Train("t0")
-    t1 = Train("t1")
+    t0 = TrainId("t0")
+    t1 = TrainId("t1")
 
-    station_0 = Station("station_0")
-    station_1 = Station("station_1")
+    station_0 = StationId("station_0")
+    station_1 = StationId("station_1")
 
-    stop_0 = Stop("stop_0")
-    stop_1 = Stop("stop_1")
-    stop_2 = Stop("stop_2")
-    stop_3 = Stop("stop_3")
-    stop_4 = Stop("stop_4")
+    stop_0 = StopId("stop_0")
+    stop_1 = StopId("stop_1")
+    stop_2 = StopId("stop_2")
+    stop_3 = StopId("stop_3")
+    stop_4 = StopId("stop_4")
 
-    position_80 = Position("position_80")
-    position_138 = Position("position_138")
-    position_173 = Position("position_173")
-    position_255 = Position("position_255")
+    position_80 = PositionId("position_80")
+    position_138 = PositionId("position_138")
+    position_173 = PositionId("position_173")
+    position_255 = PositionId("position_255")
 
     config.define_junctions(
         (j0a,),
