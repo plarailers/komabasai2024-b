@@ -1,9 +1,19 @@
 import asyncio
-from bleak import BleakScanner, BleakClient
+import platform
 
-ADDRESS_E5 = "9c:9c:1f:cb:d9:f2"
-ADDRESS_E6 = "24:62:ab:e3:67:9a"
-ADDRESS_DR = "9c:9c:1f:cf:ea:de"
+from bleak import BleakClient, BleakScanner
+
+if platform.system() == "Windows":
+    ADDRESS_E5 = "9c:9c:1f:cb:d9:f2"
+    ADDRESS_E6 = "24:62:ab:e3:67:9a"
+    ADDRESS_DR = "9c:9c:1f:cf:ea:de"
+elif platform.system() == "Darwin":
+    ADDRESS_E5 = "9c:9c:1f:cb:d9:f2"
+    ADDRESS_E6 = "24:62:ab:e3:67:9a"
+    ADDRESS_DR = "9c:9c:1f:cf:ea:de"
+else:
+    raise Exception(f"{platform.system()} not supported")
+
 SERVICE_UUID = "63cb613b-6562-4aa5-b602-030f103834a4"
 CHARACTERISTIC_UUID = "88c9d9ae-bd53-4ab3-9f42-b3547575a743"
 
