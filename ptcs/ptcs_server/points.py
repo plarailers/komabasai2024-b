@@ -2,8 +2,10 @@ import logging
 import queue
 import threading
 from typing import Any, Optional
+
 import serial.tools.list_ports
-from ptcs_control.components import Junction, Direction
+
+from ptcs_control.components import Direction, Junction
 
 
 class PointSwitcher:
