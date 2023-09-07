@@ -6,7 +6,7 @@ unsigned long chattaringTime = 10;
 void setup() {
   Serial.begin(115200);
   pinMode(pin, INPUT);
-  attachInterrupt(digitalPinToInterrupt(pin), count, CHANGE);
+  attachInterrupt(pin, count, CHANGE);
 }
 
 void loop() {
