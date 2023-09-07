@@ -24,9 +24,7 @@
 
 Python と Poetry が必要です。
 
-```bash
-pip install poetry
-```
+- [Poetry のインストール方法](https://python-poetry.org/docs/)
 
 ### インストール
 
