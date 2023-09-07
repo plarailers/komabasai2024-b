@@ -140,10 +140,10 @@ class Control:
         """
 
         # junction定義
-        j0a = Junction("j0a")
-        j0b = Junction("j0b")
-        j1a = Junction("j1a")
-        j1b = Junction("j1b")
+        j0a = Junction("j0")
+        j0b = Junction("j1")
+        j1a = Junction("j2")
+        j1b = Junction("j3")
         # sectionの定義
         s1 = Section("s1")
         s2 = Section("s2")

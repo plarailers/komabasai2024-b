@@ -46,10 +46,10 @@ RailwayCommand.update_forward_refs()
 def init_command() -> RailwayCommand:
     command = RailwayCommand()
 
-    j0a = Junction("j0a")
-    j0b = Junction("j0b")
-    j1a = Junction("j1a")
-    j1b = Junction("j1b")
+    j0a = Junction("j0")
+    j0b = Junction("j1")
+    j1a = Junction("j2")
+    j1b = Junction("j3")
 
     t0 = Train("t0")
     t1 = Train("t1")

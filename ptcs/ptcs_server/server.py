@@ -105,10 +105,10 @@ def create_app_with_bridge() -> FastAPI:
     if ENABLE_POINTS:
         point_switchers = PointSwitcherManager()
         point_switcher = PointSwitcher(POINTS_PORT)
-        point_switchers.register(Junction("j0a"), point_switcher, 0)
-        point_switchers.register(Junction("j0b"), point_switcher, 1)
-        point_switchers.register(Junction("j1a"), point_switcher, 2)
-        point_switchers.register(Junction("j1b"), point_switcher, 3)
+        point_switchers.register(Junction("j0"), point_switcher, 0)
+        point_switchers.register(Junction("j1"), point_switcher, 1)
+        point_switchers.register(Junction("j2"), point_switcher, 2)
+        point_switchers.register(Junction("j3"), point_switcher, 3)
         point_switchers.start()
         app.state.point_switchers = point_switchers
 
