@@ -47,7 +47,9 @@ def create_app() -> FastAPI:
 
 def create_app_with_bridge() -> FastAPI:
     app = create_app()
-    control: Control = app.state.control
+
+    assert isinstance(app.state.control, Control)
+    control = app.state.control
 
     # TODO: ソースコードの変更なしに COM ポートを指定できるようにする
     ENABLE_TRAINS = True
@@ -59,14 +61,15 @@ def create_app_with_bridge() -> FastAPI:
 
     # 列車からの信号
     def receive_from_train(train_id: BridgeTarget, data: Any) -> None:
+        train = control.trains[train_id]
         # モーター回転量
         if "mR" in data:
-            control.move_train_mr(train_id, data["mR"])
+            control.move_train_mr(train, data["mR"])
         # APS 信号
         elif "pID" in data:
             position_id = bridges.get_position(data["pID"])
             if position_id is not None:
-                control.put_train(train_id, position_id)
+                control.put_train(train, position_id)
 
     # 異常発生ボタンからの信号
     def receive_from_button(data: Any) -> None:
@@ -78,15 +81,14 @@ def create_app_with_bridge() -> FastAPI:
 
     # すべての列車への信号
     def send_to_trains() -> None:
-        for train_id, train_command in control.command.trains.items():
-            train_config = control.config.trains[train_id]
-            motor_input = train_config.calc_input(train_command.speed)
-            bridges.send(train_id, {"mI": motor_input})
+        for train in control.trains.values():
+            motor_input = train.calc_input(train.command_speed)
+            bridges.send(train.id, {"mI": motor_input})
 
     # すべてのポイントへの信号
     def send_to_points() -> None:
-        for junction_id, junction_state in control.state.junctions.items():
-            point_switchers.send(junction_id, junction_state.direction)
+        for junction in control.junctions.values():
+            point_switchers.send(junction.id, junction.current_direction)
 
     # 列車
     if ENABLE_TRAINS:
@@ -133,8 +135,8 @@ def create_app_with_bridge() -> FastAPI:
     @app.on_event("shutdown")
     def on_shutdown() -> None:
         print("shutting down...")
-        for train_id in control.command.trains.keys():
-            bridges.send(train_id, {"mI": 0})
+        for train in control.trains.values():
+            bridges.send(train.id, {"mI": 0})
 
     return app
 
