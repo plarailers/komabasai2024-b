@@ -5,7 +5,7 @@ from typing import Any, Optional
 
 import serial.tools.list_ports
 
-from ptcs_control.components import Direction, JunctionId
+from ptcs_control.components import Direction
 
 
 class PointSwitcher:
@@ -25,7 +25,7 @@ class PointSwitcher:
         self.serial.close()
 
 
-PointTarget = JunctionId
+PointTarget = str
 PointDict = dict[PointTarget, tuple[PointSwitcher, int]]
 
 

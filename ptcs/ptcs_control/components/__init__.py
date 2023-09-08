@@ -1,16 +1,6 @@
 from enum import Enum
 from typing import NewType
 
-JunctionId = NewType("JunctionId", str)
-"""
-線路の分岐・合流点を表す識別子
-"""
-
-SectionId = NewType("SectionId", str)
-"""
-線路の区間を表す識別子
-"""
-
 TrainId = NewType("TrainId", str)
 """
 列車を表す識別子

@@ -1,25 +1,16 @@
+from __future__ import annotations
+
 import math
 
 from pydantic import BaseModel, Field
 
-from .components import (
-    Joint,
-    JunctionId,
-    PositionId,
-    SectionId,
-    StationId,
-    StopId,
-    TrainId,
-)
+from .components import PositionId, StationId, StopId, TrainId
 from .constants import (
     CURVE_RAIL,
     STRAIGHT_1_4_RAIL,
-    STRAIGHT_1_6_RAIL,
     STRAIGHT_RAIL,
-    U_TURN_RAIL,
     WATARI_RAIL_A,
     WATARI_RAIL_B,
-    WATARI_RAIL_C,
 )
 
 
@@ -30,45 +21,10 @@ class RailwayConfig(BaseModel):
 
     # NOTE: Junction などを "" で囲むと ForwardRef に関するエラーが起こる
 
-    junctions: dict[JunctionId, "JunctionConfig"] = Field(default_factory=dict)
-    sections: dict[SectionId, "SectionConfig"] = Field(default_factory=dict)
     trains: dict[TrainId, "TrainConfig"] = Field(default_factory=dict)
     stations: dict[StationId, "StationConfig"] = Field(default_factory=dict)
     stops: dict[StopId, "StopConfig"] = Field(default_factory=dict)
     positions: dict[PositionId, "PositionConfig"] = Field(default_factory=dict)
-
-    def define_junctions(self, *junction_tuples: tuple["JunctionId"]) -> None:
-        """
-        分岐・合流点を一斉に定義する。
-
-        形式: `(ID,)`
-        """
-        for (junction_id,) in junction_tuples:
-            self.junctions[junction_id] = JunctionConfig()
-
-    def define_sections(
-        self, *section_tuples: tuple["SectionId", "JunctionId", "Joint", "JunctionId", "Joint", float]
-    ) -> None:
-        """
-        区間を一斉に定義する。
-
-        形式: `(ID, j0のID, j0との接続方法, j1のID, j1との接続方法, 長さ[mm])`
-        """
-        for (
-            section_id,
-            junction_0_id,
-            junction_0_joint,
-            junction_1_id,
-            junction_1_joint,
-            length,
-        ) in section_tuples:
-            self.junctions[junction_0_id].add_section(junction_0_joint, section_id)
-            self.junctions[junction_1_id].add_section(junction_1_joint, section_id)
-            self.sections[section_id] = SectionConfig(
-                junction_0=junction_0_id,
-                junction_1=junction_1_id,
-                length=length,
-            )
 
     def define_trains(self, *train_tuples: tuple["TrainId", int, int, float, float]) -> None:
         for (
@@ -84,27 +40,6 @@ class RailwayConfig(BaseModel):
                 max_speed=max_speed,
                 delta_per_motor_rotation=delta_per_motor_rotation,
             )
-
-
-class JunctionConfig(BaseModel):
-    sections: dict[Joint, "SectionId"] = Field(default_factory=dict)
-
-    def add_section(self, joint: "Joint", section: "SectionId") -> None:
-        self.sections[joint] = section
-
-
-class SectionConfig(BaseModel):
-    junction_0: "JunctionId"
-    junction_1: "JunctionId"
-    length: float
-
-    def get_opposite_junction(self, junction: "JunctionId") -> "JunctionId":
-        if junction == self.junction_0:
-            return self.junction_1
-        elif junction == self.junction_1:
-            return self.junction_0
-        else:
-            raise
 
 
 class TrainConfig(BaseModel):
@@ -127,16 +62,16 @@ class StationConfig(BaseModel):
 
 
 class StopConfig(BaseModel):
-    section: "SectionId"
-    target_junction: "JunctionId"
+    section_id: str
+    target_junction_id: str
     mileage: float
 
 
 class PositionConfig(BaseModel):
-    section: "SectionId"
+    section_id: str
     mileage: float
 
-    target_junction: "JunctionId"
+    target_junction_id: str
     """
     NOTE: 将来的にはここに向きの情報を持たせなくて良いようにする。
     具体的には、通った向きがわかるようなセンシング技術を用いるか、
@@ -150,17 +85,15 @@ RailwayConfig.update_forward_refs()
 def init_config() -> RailwayConfig:
     config = RailwayConfig()
 
-    j0a = JunctionId("j0")
-    j0b = JunctionId("j1")
-    j1a = JunctionId("j2")
-    j1b = JunctionId("j3")
+    j0a = "j0"
+    j0b = "j1"
+    j1a = "j2"
+    j1b = "j3"
 
-    s0 = SectionId("s0")
-    s1 = SectionId("s1")
-    s2 = SectionId("s2")
-    s3 = SectionId("s3")
-    s4 = SectionId("s4")
-    s5 = SectionId("s5")
+    s0 = "s0"
+    s1 = "s1"
+    s2 = "s2"
+    s3 = "s3"
 
     t0 = TrainId("t0")
     t1 = TrainId("t1")
@@ -179,36 +112,6 @@ def init_config() -> RailwayConfig:
     position_173 = PositionId("position_173")
     position_255 = PositionId("position_255")
 
-    config.define_junctions(
-        (j0a,),
-        (j0b,),
-        (j1a,),
-        (j1b,),
-    )
-
-    config.define_sections(
-        (
-            s0,
-            j0a,
-            Joint.CONVERGING,
-            j0b,
-            Joint.THROUGH,
-            WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 14 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1 + WATARI_RAIL_A * 1,
-        ),
-        (s1, j0b, Joint.CONVERGING, j1b, Joint.CONVERGING, STRAIGHT_RAIL * 3 + WATARI_RAIL_B * 2),
-        (
-            s2,
-            j1b,
-            Joint.THROUGH,
-            j1a,
-            Joint.CONVERGING,
-            WATARI_RAIL_A * 1 + STRAIGHT_RAIL * 6 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1 + WATARI_RAIL_B * 1,
-        ),
-        (s3, j1a, Joint.THROUGH, j0a, Joint.THROUGH, WATARI_RAIL_A * 2 + STRAIGHT_RAIL * 3),
-        (s4, j0a, Joint.DIVERGING, j0b, Joint.DIVERGING, WATARI_RAIL_C),
-        (s5, j1a, Joint.DIVERGING, j1b, Joint.DIVERGING, WATARI_RAIL_C),
-    )
-
     config.define_trains(
         (t0, 70, 130, 40.0, 0.2435 * 0.9),  # Dr
         (t1, 90, 130, 40.0, 0.1919 * 1.1 * 0.9),  # E6
@@ -224,36 +127,36 @@ def init_config() -> RailwayConfig:
 
     config.stops.update(
         {
-            stop_0: StopConfig(section=s0, target_junction=j0b, mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 4.5),
+            stop_0: StopConfig(section_id=s0, target_junction_id=j0b, mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 4.5),
             stop_1: StopConfig(
-                section=s0,
-                target_junction=j0b,
+                section_id=s0,
+                target_junction_id=j0b,
                 mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 10.0 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
             ),
-            stop_2: StopConfig(section=s1, target_junction=j0b, mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 1.5),
-            stop_3: StopConfig(section=s1, target_junction=j1b, mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 1.5),
-            stop_4: StopConfig(section=s3, target_junction=j0a, mileage=WATARI_RAIL_A * 1 + STRAIGHT_RAIL * 1.5),
+            stop_2: StopConfig(section_id=s1, target_junction_id=j0b, mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 1.5),
+            stop_3: StopConfig(section_id=s1, target_junction_id=j1b, mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 1.5),
+            stop_4: StopConfig(section_id=s3, target_junction_id=j0a, mileage=WATARI_RAIL_A * 1 + STRAIGHT_RAIL * 1.5),
         }
     )
 
     config.positions.update(
         {
             position_173: PositionConfig(
-                section=s0, target_junction=j0b, mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 2.5
+                section_id=s0, target_junction_id=j0b, mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 2.5
             ),
             position_138: PositionConfig(
-                section=s0,
-                target_junction=j0b,
+                section_id=s0,
+                target_junction_id=j0b,
                 mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 9.5 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
             ),
             position_80: PositionConfig(
-                section=s0,
-                target_junction=j0b,
+                section_id=s0,
+                target_junction_id=j0b,
                 mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 13.5 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
             ),
             position_255: PositionConfig(
-                section=s2,
-                target_junction=j1a,
+                section_id=s2,
+                target_junction_id=j1a,
                 mileage=WATARI_RAIL_A * 1 + STRAIGHT_RAIL * 5.5 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
             ),
         }
