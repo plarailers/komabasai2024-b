@@ -2,6 +2,7 @@ import logging
 
 from .components import Joint
 from .components.junction import Junction
+from .components.position import DirectedPosition
 from .components.section import Section, SectionConnection
 from .components.sensor_position import SensorPosition
 from .components.station import Station
@@ -86,9 +87,11 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         max_input=130,
         max_speed=40.0,
         delta_per_motor_rotation=0.2435 * 0.9,
-        current_section=s0,
-        target_junction=j0b,
-        mileage=STRAIGHT_RAIL * 4.5 + WATARI_RAIL_B + 1,  # 次駅探索の都合上、stopを1cm通り過ぎた場所にしておく
+        position=DirectedPosition(
+            section=s0,
+            target_junction=j0b,
+            mileage=STRAIGHT_RAIL * 4.5 + WATARI_RAIL_B + 1,  # 次駅探索の都合上、stopを1cm通り過ぎた場所にしておく
+        ),
     )  # Dr
     t1 = Train(
         id="t1",
@@ -96,9 +99,11 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         max_input=130,
         max_speed=40.0,
         delta_per_motor_rotation=0.1919 * 1.1 * 0.9,
-        current_section=s1,
-        target_junction=j1b,
-        mileage=STRAIGHT_RAIL * 2.5 + WATARI_RAIL_B + 1,
+        position=DirectedPosition(
+            section=s1,
+            target_junction=j1b,
+            mileage=STRAIGHT_RAIL * 2.5 + WATARI_RAIL_B + 1,
+        ),
     )  # E6
     # E5はAPS故障につきまだ運用しない
 
@@ -107,33 +112,43 @@ def create_control(logger: logging.Logger | None = None) -> Control:
 
     stop_0 = Stop(
         id="stop_0",
-        section=s0,
-        target_junction=j0b,
-        mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 4.5,
+        position=DirectedPosition(
+            section=s0,
+            target_junction=j0b,
+            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 4.5,
+        ),
     )
     stop_1 = Stop(
         id="stop_1",
-        section=s0,
-        target_junction=j0b,
-        mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 10.0 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
+        position=DirectedPosition(
+            section=s0,
+            target_junction=j0b,
+            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 10.0 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
+        ),
     )
     stop_2 = Stop(
         id="stop_2",
-        section=s1,
-        target_junction=j0b,
-        mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 1.5,
+        position=DirectedPosition(
+            section=s1,
+            target_junction=j0b,
+            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 1.5,
+        ),
     )
     stop_3 = Stop(
         id="stop_3",
-        section=s1,
-        target_junction=j1b,
-        mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 1.5,
+        position=DirectedPosition(
+            section=s1,
+            target_junction=j1b,
+            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 1.5,
+        ),
     )
     stop_4 = Stop(
         id="stop_4",
-        section=s3,
-        target_junction=j0a,
-        mileage=WATARI_RAIL_A * 1 + STRAIGHT_RAIL * 1.5,
+        position=DirectedPosition(
+            section=s3,
+            target_junction=j0a,
+            mileage=WATARI_RAIL_A * 1 + STRAIGHT_RAIL * 1.5,
+        ),
     )
 
     control.add_stop(stop_0)

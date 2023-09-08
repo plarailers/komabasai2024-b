@@ -7,8 +7,7 @@ from typing import TYPE_CHECKING
 from .base import BaseComponent
 
 if TYPE_CHECKING:
-    from .junction import Junction
-    from .section import Section
+    from .position import DirectedPosition
     from .sensor_position import SensorPosition
     from .stop import Stop
 
@@ -26,9 +25,7 @@ class Train(BaseComponent):
     delta_per_motor_rotation: float  # モータ1回転で進む距離[cm]
 
     # state
-    current_section: Section
-    target_junction: Junction
-    mileage: float
+    position: DirectedPosition  # 位置と方向
     stop: Stop | None = field(default=None)  # 列車の停止目標
     stop_distance: float = field(default=0.0)  # 停止目標までの距離[cm]
     departure_time: int | None = field(default=None)  # 発車予定時刻
@@ -56,9 +53,7 @@ class Train(BaseComponent):
         列車を距離 delta 分だけ進める。
         """
 
-        self.current_section, self.mileage, self.target_junction = self.control._get_new_position(
-            self.current_section, self.mileage, self.target_junction, delta
-        )
+        self.position = self.position.get_advanced_position(delta)
 
     def fix_position(self, sensor: SensorPosition) -> None:
         """
@@ -66,6 +61,4 @@ class Train(BaseComponent):
         TODO: 向きを割り出すためにどうするか
         """
 
-        self.current_section = sensor.section
-        self.target_junction = sensor.target_junction
-        self.mileage = sensor.mileage
+        self.position = DirectedPosition(sensor.section, sensor.target_junction, sensor.mileage)

@@ -6,8 +6,7 @@ from typing import TYPE_CHECKING
 from .base import BaseComponent
 
 if TYPE_CHECKING:
-    from .junction import Junction
-    from .section import Section
+    from .position import DirectedPosition
 
 
 @dataclass
@@ -17,6 +16,4 @@ class Stop(BaseComponent):
     id: str
 
     # config
-    section: Section
-    target_junction: Junction
-    mileage: float
+    position: DirectedPosition
