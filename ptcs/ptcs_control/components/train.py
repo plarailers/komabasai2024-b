@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING
 from .base import BaseComponent
 
 if TYPE_CHECKING:
-    from ..components import StopId
     from .junction import Junction
     from .section import Section
+    from .stop import Stop
 
 
 @dataclass
@@ -28,7 +28,7 @@ class Train(BaseComponent):
     current_section: Section
     target_junction: Junction
     mileage: float
-    stop: StopId | None = field(default=None)  # 列車の停止目標
+    stop: Stop | None = field(default=None)  # 列車の停止目標
     stop_distance: float = field(default=0.0)  # 停止目標までの距離[cm]
     departure_time: int | None = field(default=None)  # 発車予定時刻
 

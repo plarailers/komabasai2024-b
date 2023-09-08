@@ -3,10 +3,12 @@ from __future__ import annotations
 import logging
 import math
 
-from .components import Direction, Joint, StopId
+from .components import Direction, Joint
 from .components.junction import Junction
 from .components.section import Section, SectionConnection
 from .components.sensor_position import SensorPosition
+from .components.station import Station
+from .components.stop import Stop
 from .components.train import Train
 from .constants import (
     CURVE_RAIL,
@@ -31,6 +33,8 @@ class Control:
     junctions: dict[str, Junction]
     sections: dict[str, Section]
     trains: dict[str, Train]
+    stops: dict[str, Stop]
+    stations: dict[str, Station]
     sensor_positions: dict[str, SensorPosition]
 
     config: "RailwayConfig"
@@ -45,6 +49,8 @@ class Control:
         self.junctions = {}
         self.sections = {}
         self.trains = {}
+        self.stops = {}
+        self.stations = {}
         self.sensor_positions = {}
 
         # TODO: 適切な場所に移動する
@@ -129,6 +135,49 @@ class Control:
         self.add_train(t0)
         self.add_train(t1)
 
+        stop_0 = Stop(
+            id="stop_0",
+            section=s0,
+            target_junction=j0b,
+            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 4.5,
+        )
+        stop_1 = Stop(
+            id="stop_1",
+            section=s0,
+            target_junction=j0b,
+            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 10.0 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
+        )
+        stop_2 = Stop(
+            id="stop_2",
+            section=s1,
+            target_junction=j0b,
+            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 1.5,
+        )
+        stop_3 = Stop(
+            id="stop_3",
+            section=s1,
+            target_junction=j1b,
+            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 1.5,
+        )
+        stop_4 = Stop(
+            id="stop_4",
+            section=s3,
+            target_junction=j0a,
+            mileage=WATARI_RAIL_A * 1 + STRAIGHT_RAIL * 1.5,
+        )
+
+        self.add_stop(stop_0)
+        self.add_stop(stop_1)
+        self.add_stop(stop_2)
+        self.add_stop(stop_3)
+        self.add_stop(stop_4)
+
+        station_0 = Station(id="station_0", stops=[stop_0, stop_1])
+        station_1 = Station(id="station_1", stops=[stop_2, stop_3, stop_4])
+
+        self.add_station(station_0)
+        self.add_station(station_1)
+
         position_173 = SensorPosition(
             id="position_173",
             section=s0,
@@ -199,6 +248,16 @@ class Control:
         self.trains[train.id] = train
         train._control = self
 
+    def add_stop(self, stop: Stop) -> None:
+        assert stop.id not in self.stops
+        self.stops[stop.id] = stop
+        stop._control = self
+
+    def add_station(self, station: Station) -> None:
+        assert station.id not in self.stations
+        self.stations[station.id] = station
+        station._control = self
+
     def add_sensor_position(self, position: SensorPosition) -> None:
         assert position.id not in self.sensor_positions
         self.sensor_positions[position.id] = position
@@ -211,6 +270,8 @@ class Control:
             section.verify()
         for train in self.trains.values():
             train.verify()
+        for stop in self.stops.values():
+            stop.verify()
         for position in self.sensor_positions.values():
             position.verify()
 
@@ -797,7 +858,7 @@ class Control:
             else:
                 train.stop_distance = forward_stop_distance
 
-    def _get_forward_stop(self, train: Train) -> tuple[StopId, float] | None:
+    def _get_forward_stop(self, train: Train) -> tuple[Stop, float] | None:
         """
         指定された列車が次にたどり着く停止位置とそこまでの距離を取得する。
         停止位置に到達できない場合は None を返す。
@@ -806,27 +867,24 @@ class Control:
 
         section = train.current_section
 
-        forward_stop: StopId | None = None
+        forward_stop: Stop | None = None
         forward_stop_distance: float = 99999999  # ありえない大きな値
 
         # 指定された列車と同一セクションに存在する、
         # 指定された列車の前方にある停止位置のうち、最も近いもの`forward_stop`を取得
 
-        for stop, stop_config in self.config.stops.items():
-            if (
-                stop_config.section_id == train.current_section.id
-                and stop_config.target_junction_id == train.target_junction.id
-            ):
+        for stop in self.stops.values():
+            if stop.section == train.current_section and stop.target_junction == train.target_junction:
                 if (
                     # 端点A(target_junction)<---|stop|--train---<端点B
                     train.target_junction == section.connected_junctions[SectionConnection.A]
-                    and stop_config.mileage <= train.mileage
+                    and stop.mileage <= train.mileage
                 ) or (
                     # 端点A>---train--|stop|--->端点B(target_junction)
                     train.target_junction == section.connected_junctions[SectionConnection.B]
-                    and train.mileage <= stop_config.mileage
+                    and train.mileage <= stop.mileage
                 ):
-                    distance = abs(train.mileage - stop_config.mileage)
+                    distance = abs(train.mileage - stop.mileage)
                     if distance < forward_stop_distance:
                         forward_stop = stop
                         forward_stop_distance = distance
@@ -859,14 +917,14 @@ class Control:
 
                 section, target_junction = next_section_and_junction
 
-                for stop, stop_config in self.config.stops.items():
-                    if stop_config.section_id == section.id and stop_config.target_junction_id == target_junction.id:
+                for stop in self.stops.values():
+                    if stop.section == section and stop.target_junction == target_junction:
                         # 端点A(target_junction)<---|stop|-----<端点B
                         if target_junction == section.connected_junctions[SectionConnection.A]:
-                            new_distance = distance + section.length - stop_config.mileage
+                            new_distance = distance + section.length - stop.mileage
                         # 端点A>-----|stop|--->端点B(target_junction)
                         elif target_junction == section.connected_junctions[SectionConnection.B]:
-                            new_distance = distance + stop_config.mileage
+                            new_distance = distance + stop.mileage
                         else:
                             raise
 

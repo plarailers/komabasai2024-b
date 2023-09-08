@@ -1,15 +1,4 @@
 from enum import Enum
-from typing import NewType
-
-StationId = NewType("StationId", str)
-"""
-駅を表す識別子
-"""
-
-StopId = NewType("StopId", str)
-"""
-停止目標を表す識別子
-"""
 
 
 class Direction(Enum):
