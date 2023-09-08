@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import math
 
 from .components import Direction, Joint, PositionId, StopId
@@ -32,7 +33,9 @@ class Control:
     state: "RailwayState"
     command: "RailwayCommand"
 
-    def __init__(self) -> None:
+    logger: logging.Logger
+
+    def __init__(self, logger: logging.Logger | None = None) -> None:
         self.junctions = {}
         self.sections = {}
         self.trains = {}
@@ -124,6 +127,12 @@ class Control:
         self.state = init_state()
         self.command = init_command()
 
+        if logger is None:
+            logger = logging.getLogger(__name__)
+            logger.addHandler(logging.NullHandler())
+
+        self.logger = logger
+
     def add_junction(self, junction: Junction) -> None:
         assert junction.id not in self.junctions
         self.junctions[junction.id] = junction
@@ -177,13 +186,13 @@ class Control:
         """
         指定された区間上に障害物を発生させ、使えなくさせる。
         """
-        section.blocked = True
+        section.is_blocked = True
 
     def unblock_section(self, section: Section) -> None:
         """
         指定された区間上の障害物を取り除き、使えるようにする。
         """
-        section.blocked = False
+        section.is_blocked = False
 
     def toggle_junction(self, junction: Junction, direction: Direction) -> None:
         """
@@ -315,7 +324,7 @@ class Control:
 
         # 列車位置と線路の状態（障害物の有無）に応じてどのルートを使うか判断する
         # s3がblockされているか
-        s3_blocked: bool = s3.blocked
+        s3_blocked: bool = s3.is_blocked
 
         # s1にtarget_junctionがj0bであるtrainが存在するか
         s1_j0b_exist: bool = False
@@ -412,7 +421,7 @@ class Control:
 
                 # いま見ているセクションが閉鎖 -> 即時停止
                 # ただしすでに列車が閉鎖セクションに入ってしまった場合は、駅まで動かしたいので、止めない
-                if current_section.id != train.current_section and current_section.blocked is True:
+                if current_section.id != train.current_section and current_section.is_blocked is True:
                     distance += 0
                     break
 
@@ -425,7 +434,7 @@ class Control:
                 # -> 目指すジャンクションの手前で停止
                 elif (
                     self._get_next_section_and_junction_strict(current_section, target_junction) is None
-                    or next_section.blocked is True
+                    or next_section.is_blocked is True
                 ):
                     if current_section == train.current_section:
                         if target_junction == current_section.connected_junctions[SectionConnection.A]:
@@ -439,7 +448,7 @@ class Control:
                     break
 
                 # 次のセクションが閉鎖 -> 目指すジャンクションの手前で停止
-                elif next_section.blocked is True:
+                elif next_section.is_blocked is True:
                     if target_junction == current_section.connected_junctions[SectionConnection.A]:
                         distance += train.mileage - MERGIN
                     elif target_junction == current_section.connected_junctions[SectionConnection.B]:

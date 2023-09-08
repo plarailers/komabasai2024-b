@@ -18,9 +18,10 @@ from .points import PointSwitcher, PointSwitcherManager
 
 
 def create_app() -> FastAPI:
-    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
 
-    control = Control()
+    control = Control(logger=logger)
 
     # control 内部の時計を現実世界の時間において進める
     def run_clock() -> None:
