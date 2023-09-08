@@ -25,6 +25,8 @@ class Control:
     列車制御システムの全体を管理する。
     """
 
+    _current_time: int  # 現在時刻
+
     junctions: dict[str, Junction]
     sections: dict[str, Section]
     trains: dict[str, Train]
@@ -36,6 +38,8 @@ class Control:
     logger: logging.Logger
 
     def __init__(self, logger: logging.Logger | None = None) -> None:
+        self._current_time = 0
+
         self.junctions = {}
         self.sections = {}
         self.trains = {}
@@ -176,11 +180,20 @@ class Control:
     def get_command(self) -> "RailwayCommand":
         return self.command
 
+    @property
+    def current_time(self) -> int:
+        return self._current_time
+
+    @current_time.setter
+    def current_time(self, value) -> None:
+        self.logger.info(f"current_time = {value}")
+        self._current_time = value
+
     def tick(self, increment: int = 1) -> None:
         """
         内部時刻を進める。
         """
-        self.state.time += increment
+        self.current_time += increment
 
     def block_section(self, section: Section) -> None:
         """
@@ -421,7 +434,7 @@ class Control:
 
                 # いま見ているセクションが閉鎖 -> 即時停止
                 # ただしすでに列車が閉鎖セクションに入ってしまった場合は、駅まで動かしたいので、止めない
-                if current_section.id != train.current_section and current_section.is_blocked is True:
+                if current_section != train.current_section and current_section.is_blocked is True:
                     distance += 0
                     break
 
@@ -708,7 +721,7 @@ class Control:
 
         STOPPAGE_TIME: int = 50  # 列車の停止時間[フレーム] NOTE: 将来的にはパラメータとして定義
 
-        for train_id, train in self.trains.items():
+        for train in self.trains.values():
             # 列車より手前にある停止目標を取得する
             forward_stop_and_distance = self._get_forward_stop(train)
             forward_stop, forward_stop_distance = forward_stop_and_distance if forward_stop_and_distance else (None, 0)
@@ -730,11 +743,11 @@ class Control:
             elif train.stop != forward_stop:
                 # 最初は発車時刻を設定
                 if train.departure_time is None:
-                    train.departure_time = self.state.time + STOPPAGE_TIME
+                    train.departure_time = self.current_time + STOPPAGE_TIME
                     train.stop_distance = 0
 
                 # 発車時刻になっていれば、次の停止目標に切り替える
-                elif self.state.time >= train.departure_time:
+                elif self.current_time >= train.departure_time:
                     train.departure_time = None
                     train.stop = forward_stop
                     train.stop_distance = forward_stop_distance

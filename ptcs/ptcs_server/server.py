@@ -18,7 +18,7 @@ from .points import PointSwitcher, PointSwitcherManager
 
 
 def create_app() -> FastAPI:
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger("uvicorn")
     logger.setLevel(logging.INFO)
 
     control = Control(logger=logger)

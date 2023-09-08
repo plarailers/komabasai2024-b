@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class RailwayState(BaseModel):
@@ -9,8 +9,6 @@ class RailwayState(BaseModel):
     """
 
     # NOTE: Junction などを "" で囲むと ForwardRef に関するエラーが起こる
-
-    time: int = Field(default=0, description="内部時刻")
 
 
 RailwayState.update_forward_refs()
