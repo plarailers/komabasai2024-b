@@ -6,10 +6,10 @@ from typing import Any, Callable, Optional
 
 import serial.tools.list_ports
 
-from ptcs_control.components import PositionId, TrainId
+from ptcs_control.components import PositionId
 from usb_bt_bridge.bridge import Bridge
 
-BridgeTarget = TrainId
+BridgeTarget = str
 BridgeDict = dict[BridgeTarget, Bridge]
 PositionDict = dict[int, PositionId]
 BridgeCallback = Callable[[BridgeTarget, Any], None]

@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from ptcs_control import Control
-from ptcs_control.components import PositionId, TrainId
+from ptcs_control.components import PositionId
 from usb_bt_bridge import Bridge
 
 from .api import api_router
@@ -92,8 +92,8 @@ def create_app_with_bridge() -> FastAPI:
     if ENABLE_TRAINS:
         bridges = BridgeManager(callback=receive_from_train)
         bridges.print_ports()
-        bridges.register(TrainId("t0"), Bridge(TRAIN_PORTS["t0"]))
-        bridges.register(TrainId("t1"), Bridge(TRAIN_PORTS["t1"]))
+        bridges.register("t0", Bridge(TRAIN_PORTS["t0"]))
+        bridges.register("t1", Bridge(TRAIN_PORTS["t1"]))
         bridges.register_position(PositionId("position_80"), 80)
         bridges.register_position(PositionId("position_173"), 173)
         bridges.register_position(PositionId("position_138"), 138)

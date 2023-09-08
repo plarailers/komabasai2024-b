@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import math
 
-from .components import Direction, Joint, PositionId, StopId, TrainId
+from .components import Direction, Joint, PositionId, StopId
 from .components.junction import Junction
 from .components.section import Section, SectionConnection
+from .components.train import Train
 from .constants import (
     CURVE_RAIL,
     STRAIGHT_1_4_RAIL,
@@ -25,6 +26,7 @@ class Control:
 
     junctions: dict[str, Junction]
     sections: dict[str, Section]
+    trains: dict[str, Train]
 
     config: "RailwayConfig"
     state: "RailwayState"
@@ -33,6 +35,7 @@ class Control:
     def __init__(self) -> None:
         self.junctions = {}
         self.sections = {}
+        self.trains = {}
 
         # TODO: 適切な場所に移動する
         j0a = Junction(id="j0")
@@ -92,6 +95,31 @@ class Control:
         self.connect(s5, B, j1b, Joint.DIVERGING)
         self.verify_connections()
 
+        t0 = Train(
+            id="t0",
+            min_input=70,
+            max_input=130,
+            max_speed=40.0,
+            delta_per_motor_rotation=0.2435 * 0.9,
+            current_section=s0,
+            target_junction=j0b,
+            mileage=STRAIGHT_RAIL * 4.5 + WATARI_RAIL_B + 1,  # 次駅探索の都合上、stopを1cm通り過ぎた場所にしておく
+        )  # Dr
+        t1 = Train(
+            id="t1",
+            min_input=90,
+            max_input=130,
+            max_speed=40.0,
+            delta_per_motor_rotation=0.1919 * 1.1 * 0.9,
+            current_section=s1,
+            target_junction=j1b,
+            mileage=STRAIGHT_RAIL * 2.5 + WATARI_RAIL_B + 1,
+        )  # E6
+        # E5はAPS故障につきまだ運用しない
+
+        self.add_train(t0)
+        self.add_train(t1)
+
         self.config = init_config()
         self.state = init_state()
         self.command = init_command()
@@ -124,6 +152,11 @@ class Control:
             j.verify()
         for s in self.sections.values():
             s.verify()
+
+    def add_train(self, train: Train) -> None:
+        assert train.id not in self.trains
+        self.trains[train.id] = train
+        train._control = self
 
     def get_config(self) -> "RailwayConfig":
         return self.config
@@ -159,12 +192,12 @@ class Control:
 
         junction.command_direction = direction
 
-    def set_speed(self, train_id: "TrainId", speed: float) -> None:
+    def set_speed(self, train: Train, speed: float) -> None:
         """
         指定された列車の速度を指示する。
         """
 
-        self.command.trains[train_id].speed = speed
+        train.command_speed = speed
 
     def update_junction(self, junction: Junction, direction: Direction) -> None:
         """
@@ -173,63 +206,61 @@ class Control:
 
         junction.current_direction = direction
 
-    def move_train_mr(self, train_id: "TrainId", motor_rotation: int) -> None:
+    def move_train_mr(self, train: Train, motor_rotation: int) -> None:
         """
         指定された列車をモータ motor_rotation 回転分だけ進める
         """
 
-        delta_per_motor_rotation = self.config.trains[train_id].delta_per_motor_rotation
-        self.move_train(train_id, motor_rotation * delta_per_motor_rotation)
+        delta_per_motor_rotation = train.delta_per_motor_rotation
+        self.move_train(train, motor_rotation * delta_per_motor_rotation)
 
-    def move_train(self, train_id: "TrainId", delta: float) -> None:
+    def move_train(self, train: Train, delta: float) -> None:
         """
         指定された列車を距離 delta 分だけ進める。
         """
 
-        train_state = self.state.trains[train_id]
-        current_section = self.sections[train_state.current_section_id]
+        current_section = train.current_section
 
-        if train_state.target_junction_id == current_section.connected_junctions[SectionConnection.B].id:
-            train_state.mileage += delta
-        elif train_state.target_junction_id == current_section.connected_junctions[SectionConnection.A].id:
-            train_state.mileage -= delta
+        if train.target_junction == current_section.connected_junctions[SectionConnection.B]:
+            train.mileage += delta
+        elif train.target_junction == current_section.connected_junctions[SectionConnection.A]:
+            train.mileage -= delta
         else:
             raise
 
-        while train_state.mileage > current_section.length or train_state.mileage < 0:
-            if train_state.mileage > current_section.length:
-                surplus_mileage = train_state.mileage - current_section.length
-            elif train_state.mileage < 0:
-                surplus_mileage = -train_state.mileage
+        while train.mileage > current_section.length or train.mileage < 0:
+            if train.mileage > current_section.length:
+                surplus_mileage = train.mileage - current_section.length
+            elif train.mileage < 0:
+                surplus_mileage = -train.mileage
             else:
                 raise
 
             next_section, next_target_junction = self._get_next_section_and_junction(
-                self.sections[train_state.current_section_id], self.junctions[train_state.target_junction_id]
+                train.current_section, train.target_junction
             )
 
-            train_state.current_section_id = next_section.id
+            train.current_section = next_section
             current_section = next_section
-            train_state.target_junction_id = next_target_junction.id
-            if train_state.target_junction_id == current_section.connected_junctions[SectionConnection.B]:
-                train_state.mileage = surplus_mileage
-            elif train_state.target_junction_id == current_section.connected_junctions[SectionConnection.A]:
-                train_state.mileage = current_section.length - surplus_mileage
+            train.target_junction = next_target_junction
+            if train.target_junction == current_section.connected_junctions[SectionConnection.B]:
+                train.mileage = surplus_mileage
+            elif train.target_junction == current_section.connected_junctions[SectionConnection.A]:
+                train.mileage = current_section.length - surplus_mileage
             else:
                 raise
 
-    def put_train(self, train_id: "TrainId", position: "PositionId") -> None:
+    def put_train(self, train: Train, position: "PositionId") -> None:
         """
         指定された列車の位置を修正する。
         TODO: 向きを割り出すためにどうするか
         """
 
-        train_state = self.state.trains[train_id]
         position_config = self.config.positions[position]
 
-        train_state.current_section_id = position_config.section_id
-        train_state.target_junction_id = position_config.target_junction_id
-        train_state.mileage = position_config.mileage
+        train.current_section = self.sections[position_config.section_id]
+        train.target_junction = self.junctions[position_config.target_junction_id]
+        train.mileage = position_config.mileage
 
     def update(self) -> None:
         """
@@ -286,7 +317,6 @@ class Control:
         # s3がblockされているか
         s3_blocked: bool = s3.blocked
 
-        train_states = self.state.trains
         # s1にtarget_junctionがj0bであるtrainが存在するか
         s1_j0b_exist: bool = False
         # s1にtarget_junctionがj1bであるtrainが存在するか
@@ -295,14 +325,14 @@ class Control:
         s4_exist: bool = False
         # s5にtrainが存在するか
         s5_exist: bool = False
-        for train_state in train_states.values():
-            if train_state.current_section_id == s1 and train_state.target_junction_id == j0b:
+        for train in self.trains.values():
+            if train.current_section == s1 and train.target_junction == j0b:
                 s1_j0b_exist = True
-            if train_state.current_section_id == s1 and train_state.target_junction_id == j1b:
+            if train.current_section == s1 and train.target_junction == j1b:
                 s1_j1b_exist = True
-            if train_state.current_section_id == s4:
+            if train.current_section == s4:
                 s4_exist = True
-            if train_state.current_section_id == s5:
+            if train.current_section == s5:
                 s5_exist = True
 
         # ポイントの向きを判定
@@ -339,17 +369,16 @@ class Control:
         MERGIN: float = 40  # ポイント通過後すぐに切り替えるとまずいので余裕距離をとる
         TRAIN_LENGTH: float = 60  # 列車の長さ[cm] NOTE: 将来的には車両等のパラメータとして外に出す
 
-        for train_id, train_state in self.state.trains.items():
+        for train in self.trains.values():
             # 列車の最後尾からMERGIN離れた位置(tail_section, tail_mileage, tail_target_junction)を取得
-            current_section = self.sections[train_state.current_section_id]
             (
                 tail_section,
                 tail_mileage,
                 tail_target_junction_opposite,
             ) = self._get_new_position(
-                self.sections[train_state.current_section_id],
-                train_state.mileage,
-                current_section.get_opposite_junction(self.junctions[train_state.target_junction_id]),  # 進行方向と反対向きにたどる
+                train.current_section,
+                train.mileage,
+                train.current_section.get_opposite_junction(train.target_junction),  # 進行方向と反対向きにたどる
                 TRAIN_LENGTH + MERGIN,
             )
             tail_target_junction = tail_section.get_opposite_junction(
@@ -359,7 +388,7 @@ class Control:
             # 列車の先頭は指定されたjunctionに向かっていないが、
             # 列車の最後尾は指定されたjunctionに向かっている場合、
             # 列車はそのjunctinoを通過中なので、切り替えを禁止する
-            if train_state.target_junction_id != junction.id and tail_target_junction == junction:
+            if train.target_junction != junction and tail_target_junction == junction:
                 return True
 
         return False  # 誰も通過していなければFalseを返す
@@ -370,26 +399,26 @@ class Control:
         MAX_SPEED: float = 40  # 最高速度[cm/s]  NOTE:将来的には車両のパラメータとしてとして定義
         MERGIN: float = 10  # 停止余裕距離[cm]
 
-        for train_id, train_state in self.state.trains.items():
+        for train in self.trains.values():
             # [ATP]停止位置までの距離`distance`を、先行列車の位置と、ジャンクションの状態をもとに計算する
 
             distance = 0.0
 
-            current_section = self.sections[train_state.current_section_id]
-            target_junction = self.junctions[train_state.target_junction_id]
+            current_section = train.current_section
+            target_junction = train.target_junction
 
             while True:
                 next_section, next_junction = self._get_next_section_and_junction(current_section, target_junction)
 
                 # いま見ているセクションが閉鎖 -> 即時停止
                 # ただしすでに列車が閉鎖セクションに入ってしまった場合は、駅まで動かしたいので、止めない
-                if current_section.id != train_state.current_section_id and current_section.blocked is True:
+                if current_section.id != train.current_section and current_section.blocked is True:
                     distance += 0
                     break
 
                 # 先行列車に到達できる -> 先行列車の手前で停止
-                elif self._get_forward_train(train_id):
-                    distance += self._get_forward_train(train_id)[1] - MERGIN
+                elif forward_train_and_distance := self._get_forward_train(train):
+                    distance += forward_train_and_distance[1] - MERGIN
                     break
 
                 # 目指すジャンクションが自列車側に開通していない or 次のセクションが閉鎖
@@ -398,11 +427,11 @@ class Control:
                     self._get_next_section_and_junction_strict(current_section, target_junction) is None
                     or next_section.blocked is True
                 ):
-                    if current_section == train_state.current_section_id:
+                    if current_section == train.current_section:
                         if target_junction == current_section.connected_junctions[SectionConnection.A]:
-                            distance += train_state.mileage - MERGIN
+                            distance += train.mileage - MERGIN
                         elif target_junction == current_section.connected_junctions[SectionConnection.B]:
-                            distance += current_section.length - train_state.mileage - MERGIN
+                            distance += current_section.length - train.mileage - MERGIN
                         else:
                             raise
                     else:
@@ -412,20 +441,20 @@ class Control:
                 # 次のセクションが閉鎖 -> 目指すジャンクションの手前で停止
                 elif next_section.blocked is True:
                     if target_junction == current_section.connected_junctions[SectionConnection.A]:
-                        distance += train_state.mileage - MERGIN
+                        distance += train.mileage - MERGIN
                     elif target_junction == current_section.connected_junctions[SectionConnection.B]:
-                        distance += current_section.length - train_state.mileage - MERGIN
+                        distance += current_section.length - train.mileage - MERGIN
                     else:
                         raise
                     break
 
                 # 停止条件を満たさなければ次に移る
                 else:
-                    if current_section == train_state.current_section_id:
-                        if train_state.target_junction_id == current_section.connected_junctions[SectionConnection.A]:
-                            distance += train_state.mileage
-                        elif train_state.target_junction_id == current_section.connected_junctions[SectionConnection.B]:
-                            distance += current_section.length - train_state.mileage
+                    if current_section == train.current_section:
+                        if train.target_junction == current_section.connected_junctions[SectionConnection.A]:
+                            distance += train.mileage
+                        elif train.target_junction == current_section.connected_junctions[SectionConnection.B]:
+                            distance += current_section.length - train.mileage
                         else:
                             raise
                     else:
@@ -447,8 +476,8 @@ class Control:
             # [ATO]駅の停止目標までの距離と、ATP停止位置までの距離を比較して、より近い
             # 停止位置までの距離`stop_distance`を計算
 
-            if train_state.stop:
-                stop_distance = min(train_state.stop_distance, distance)
+            if train.stop:
+                stop_distance = min(train.stop_distance, distance)
             else:
                 stop_distance = distance
             if stop_distance < 0:
@@ -461,17 +490,17 @@ class Control:
 
             # [ATO]急加速しないよう緩やかに速度を増やす
 
-            speed_command = self.command.trains[train_id].speed
+            speed_command = train.command_speed
             loop_time = 0.1  # NOTE: 1回の制御ループが何秒で回るか？をあとで入れたい
             if stop_speed > speed_command + NORMAL_ACCLT * loop_time:
                 speed_command = speed_command + NORMAL_ACCLT * loop_time
             else:
                 speed_command = stop_speed
 
-            self.command.trains[train_id].speed = speed_command
+            train.command_speed = speed_command
 
             print(
-                train_id,
+                train.id,
                 ", ATP StopDistance: ",
                 distance,
                 ", ATO StopDistance: ",
@@ -520,7 +549,7 @@ class Control:
 
         return (section, mileage, target_junction)
 
-    def _get_forward_train(self, train: TrainId) -> tuple[TrainId, float] | None:
+    def _get_forward_train(self, train: Train) -> tuple[Train, float] | None:
         """
         指定された列車の先行列車とその最後尾までの距離を取得する。
         一周して指定された列車自身にたどりついた場合は、指定された列車自身を先行列車とみなす。
@@ -529,28 +558,27 @@ class Control:
 
         TRAIN_LENGTH: float = 60  # 列車の長さ[cm] NOTE:将来的には車両のパラメータとして定義
 
-        train_state = self.state.trains[train]
-        section = self.sections[train_state.current_section_id]
+        section = train.current_section
 
-        forward_train: TrainId | None = None
+        forward_train: Train | None = None
         forward_train_distance: float = 99999999  # ありえない大きな値
 
         # 指定された列車と同一セクションに存在する、指定された列車とは異なる列車で、
         # 指定された列車の前方にいる列車のうち、最も近いもの`forward_train`を取得
 
-        for other_train, other_train_state in self.state.trains.items():
-            if other_train_state.current_section_id == train_state.current_section_id:
+        for other_train in self.trains.values():
+            if other_train.current_section == train.current_section:
                 if other_train != train:
                     if (
                         # 端点A(target_junction)<---|other_train|--train---<端点B
-                        train_state.target_junction_id == section.connected_junctions[SectionConnection.A]
-                        and other_train_state.mileage <= train_state.mileage
+                        train.target_junction == section.connected_junctions[SectionConnection.A]
+                        and train.mileage <= train.mileage
                     ) or (
                         # 端点A>---train--|other_train|--->端点B(target_junction)
-                        train_state.target_junction_id == section.connected_junctions[SectionConnection.B]
-                        and train_state.mileage <= other_train_state.mileage
+                        train.target_junction == section.connected_junctions[SectionConnection.B]
+                        and train.mileage <= other_train.mileage
                     ):
-                        distance = abs(train_state.mileage - other_train_state.mileage)
+                        distance = abs(train.mileage - other_train.mileage)
                         if distance < forward_train_distance:
                             forward_train = other_train
                             forward_train_distance = distance
@@ -558,13 +586,13 @@ class Control:
         # 指定された列車と同一セクションに先行列車が存在しなければ次のセクションに移り、
         # 先行列車が見つかるまで繰り返す
 
-        section = self.sections[train_state.current_section_id]
-        target_junction = self.junctions[train_state.target_junction_id]
+        section = train.current_section
+        target_junction = train.target_junction
 
-        if train_state.target_junction_id == section.connected_junctions[SectionConnection.A].id:
-            distance = train_state.mileage
-        elif train_state.target_junction_id == section.connected_junctions[SectionConnection.B].id:
-            distance = section.length - train_state.mileage
+        if train.target_junction == section.connected_junctions[SectionConnection.A]:
+            distance = train.mileage
+        elif train.target_junction == section.connected_junctions[SectionConnection.B]:
+            distance = section.length - train.mileage
         else:
             raise
 
@@ -574,14 +602,14 @@ class Control:
             if next_section_and_junction:
                 section, target_junction = next_section_and_junction
 
-                for other_train, other_train_state in self.state.trains.items():
-                    if other_train_state.current_section_id == section:
+                for other_train in self.trains.values():
+                    if other_train.current_section == section:
                         # 端点A(target_junction)<---|other_train|-----<端点B
                         if target_junction == section.connected_junctions[SectionConnection.A]:
-                            new_distance = distance + section.length - other_train_state.mileage
+                            new_distance = distance + section.length - other_train.mileage
                         # 端点A>-----|other_train|--->端点B(target_junction)
                         elif target_junction == section.connected_junctions[SectionConnection.B]:
-                            new_distance = distance + other_train_state.mileage
+                            new_distance = distance + other_train.mileage
                         else:
                             raise
 
@@ -671,50 +699,49 @@ class Control:
 
         STOPPAGE_TIME: int = 50  # 列車の停止時間[フレーム] NOTE: 将来的にはパラメータとして定義
 
-        for train_id, train_state in self.state.trains.items():
+        for train_id, train in self.trains.items():
             # 列車より手前にある停止目標を取得する
-            forward_stop_and_distance = self._get_forward_stop(train_id)
+            forward_stop_and_distance = self._get_forward_stop(train)
             forward_stop, forward_stop_distance = forward_stop_and_distance if forward_stop_and_distance else (None, 0)
 
             # 停止目標がないままのとき（None → None）
             # 停止目標を見つけたとき（None → not None）
-            if train_state.stop is None:
-                train_state.stop = forward_stop
+            if train.stop is None:
+                train.stop = forward_stop
                 if forward_stop:
-                    train_state.stop_distance = forward_stop_distance
+                    train.stop_distance = forward_stop_distance
                 else:
-                    train_state.stop_distance = 0
+                    train.stop_distance = 0
 
             # 停止目標を過ぎたとき（異なる）
             # 停止目標を見失ったとき（not None → None）
             # NOTE: セクションがblockされると停止目標を見失う場合がある。
             # このときは駅に着いたと勘違いして止まってしまう現象が起きるが、
             # 駅到着により見失う場合との区別が難しいので、無視する。
-            elif train_state.stop != forward_stop:
+            elif train.stop != forward_stop:
                 # 最初は発車時刻を設定
-                if train_state.departure_time is None:
-                    train_state.departure_time = self.state.time + STOPPAGE_TIME
-                    train_state.stop_distance = 0
+                if train.departure_time is None:
+                    train.departure_time = self.state.time + STOPPAGE_TIME
+                    train.stop_distance = 0
 
                 # 発車時刻になっていれば、次の停止目標に切り替える
-                elif self.state.time >= train_state.departure_time:
-                    train_state.departure_time = None
-                    train_state.stop = forward_stop
-                    train_state.stop_distance = forward_stop_distance
+                elif self.state.time >= train.departure_time:
+                    train.departure_time = None
+                    train.stop = forward_stop
+                    train.stop_distance = forward_stop_distance
 
             # 停止目標が変わらないとき
             else:
-                train_state.stop_distance = forward_stop_distance
+                train.stop_distance = forward_stop_distance
 
-    def _get_forward_stop(self, train: TrainId) -> tuple[StopId, float] | None:
+    def _get_forward_stop(self, train: Train) -> tuple[StopId, float] | None:
         """
         指定された列車が次にたどり着く停止位置とそこまでの距離を取得する。
         停止位置に到達できない場合は None を返す。
         NOTE: `_get_forward_train` とほぼ同じアルゴリズム
         """
 
-        train_state = self.state.trains[train]
-        section = self.sections[train_state.current_section_id]
+        section = train.current_section
 
         forward_stop: StopId | None = None
         forward_stop_distance: float = 99999999  # ありえない大きな値
@@ -724,19 +751,19 @@ class Control:
 
         for stop, stop_config in self.config.stops.items():
             if (
-                stop_config.section_id == train_state.current_section_id
-                and stop_config.target_junction_id == train_state.target_junction_id
+                stop_config.section_id == train.current_section.id
+                and stop_config.target_junction_id == train.target_junction.id
             ):
                 if (
                     # 端点A(target_junction)<---|stop|--train---<端点B
-                    train_state.target_junction_id == section.connected_junctions[SectionConnection.A]
-                    and stop_config.mileage <= train_state.mileage
+                    train.target_junction == section.connected_junctions[SectionConnection.A]
+                    and stop_config.mileage <= train.mileage
                 ) or (
                     # 端点A>---train--|stop|--->端点B(target_junction)
-                    train_state.target_junction_id == section.connected_junctions[SectionConnection.B]
-                    and train_state.mileage <= stop_config.mileage
+                    train.target_junction == section.connected_junctions[SectionConnection.B]
+                    and train.mileage <= stop_config.mileage
                 ):
-                    distance = abs(train_state.mileage - stop_config.mileage)
+                    distance = abs(train.mileage - stop_config.mileage)
                     if distance < forward_stop_distance:
                         forward_stop = stop
                         forward_stop_distance = distance
@@ -744,13 +771,13 @@ class Control:
         # 指定された列車と同一セクションに停止位置が存在しなければ次のセクションに移り、
         # 停止位置が見つかるまで繰り返す
 
-        section = self.sections[train_state.current_section_id]
-        target_junction = self.junctions[train_state.target_junction_id]
+        section = train.current_section
+        target_junction = train.target_junction
 
-        if train_state.target_junction_id == section.connected_junctions[SectionConnection.A].id:
-            distance = train_state.mileage
-        elif train_state.target_junction_id == section.connected_junctions[SectionConnection.B].id:
-            distance = section.length - train_state.mileage
+        if train.target_junction == section.connected_junctions[SectionConnection.A]:
+            distance = train.mileage
+        elif train.target_junction == section.connected_junctions[SectionConnection.B]:
+            distance = section.length - train.mileage
         else:
             raise
 

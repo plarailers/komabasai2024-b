@@ -2,7 +2,7 @@ import pydantic
 from fastapi import APIRouter, Request
 
 from ptcs_control import Control
-from ptcs_control.components import Direction, PositionId, TrainId
+from ptcs_control.components import Direction, PositionId
 from ptcs_control.railway_command import RailwayCommand
 from ptcs_control.railway_config import RailwayConfig
 from ptcs_control.railway_state import RailwayState
@@ -44,7 +44,7 @@ def move_train(train_id: str, params: MoveTrainParams, request: Request) -> None
     デバッグ用。
     """
     control: Control = request.app.state.control
-    train = TrainId(train_id)
+    train = control.trains[train_id]
     control.move_train(train, params.delta)
     control.update()
 
@@ -60,7 +60,7 @@ def put_train(train_id: str, params: PutTrainParams, request: Request) -> None:
     デバッグ用。
     """
     control: Control = request.app.state.control
-    train = TrainId(train_id)
+    train = control.trains[train_id]
     position = PositionId(params.position_id)
     control.put_train(train, position)
     control.update()

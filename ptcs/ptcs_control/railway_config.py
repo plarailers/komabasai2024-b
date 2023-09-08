@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import math
-
 from pydantic import BaseModel, Field
 
-from .components import PositionId, StationId, StopId, TrainId
+from .components import PositionId, StationId, StopId
 from .constants import (
     CURVE_RAIL,
     STRAIGHT_1_4_RAIL,
@@ -21,40 +19,9 @@ class RailwayConfig(BaseModel):
 
     # NOTE: Junction などを "" で囲むと ForwardRef に関するエラーが起こる
 
-    trains: dict[TrainId, "TrainConfig"] = Field(default_factory=dict)
     stations: dict[StationId, "StationConfig"] = Field(default_factory=dict)
     stops: dict[StopId, "StopConfig"] = Field(default_factory=dict)
     positions: dict[PositionId, "PositionConfig"] = Field(default_factory=dict)
-
-    def define_trains(self, *train_tuples: tuple["TrainId", int, int, float, float]) -> None:
-        for (
-            train_id,
-            min_input,
-            max_input,
-            max_speed,
-            delta_per_motor_rotation,
-        ) in train_tuples:
-            self.trains[train_id] = TrainConfig(
-                min_input=min_input,
-                max_input=max_input,
-                max_speed=max_speed,
-                delta_per_motor_rotation=delta_per_motor_rotation,
-            )
-
-
-class TrainConfig(BaseModel):
-    min_input: int
-    max_input: int
-    max_speed: float
-    delta_per_motor_rotation: float  # モータ1回転で進む距離[cm]
-
-    def calc_input(self, speed: float) -> int:
-        if speed > self.max_speed:
-            return self.max_input
-        elif speed <= 0:
-            return 0
-        else:
-            return math.floor(self.min_input + (self.max_input - self.min_input) * speed / self.max_speed)
 
 
 class StationConfig(BaseModel):
@@ -95,9 +62,6 @@ def init_config() -> RailwayConfig:
     s2 = "s2"
     s3 = "s3"
 
-    t0 = TrainId("t0")
-    t1 = TrainId("t1")
-
     station_0 = StationId("station_0")
     station_1 = StationId("station_1")
 
@@ -111,12 +75,6 @@ def init_config() -> RailwayConfig:
     position_138 = PositionId("position_138")
     position_173 = PositionId("position_173")
     position_255 = PositionId("position_255")
-
-    config.define_trains(
-        (t0, 70, 130, 40.0, 0.2435 * 0.9),  # Dr
-        (t1, 90, 130, 40.0, 0.1919 * 1.1 * 0.9),  # E6
-        # E5はAPS故障につきまだ運用しない
-    )
 
     config.stations.update(
         {

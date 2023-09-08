@@ -1,11 +1,6 @@
 from enum import Enum
 from typing import NewType
 
-TrainId = NewType("TrainId", str)
-"""
-列車を表す識別子
-"""
-
 StationId = NewType("StationId", str)
 """
 駅を表す識別子
