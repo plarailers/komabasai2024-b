@@ -3,9 +3,10 @@ from __future__ import annotations
 import logging
 import math
 
-from .components import Direction, Joint, PositionId, StopId
+from .components import Direction, Joint, StopId
 from .components.junction import Junction
 from .components.section import Section, SectionConnection
+from .components.sensor_position import SensorPosition
 from .components.train import Train
 from .constants import (
     CURVE_RAIL,
@@ -30,6 +31,7 @@ class Control:
     junctions: dict[str, Junction]
     sections: dict[str, Section]
     trains: dict[str, Train]
+    sensor_positions: dict[str, SensorPosition]
 
     config: "RailwayConfig"
     state: "RailwayState"
@@ -43,6 +45,7 @@ class Control:
         self.junctions = {}
         self.sections = {}
         self.trains = {}
+        self.sensor_positions = {}
 
         # TODO: 適切な場所に移動する
         j0a = Junction(id="j0")
@@ -126,6 +129,36 @@ class Control:
         self.add_train(t0)
         self.add_train(t1)
 
+        position_173 = SensorPosition(
+            id="position_173",
+            section=s0,
+            target_junction=j0b,
+            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 2.5,
+        )
+        position_138 = SensorPosition(
+            id="position_138",
+            section=s0,
+            target_junction=j0b,
+            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 9.5 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
+        )
+        position_80 = SensorPosition(
+            id="position_80",
+            section=s0,
+            target_junction=j0b,
+            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 13.5 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
+        )
+        position_255 = SensorPosition(
+            id="position_255",
+            section=s2,
+            target_junction=j1a,
+            mileage=WATARI_RAIL_A * 1 + STRAIGHT_RAIL * 5.5 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
+        )
+
+        self.add_sensor_position(position_173)
+        self.add_sensor_position(position_138)
+        self.add_sensor_position(position_80)
+        self.add_sensor_position(position_255)
+
         self.config = init_config()
         self.state = init_state()
         self.command = init_command()
@@ -161,6 +194,16 @@ class Control:
         assert junction_connection not in junction.connected_sections
         junction.connected_sections[junction_connection] = section
 
+    def add_train(self, train: Train) -> None:
+        assert train.id not in self.trains
+        self.trains[train.id] = train
+        train._control = self
+
+    def add_sensor_position(self, position: SensorPosition) -> None:
+        assert position.id not in self.sensor_positions
+        self.sensor_positions[position.id] = position
+        position._control = self
+
     def verify(self) -> None:
         for junction in self.junctions.values():
             junction.verify()
@@ -168,11 +211,6 @@ class Control:
             section.verify()
         for train in self.trains.values():
             train.verify()
-
-    def add_train(self, train: Train) -> None:
-        assert train.id not in self.trains
-        self.trains[train.id] = train
-        train._control = self
 
     def get_config(self) -> "RailwayConfig":
         return self.config
@@ -275,17 +313,15 @@ class Control:
             else:
                 raise
 
-    def put_train(self, train: Train, position: "PositionId") -> None:
+    def put_train(self, train: Train, sensor: SensorPosition) -> None:
         """
         指定された列車の位置を修正する。
         TODO: 向きを割り出すためにどうするか
         """
 
-        position_config = self.config.positions[position]
-
-        train.current_section = self.sections[position_config.section_id]
-        train.target_junction = self.junctions[position_config.target_junction_id]
-        train.mileage = position_config.mileage
+        train.current_section = sensor.section
+        train.target_junction = sensor.target_junction
+        train.mileage = sensor.mileage
 
     def update(self) -> None:
         """
