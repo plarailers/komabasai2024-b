@@ -7,7 +7,8 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from ptcs_control import Control
+from ptcs_control.control import Control
+from ptcs_control.mft2023 import create_control
 from usb_bt_bridge import Bridge
 
 from .api import api_router
@@ -20,7 +21,7 @@ def create_app() -> FastAPI:
     logger = logging.getLogger("uvicorn")
     logger.setLevel(logging.INFO)
 
-    control = Control(logger=logger)
+    control = create_control(logger=logger)
 
     # control 内部の時計を現実世界の時間において進める
     def run_clock() -> None:

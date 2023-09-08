@@ -3,8 +3,8 @@ from typing import Any
 import pydantic
 from fastapi import APIRouter, Request
 
-from ptcs_control import Control
 from ptcs_control.components import Direction
+from ptcs_control.control import Control
 
 api_router = APIRouter()
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import math
+from dataclasses import dataclass, field
 
 from .components import Direction, Joint
 from .components.junction import Junction
@@ -10,204 +11,30 @@ from .components.sensor_position import SensorPosition
 from .components.station import Station
 from .components.stop import Stop
 from .components.train import Train
-from .constants import (
-    CURVE_RAIL,
-    STRAIGHT_1_4_RAIL,
-    STRAIGHT_RAIL,
-    WATARI_RAIL_A,
-    WATARI_RAIL_B,
-    WATARI_RAIL_C,
-)
 
 
+def create_empty_logger() -> logging.Logger:
+    logger = logging.getLogger(__name__)
+    logger.addHandler(logging.NullHandler())
+    return logger
+
+
+@dataclass
 class Control:
     """
     列車制御システムの全体を管理する。
     """
 
-    _current_time: int  # 現在時刻
+    _current_time: int = field(default=0)  # 現在時刻
 
-    junctions: dict[str, Junction]
-    sections: dict[str, Section]
-    trains: dict[str, Train]
-    stops: dict[str, Stop]
-    stations: dict[str, Station]
-    sensor_positions: dict[str, SensorPosition]
+    junctions: dict[str, Junction] = field(default_factory=dict)
+    sections: dict[str, Section] = field(default_factory=dict)
+    trains: dict[str, Train] = field(default_factory=dict)
+    stops: dict[str, Stop] = field(default_factory=dict)
+    stations: dict[str, Station] = field(default_factory=dict)
+    sensor_positions: dict[str, SensorPosition] = field(default_factory=dict)
 
-    logger: logging.Logger
-
-    def __init__(self, logger: logging.Logger | None = None) -> None:
-        self._current_time = 0
-
-        self.junctions = {}
-        self.sections = {}
-        self.trains = {}
-        self.stops = {}
-        self.stations = {}
-        self.sensor_positions = {}
-
-        # TODO: 適切な場所に移動する
-        j0a = Junction(id="j0")
-        j0b = Junction(id="j1")
-        j1a = Junction(id="j2")
-        j1b = Junction(id="j3")
-
-        self.add_junction(j0a)
-        self.add_junction(j0b)
-        self.add_junction(j1a)
-        self.add_junction(j1b)
-
-        s0 = Section(
-            id="s0",
-            length=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 14 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1 + WATARI_RAIL_A * 1,
-        )
-        s1 = Section(
-            id="s1",
-            length=STRAIGHT_RAIL * 3 + WATARI_RAIL_B * 2,
-        )
-        s2 = Section(
-            id="s2",
-            length=WATARI_RAIL_A * 1 + STRAIGHT_RAIL * 6 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1 + WATARI_RAIL_B * 1,
-        )
-        s3 = Section(
-            id="s3",
-            length=WATARI_RAIL_A * 2 + STRAIGHT_RAIL * 3,
-        )
-        s4 = Section(
-            id="s4",
-            length=WATARI_RAIL_C,
-        )
-        s5 = Section(
-            id="s5",
-            length=WATARI_RAIL_C,
-        )
-
-        self.add_section(s0)
-        self.add_section(s1)
-        self.add_section(s2)
-        self.add_section(s3)
-        self.add_section(s4)
-        self.add_section(s5)
-
-        A, B = SectionConnection.A, SectionConnection.B
-        self.connect(s0, A, j0a, Joint.CONVERGING)
-        self.connect(s0, B, j0b, Joint.THROUGH)
-        self.connect(s1, A, j0b, Joint.CONVERGING)
-        self.connect(s1, B, j1b, Joint.CONVERGING)
-        self.connect(s2, A, j1b, Joint.THROUGH)
-        self.connect(s2, B, j1a, Joint.CONVERGING)
-        self.connect(s3, A, j1a, Joint.THROUGH)
-        self.connect(s3, B, j0a, Joint.THROUGH)
-        self.connect(s4, A, j0a, Joint.DIVERGING)
-        self.connect(s4, B, j0b, Joint.DIVERGING)
-        self.connect(s5, A, j1a, Joint.DIVERGING)
-        self.connect(s5, B, j1b, Joint.DIVERGING)
-
-        t0 = Train(
-            id="t0",
-            min_input=70,
-            max_input=130,
-            max_speed=40.0,
-            delta_per_motor_rotation=0.2435 * 0.9,
-            current_section=s0,
-            target_junction=j0b,
-            mileage=STRAIGHT_RAIL * 4.5 + WATARI_RAIL_B + 1,  # 次駅探索の都合上、stopを1cm通り過ぎた場所にしておく
-        )  # Dr
-        t1 = Train(
-            id="t1",
-            min_input=90,
-            max_input=130,
-            max_speed=40.0,
-            delta_per_motor_rotation=0.1919 * 1.1 * 0.9,
-            current_section=s1,
-            target_junction=j1b,
-            mileage=STRAIGHT_RAIL * 2.5 + WATARI_RAIL_B + 1,
-        )  # E6
-        # E5はAPS故障につきまだ運用しない
-
-        self.add_train(t0)
-        self.add_train(t1)
-
-        stop_0 = Stop(
-            id="stop_0",
-            section=s0,
-            target_junction=j0b,
-            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 4.5,
-        )
-        stop_1 = Stop(
-            id="stop_1",
-            section=s0,
-            target_junction=j0b,
-            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 10.0 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
-        )
-        stop_2 = Stop(
-            id="stop_2",
-            section=s1,
-            target_junction=j0b,
-            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 1.5,
-        )
-        stop_3 = Stop(
-            id="stop_3",
-            section=s1,
-            target_junction=j1b,
-            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 1.5,
-        )
-        stop_4 = Stop(
-            id="stop_4",
-            section=s3,
-            target_junction=j0a,
-            mileage=WATARI_RAIL_A * 1 + STRAIGHT_RAIL * 1.5,
-        )
-
-        self.add_stop(stop_0)
-        self.add_stop(stop_1)
-        self.add_stop(stop_2)
-        self.add_stop(stop_3)
-        self.add_stop(stop_4)
-
-        station_0 = Station(id="station_0", stops=[stop_0, stop_1])
-        station_1 = Station(id="station_1", stops=[stop_2, stop_3, stop_4])
-
-        self.add_station(station_0)
-        self.add_station(station_1)
-
-        position_173 = SensorPosition(
-            id="position_173",
-            section=s0,
-            target_junction=j0b,
-            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 2.5,
-        )
-        position_138 = SensorPosition(
-            id="position_138",
-            section=s0,
-            target_junction=j0b,
-            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 9.5 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
-        )
-        position_80 = SensorPosition(
-            id="position_80",
-            section=s0,
-            target_junction=j0b,
-            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 13.5 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
-        )
-        position_255 = SensorPosition(
-            id="position_255",
-            section=s2,
-            target_junction=j1a,
-            mileage=WATARI_RAIL_A * 1 + STRAIGHT_RAIL * 5.5 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
-        )
-
-        self.add_sensor_position(position_173)
-        self.add_sensor_position(position_138)
-        self.add_sensor_position(position_80)
-        self.add_sensor_position(position_255)
-
-        if logger is None:
-            logger = logging.getLogger(__name__)
-            logger.addHandler(logging.NullHandler())
-
-        self.logger = logger
-
-        self.verify()
+    logger: logging.Logger = field(default_factory=create_empty_logger)
 
     def add_junction(self, junction: Junction) -> None:
         assert junction.id not in self.junctions
