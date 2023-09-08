@@ -4,15 +4,16 @@ import math
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from .base import BaseComponent
+
 if TYPE_CHECKING:
     from ..components import StopId
-    from ..control import Control
     from .junction import Junction
     from .section import Section
 
 
 @dataclass
-class Train:
+class Train(BaseComponent):
     """列車"""
 
     id: str
@@ -33,16 +34,6 @@ class Train:
 
     # commands
     command_speed: float = field(default=0.0)  # 速度指令値
-
-    _control: Control | None = field(default=None)
-
-    def verify(self) -> None:
-        assert self._control is not None
-
-    @property
-    def control(self) -> Control:
-        assert self._control is not None
-        return self._control
 
     def calc_input(self, speed: float) -> int:
         if speed > self.max_speed:

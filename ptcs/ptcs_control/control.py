@@ -211,6 +211,8 @@ class Control:
             section.verify()
         for train in self.trains.values():
             train.verify()
+        for position in self.sensor_positions.values():
+            position.verify()
 
     def get_config(self) -> "RailwayConfig":
         return self.config

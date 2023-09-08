@@ -1,16 +1,17 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from .base import BaseComponent
+
 if TYPE_CHECKING:
-    from ..control import Control
     from .junction import Junction
     from .section import Section
 
 
 @dataclass
-class SensorPosition:
+class SensorPosition(BaseComponent):
     """センサー位置"""
 
     id: str
@@ -25,6 +26,3 @@ class SensorPosition:
     具体的には、通った向きがわかるようなセンシング技術を用いるか、
     計算で向きを予測するか（限界はある）のどちらか。
     """
-
-    # control
-    _control: Control | None = field(default=None)

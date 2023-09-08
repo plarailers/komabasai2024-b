@@ -4,8 +4,9 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING
 
+from .base import BaseComponent
+
 if TYPE_CHECKING:
-    from ..control import Control
     from .junction import Junction
 
 
@@ -17,7 +18,7 @@ class SectionConnection(str, Enum):
 
 
 @dataclass
-class Section:
+class Section(BaseComponent):
     """区間"""
 
     id: str
@@ -29,21 +30,13 @@ class Section:
     # state
     _is_blocked: bool = field(default=False)  # 区間上に障害物が発生していて使えない状態になっているかどうか
 
-    # control
-    _control: Control | None = field(default=None)
-
     def __hash__(self) -> int:
         return self.id.__hash__()
 
     def verify(self) -> None:
+        super().verify()
         assert self.connected_junctions.get(SectionConnection.A) is not None
         assert self.connected_junctions.get(SectionConnection.B) is not None
-        assert self._control is not None
-
-    @property
-    def control(self) -> Control:
-        assert self._control is not None
-        return self._control
 
     @property
     def is_blocked(self) -> bool:
