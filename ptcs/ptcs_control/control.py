@@ -106,18 +106,6 @@ class Control:
         """
         self.current_time += increment
 
-    def block_section(self, section: Section) -> None:
-        """
-        指定された区間上に障害物を発生させ、使えなくさせる。
-        """
-        section.is_blocked = True
-
-    def unblock_section(self, section: Section) -> None:
-        """
-        指定された区間上の障害物を取り除き、使えるようにする。
-        """
-        section.is_blocked = False
-
     def toggle_junction(self, junction: Junction, direction: Direction) -> None:
         """
         指定された分岐・合流点の方向を指示する。
@@ -138,60 +126,6 @@ class Control:
         """
 
         junction.current_direction = direction
-
-    def move_train_mr(self, train: Train, motor_rotation: int) -> None:
-        """
-        指定された列車をモータ motor_rotation 回転分だけ進める
-        """
-
-        delta_per_motor_rotation = train.delta_per_motor_rotation
-        self.move_train(train, motor_rotation * delta_per_motor_rotation)
-
-    def move_train(self, train: Train, delta: float) -> None:
-        """
-        指定された列車を距離 delta 分だけ進める。
-        """
-
-        current_section = train.current_section
-
-        if train.target_junction == current_section.connected_junctions[SectionConnection.B]:
-            train.mileage += delta
-        elif train.target_junction == current_section.connected_junctions[SectionConnection.A]:
-            train.mileage -= delta
-        else:
-            raise
-
-        while train.mileage > current_section.length or train.mileage < 0:
-            if train.mileage > current_section.length:
-                surplus_mileage = train.mileage - current_section.length
-            elif train.mileage < 0:
-                surplus_mileage = -train.mileage
-            else:
-                raise
-
-            next_section, next_target_junction = self._get_next_section_and_junction(
-                train.current_section, train.target_junction
-            )
-
-            train.current_section = next_section
-            current_section = next_section
-            train.target_junction = next_target_junction
-            if train.target_junction == current_section.connected_junctions[SectionConnection.B]:
-                train.mileage = surplus_mileage
-            elif train.target_junction == current_section.connected_junctions[SectionConnection.A]:
-                train.mileage = current_section.length - surplus_mileage
-            else:
-                raise
-
-    def put_train(self, train: Train, sensor: SensorPosition) -> None:
-        """
-        指定された列車の位置を修正する。
-        TODO: 向きを割り出すためにどうするか
-        """
-
-        train.current_section = sensor.section
-        train.target_junction = sensor.target_junction
-        train.mileage = sensor.mileage
 
     def update(self) -> None:
         """

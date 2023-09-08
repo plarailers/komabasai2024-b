@@ -65,20 +65,20 @@ def create_app_with_bridge() -> FastAPI:
         train = control.trains[train_id]
         # モーター回転量
         if "mR" in data:
-            control.move_train_mr(train, data["mR"])
+            train.move_forward_mr(data["mR"])
         # APS 信号
         elif "pID" in data:
             position_id = bridges.get_position(data["pID"])
             if position_id is not None:
-                control.put_train(train, position_id)
+                train.fix_position(position_id)
 
     # 異常発生ボタンからの信号
     def receive_from_button(data: Any) -> None:
         s3 = control.sections["s3"]
         if data["blocked"]:
-            control.block_section(s3)
+            s3.block()
         else:
-            control.unblock_section(s3)
+            s3.unblock()
 
     # すべての列車への信号
     def send_to_trains() -> None:

@@ -47,6 +47,18 @@ class Section(BaseComponent):
         self.control.logger.info(f"{self.id}.is_blocked = {value}")
         self._is_blocked = value
 
+    def block(self) -> None:
+        """
+        区間上に障害物を発生させ、使えなくさせる。
+        """
+        self.is_blocked = True
+
+    def unblock(self) -> None:
+        """
+        区間上の障害物を取り除き、使えるようにする。
+        """
+        self.is_blocked = False
+
     def get_opposite_junction(self, junction: Junction) -> Junction:
         if junction == self.connected_junctions[SectionConnection.A]:
             return self.connected_junctions[SectionConnection.B]

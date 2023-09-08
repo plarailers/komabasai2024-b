@@ -41,7 +41,7 @@ def move_train(train_id: str, params: MoveTrainParams, request: Request) -> None
     """
     control: Control = request.app.state.control
     train = control.trains[train_id]
-    control.move_train(train, params.delta)
+    train.move_forward(params.delta)
     control.update()
 
 
@@ -58,7 +58,7 @@ def put_train(train_id: str, params: PutTrainParams, request: Request) -> None:
     control: Control = request.app.state.control
     train = control.trains[train_id]
     position = control.sensor_positions[params.position_id]
-    control.put_train(train, position)
+    train.fix_position(position)
     control.update()
 
 
@@ -85,7 +85,7 @@ def block_section(section_id: str, request: Request) -> None:
     """
     control: Control = request.app.state.control
     section = control.sections[section_id]
-    control.block_section(section)
+    section.block()
     control.update()
 
 
@@ -97,5 +97,5 @@ def unblock_section(section_id: str, request: Request) -> None:
     """
     control: Control = request.app.state.control
     section = control.sections[section_id]
-    control.unblock_section(section)
+    section.unblock()
     control.update()
