@@ -37,9 +37,12 @@ class Train:
     _control: Control | None = field(default=None)
 
     def verify(self) -> None:
-        assert self.current_section is not None
-        assert self.target_junction is not None
-        assert self.mileage is not None
+        assert self._control is not None
+
+    @property
+    def control(self) -> Control:
+        assert self._control is not None
+        return self._control
 
     def calc_input(self, speed: float) -> int:
         if speed > self.max_speed:

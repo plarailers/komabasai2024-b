@@ -100,7 +100,6 @@ class Control:
         self.connect(s4, B, j0b, Joint.DIVERGING)
         self.connect(s5, A, j1a, Joint.DIVERGING)
         self.connect(s5, B, j1b, Joint.DIVERGING)
-        self.verify_connections()
 
         t0 = Train(
             id="t0",
@@ -137,6 +136,8 @@ class Control:
 
         self.logger = logger
 
+        self.verify()
+
     def add_junction(self, junction: Junction) -> None:
         assert junction.id not in self.junctions
         self.junctions[junction.id] = junction
@@ -160,11 +161,13 @@ class Control:
         assert junction_connection not in junction.connected_sections
         junction.connected_sections[junction_connection] = section
 
-    def verify_connections(self) -> None:
-        for j in self.junctions.values():
-            j.verify()
-        for s in self.sections.values():
-            s.verify()
+    def verify(self) -> None:
+        for junction in self.junctions.values():
+            junction.verify()
+        for section in self.sections.values():
+            section.verify()
+        for train in self.trains.values():
+            train.verify()
 
     def add_train(self, train: Train) -> None:
         assert train.id not in self.trains

@@ -35,3 +35,9 @@ class Junction:
         assert self.connected_sections.get(Joint.THROUGH) is not None
         assert self.connected_sections.get(Joint.DIVERGING) is not None
         assert self.connected_sections.get(Joint.CONVERGING) is not None
+        assert self._control is not None
+
+    @property
+    def control(self) -> Control:
+        assert self._control is not None
+        return self._control

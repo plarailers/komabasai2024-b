@@ -38,6 +38,7 @@ class Section:
     def verify(self) -> None:
         assert self.connected_junctions.get(SectionConnection.A) is not None
         assert self.connected_junctions.get(SectionConnection.B) is not None
+        assert self._control is not None
 
     @property
     def control(self) -> Control:
@@ -50,7 +51,7 @@ class Section:
 
     @is_blocked.setter
     def is_blocked(self, value: bool):
-        self.control.logger.info(f"section {self.id} is {'blocked' if value else 'unblocked'}")
+        self.control.logger.info(f"{self.id}.is_blocked = {value}")
         self._is_blocked = value
 
     def get_opposite_junction(self, junction: Junction) -> Junction:
