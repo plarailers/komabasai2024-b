@@ -18,9 +18,6 @@ from .constants import (
     WATARI_RAIL_B,
     WATARI_RAIL_C,
 )
-from .railway_command import RailwayCommand, init_command
-from .railway_config import RailwayConfig, init_config
-from .railway_state import RailwayState, init_state
 
 
 class Control:
@@ -36,10 +33,6 @@ class Control:
     stops: dict[str, Stop]
     stations: dict[str, Station]
     sensor_positions: dict[str, SensorPosition]
-
-    config: "RailwayConfig"
-    state: "RailwayState"
-    command: "RailwayCommand"
 
     logger: logging.Logger
 
@@ -208,10 +201,6 @@ class Control:
         self.add_sensor_position(position_80)
         self.add_sensor_position(position_255)
 
-        self.config = init_config()
-        self.state = init_state()
-        self.command = init_command()
-
         if logger is None:
             logger = logging.getLogger(__name__)
             logger.addHandler(logging.NullHandler())
@@ -274,15 +263,6 @@ class Control:
             stop.verify()
         for position in self.sensor_positions.values():
             position.verify()
-
-    def get_config(self) -> "RailwayConfig":
-        return self.config
-
-    def get_state(self) -> "RailwayState":
-        return self.state
-
-    def get_command(self) -> "RailwayCommand":
-        return self.command
 
     @property
     def current_time(self) -> int:
