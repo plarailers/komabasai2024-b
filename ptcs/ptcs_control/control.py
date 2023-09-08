@@ -4,8 +4,7 @@ import logging
 import math
 from dataclasses import dataclass, field
 
-from .components import Direction, Joint
-from .components.junction import Junction
+from .components.junction import Junction, JunctionConnection, PointDirection
 from .components.section import Section, SectionConnection
 from .components.sensor_position import SensorPosition
 from .components.station import Station
@@ -51,7 +50,7 @@ class Control:
         section: Section,
         section_connection: SectionConnection,
         junction: Junction,
-        junction_connection: Joint,
+        junction_connection: JunctionConnection,
     ) -> None:
         assert section_connection not in section.connected_junctions
         section.connected_junctions[section_connection] = junction
@@ -130,30 +129,30 @@ class Control:
         s4 = self.sections["s4"]
         s5 = self.sections["s5"]
         # 「とりうるルート」の列挙
-        possible_junction_direction: dict[str, list[tuple[Junction, Direction]]] = {
+        possible_junction_direction: dict[str, list[tuple[Junction, PointDirection]]] = {
             "pattern1": [
-                (j0a, Direction.STRAIGHT),
-                (j0b, Direction.STRAIGHT),
-                (j1a, Direction.STRAIGHT),
-                (j1b, Direction.STRAIGHT),
+                (j0a, PointDirection.STRAIGHT),
+                (j0b, PointDirection.STRAIGHT),
+                (j1a, PointDirection.STRAIGHT),
+                (j1b, PointDirection.STRAIGHT),
             ],
             "pattern2": [
-                (j0a, Direction.CURVE),
-                (j0b, Direction.CURVE),
-                (j1a, Direction.STRAIGHT),
-                (j1b, Direction.STRAIGHT),
+                (j0a, PointDirection.CURVE),
+                (j0b, PointDirection.CURVE),
+                (j1a, PointDirection.STRAIGHT),
+                (j1b, PointDirection.STRAIGHT),
             ],
             "pattern3": [
-                (j0a, Direction.CURVE),
-                (j0b, Direction.STRAIGHT),
-                (j1a, Direction.CURVE),
-                (j1b, Direction.STRAIGHT),
+                (j0a, PointDirection.CURVE),
+                (j0b, PointDirection.STRAIGHT),
+                (j1a, PointDirection.CURVE),
+                (j1b, PointDirection.STRAIGHT),
             ],
             "pattern4": [
-                (j0a, Direction.CURVE),
-                (j0b, Direction.CURVE),
-                (j1a, Direction.CURVE),
-                (j1b, Direction.CURVE),
+                (j0a, PointDirection.CURVE),
+                (j0b, PointDirection.CURVE),
+                (j1a, PointDirection.CURVE),
+                (j1b, PointDirection.CURVE),
             ],
         }
 
@@ -180,7 +179,7 @@ class Control:
                 s5_exist = True
 
         # ポイントの向きを判定
-        junction_direction: list[tuple[Junction, Direction]]
+        junction_direction: list[tuple[Junction, PointDirection]]
         if s3_blocked:
             if not s1_j0b_exist and (s1_j1b_exist or not s5_exist):
                 junction_direction = possible_junction_direction["pattern3"]

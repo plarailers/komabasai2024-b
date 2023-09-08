@@ -1,13 +1,48 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import TYPE_CHECKING
 
-from ..components import Direction, Joint
 from .base import BaseComponent
 
 if TYPE_CHECKING:
     from .section import Section
+
+
+class PointDirection(Enum):
+    r"""
+    サーボモーターの方向を表す列挙型
+
+    ```
+    _______________
+    ______  _______ straight
+          \ \______
+           \_______ curve
+    ```
+    """
+
+    STRAIGHT = "straight"
+    CURVE = "curve"
+
+
+class JunctionConnection(str, Enum):
+    r"""
+    ターンアウトレールにおける分岐・合流の接続のしかたを表す列挙型
+
+    ```
+               _______________
+    converging ______  _______ through
+                     \ \______
+                      \_______ diverging
+    ```
+
+    NOTE: いい名前を募集中
+    """
+
+    THROUGH = "through"
+    DIVERGING = "diverging"
+    CONVERGING = "converging"
 
 
 @dataclass
@@ -17,24 +52,24 @@ class Junction(BaseComponent):
     id: str
 
     # config
-    connected_sections: dict[Joint, Section] = field(default_factory=dict)
+    connected_sections: dict[JunctionConnection, Section] = field(default_factory=dict)
 
     # state
-    current_direction: Direction = field(default=Direction.STRAIGHT)
+    current_direction: PointDirection = field(default=PointDirection.STRAIGHT)
 
     # commands
-    direction_command: Direction = field(default=Direction.STRAIGHT)
+    direction_command: PointDirection = field(default=PointDirection.STRAIGHT)
 
     def __hash__(self) -> int:
         return self.id.__hash__()
 
     def verify(self) -> None:
         super().verify()
-        assert self.connected_sections.get(Joint.THROUGH) is not None
-        assert self.connected_sections.get(Joint.DIVERGING) is not None
-        assert self.connected_sections.get(Joint.CONVERGING) is not None
+        assert self.connected_sections.get(JunctionConnection.THROUGH) is not None
+        assert self.connected_sections.get(JunctionConnection.DIVERGING) is not None
+        assert self.connected_sections.get(JunctionConnection.CONVERGING) is not None
 
-    def set_direction(self, direction: Direction) -> None:
+    def set_direction(self, direction: PointDirection) -> None:
         """
         ポイントの方向を更新する。
         """

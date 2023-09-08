@@ -4,8 +4,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from ..components import Direction, Joint
 from .base import BaseComponent
+from .junction import JunctionConnection, PointDirection
 
 if TYPE_CHECKING:
     from .junction import Junction
@@ -73,15 +73,15 @@ class Section(BaseComponent):
         セクションと目指すジャンクションから、次のセクションと目指すジャンクションを計算する。
         """
 
-        if target_junction.connected_sections[Joint.THROUGH] == self:
-            next_section = target_junction.connected_sections[Joint.CONVERGING]
-        elif target_junction.connected_sections[Joint.DIVERGING] == self:
-            next_section = target_junction.connected_sections[Joint.CONVERGING]
-        elif target_junction.connected_sections[Joint.CONVERGING] == self:
-            if target_junction.current_direction == Direction.STRAIGHT:
-                next_section = target_junction.connected_sections[Joint.THROUGH]
-            elif target_junction.current_direction == Direction.CURVE:
-                next_section = target_junction.connected_sections[Joint.DIVERGING]
+        if target_junction.connected_sections[JunctionConnection.THROUGH] == self:
+            next_section = target_junction.connected_sections[JunctionConnection.CONVERGING]
+        elif target_junction.connected_sections[JunctionConnection.DIVERGING] == self:
+            next_section = target_junction.connected_sections[JunctionConnection.CONVERGING]
+        elif target_junction.connected_sections[JunctionConnection.CONVERGING] == self:
+            if target_junction.current_direction == PointDirection.STRAIGHT:
+                next_section = target_junction.connected_sections[JunctionConnection.THROUGH]
+            elif target_junction.current_direction == PointDirection.CURVE:
+                next_section = target_junction.connected_sections[JunctionConnection.DIVERGING]
             else:
                 raise
         else:
@@ -96,25 +96,25 @@ class Section(BaseComponent):
         ジャンクションが開通しておらず先に進めない場合は、Noneを返す。
         """
 
-        if target_junction.connected_sections[Joint.THROUGH] == self:
-            if target_junction.current_direction == Direction.STRAIGHT:
-                next_section = target_junction.connected_sections[Joint.CONVERGING]
-            elif target_junction.current_direction == Direction.CURVE:
+        if target_junction.connected_sections[JunctionConnection.THROUGH] == self:
+            if target_junction.current_direction == PointDirection.STRAIGHT:
+                next_section = target_junction.connected_sections[JunctionConnection.CONVERGING]
+            elif target_junction.current_direction == PointDirection.CURVE:
                 return None
             else:
                 raise
-        elif target_junction.connected_sections[Joint.DIVERGING] == self:
-            if target_junction.current_direction == Direction.STRAIGHT:
+        elif target_junction.connected_sections[JunctionConnection.DIVERGING] == self:
+            if target_junction.current_direction == PointDirection.STRAIGHT:
                 return None
-            elif target_junction.current_direction == Direction.CURVE:
-                next_section = target_junction.connected_sections[Joint.CONVERGING]
+            elif target_junction.current_direction == PointDirection.CURVE:
+                next_section = target_junction.connected_sections[JunctionConnection.CONVERGING]
             else:
                 raise
-        elif target_junction.connected_sections[Joint.CONVERGING] == self:
-            if target_junction.current_direction == Direction.STRAIGHT:
-                next_section = target_junction.connected_sections[Joint.THROUGH]
-            elif target_junction.current_direction == Direction.CURVE:
-                next_section = target_junction.connected_sections[Joint.DIVERGING]
+        elif target_junction.connected_sections[JunctionConnection.CONVERGING] == self:
+            if target_junction.current_direction == PointDirection.STRAIGHT:
+                next_section = target_junction.connected_sections[JunctionConnection.THROUGH]
+            elif target_junction.current_direction == PointDirection.CURVE:
+                next_section = target_junction.connected_sections[JunctionConnection.DIVERGING]
             else:
                 raise
         else:

@@ -3,7 +3,7 @@ from typing import Any
 import pydantic
 from fastapi import APIRouter, Request
 
-from ptcs_control.components import Direction
+from ptcs_control.components.junction import PointDirection
 from ptcs_control.control import Control
 
 api_router = APIRouter()
@@ -63,7 +63,7 @@ def put_train(train_id: str, params: PutTrainParams, request: Request) -> None:
 
 
 class UpdateJunctionParams(pydantic.BaseModel):
-    direction: Direction
+    direction: PointDirection
 
 
 @api_router.post("/state/junctions/{junction_id}/update")

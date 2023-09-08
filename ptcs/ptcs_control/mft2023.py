@@ -1,7 +1,6 @@
 import logging
 
-from .components import Joint
-from .components.junction import Junction
+from .components.junction import Junction, JunctionConnection
 from .components.position import DirectedPosition
 from .components.section import Section, SectionConnection
 from .components.sensor_position import SensorPosition
@@ -68,18 +67,23 @@ def create_control(logger: logging.Logger | None = None) -> Control:
     control.add_section(s5)
 
     A, B = SectionConnection.A, SectionConnection.B
-    control.connect(s0, A, j0a, Joint.CONVERGING)
-    control.connect(s0, B, j0b, Joint.THROUGH)
-    control.connect(s1, A, j0b, Joint.CONVERGING)
-    control.connect(s1, B, j1b, Joint.CONVERGING)
-    control.connect(s2, A, j1b, Joint.THROUGH)
-    control.connect(s2, B, j1a, Joint.CONVERGING)
-    control.connect(s3, A, j1a, Joint.THROUGH)
-    control.connect(s3, B, j0a, Joint.THROUGH)
-    control.connect(s4, A, j0a, Joint.DIVERGING)
-    control.connect(s4, B, j0b, Joint.DIVERGING)
-    control.connect(s5, A, j1a, Joint.DIVERGING)
-    control.connect(s5, B, j1b, Joint.DIVERGING)
+    THROUGH, DIVERGING, CONVERGING = (
+        JunctionConnection.THROUGH,
+        JunctionConnection.DIVERGING,
+        JunctionConnection.CONVERGING,
+    )
+    control.connect(s0, A, j0a, CONVERGING)
+    control.connect(s0, B, j0b, THROUGH)
+    control.connect(s1, A, j0b, CONVERGING)
+    control.connect(s1, B, j1b, CONVERGING)
+    control.connect(s2, A, j1b, THROUGH)
+    control.connect(s2, B, j1a, CONVERGING)
+    control.connect(s3, A, j1a, THROUGH)
+    control.connect(s3, B, j0a, THROUGH)
+    control.connect(s4, A, j0a, DIVERGING)
+    control.connect(s4, B, j0b, DIVERGING)
+    control.connect(s5, A, j1a, DIVERGING)
+    control.connect(s5, B, j1b, DIVERGING)
 
     t0 = Train(
         id="t0",
