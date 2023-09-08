@@ -273,7 +273,7 @@ class Control:
             target_junction = train.target_junction
 
             while True:
-                next_section, next_junction = self._get_next_section_and_junction(current_section, target_junction)
+                next_section, next_junction = current_section.get_next_section_and_target_junction(target_junction)
 
                 # いま見ているセクションが閉鎖 -> 即時停止
                 # ただしすでに列車が閉鎖セクションに入ってしまった場合は、駅まで動かしたいので、止めない
@@ -289,7 +289,7 @@ class Control:
                 # 目指すジャンクションが自列車側に開通していない or 次のセクションが閉鎖
                 # -> 目指すジャンクションの手前で停止
                 elif (
-                    self._get_next_section_and_junction_strict(current_section, target_junction) is None
+                    current_section.get_next_section_and_target_junction_strict(target_junction) is None
                     or next_section.is_blocked is True
                 ):
                     if current_section == train.current_section:
@@ -327,7 +327,7 @@ class Control:
                     (
                         current_section,
                         target_junction,
-                    ) = self._get_next_section_and_junction(current_section, target_junction)
+                    ) = current_section.get_next_section_and_target_junction(target_junction)
 
             if distance < 0:
                 distance = 0
@@ -401,7 +401,7 @@ class Control:
             else:
                 raise
 
-            next_section, next_target_junction = self._get_next_section_and_junction(section, target_junction)
+            next_section, next_target_junction = section.get_next_section_and_target_junction(target_junction)
 
             section = next_section
             target_junction = next_target_junction
@@ -462,7 +462,7 @@ class Control:
             raise
 
         while forward_train is None:
-            next_section_and_junction = self._get_next_section_and_junction_strict(section, target_junction)
+            next_section_and_junction = section.get_next_section_and_target_junction_strict(target_junction)
 
             if next_section_and_junction:
                 section, target_junction = next_section_and_junction
@@ -491,65 +491,6 @@ class Control:
             return (forward_train, forward_train_distance - TRAIN_LENGTH)
         else:
             return None
-
-    def _get_next_section_and_junction(
-        self, current_section: Section, target_junction: Junction
-    ) -> tuple[Section, Junction]:
-        """
-        与えられたセクションと目指すジャンクションから、次のセクションと目指すジャンクションを計算する。
-        """
-
-        if target_junction.connected_sections[Joint.THROUGH] == current_section:
-            next_section = target_junction.connected_sections[Joint.CONVERGING]
-        elif target_junction.connected_sections[Joint.DIVERGING] == current_section:
-            next_section = target_junction.connected_sections[Joint.CONVERGING]
-        elif target_junction.connected_sections[Joint.CONVERGING] == current_section:
-            if target_junction.current_direction == Direction.STRAIGHT:
-                next_section = target_junction.connected_sections[Joint.THROUGH]
-            elif target_junction.current_direction == Direction.CURVE:
-                next_section = target_junction.connected_sections[Joint.DIVERGING]
-            else:
-                raise
-        else:
-            raise
-
-        next_target_junction = next_section.get_opposite_junction(target_junction)
-        return next_section, next_target_junction
-
-    def _get_next_section_and_junction_strict(
-        self, current_section: Section, target_junction: Junction
-    ) -> tuple[Section, Junction] | None:
-        """
-        与えられたセクションと目指すジャンクションから、次のセクションと目指すジャンクションを計算する。
-        ジャンクションが開通しておらず先に進めない場合は、Noneを返す。
-        """
-
-        if target_junction.connected_sections[Joint.THROUGH] == current_section:
-            if target_junction.current_direction == Direction.STRAIGHT:
-                next_section = target_junction.connected_sections[Joint.CONVERGING]
-            elif target_junction.current_direction == Direction.CURVE:
-                return None
-            else:
-                raise
-        elif target_junction.connected_sections[Joint.DIVERGING] == current_section:
-            if target_junction.current_direction == Direction.STRAIGHT:
-                return None
-            elif target_junction.current_direction == Direction.CURVE:
-                next_section = target_junction.connected_sections[Joint.CONVERGING]
-            else:
-                raise
-        elif target_junction.connected_sections[Joint.CONVERGING] == current_section:
-            if target_junction.current_direction == Direction.STRAIGHT:
-                next_section = target_junction.connected_sections[Joint.THROUGH]
-            elif target_junction.current_direction == Direction.CURVE:
-                next_section = target_junction.connected_sections[Joint.DIVERGING]
-            else:
-                raise
-        else:
-            raise
-
-        next_target_junction = next_section.get_opposite_junction(target_junction)
-        return next_section, next_target_junction
 
     def _calc_stop(self) -> None:
         """
@@ -647,7 +588,7 @@ class Control:
         visited: set[tuple[Section, Junction]] = set()
 
         while forward_stop is None:
-            next_section_and_junction = self._get_next_section_and_junction_strict(section, target_junction)
+            next_section_and_junction = section.get_next_section_and_target_junction_strict(target_junction)
 
             if next_section_and_junction:
                 # 無限ループを検出したら None を返す

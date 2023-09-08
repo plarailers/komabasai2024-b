@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING
 
+from ..components import Direction, Joint
 from .base import BaseComponent
 
 if TYPE_CHECKING:
@@ -66,3 +67,58 @@ class Section(BaseComponent):
             return self.connected_junctions[SectionConnection.A]
         else:
             raise
+
+    def get_next_section_and_target_junction(self, target_junction: Junction) -> tuple[Section, Junction]:
+        """
+        セクションと目指すジャンクションから、次のセクションと目指すジャンクションを計算する。
+        """
+
+        if target_junction.connected_sections[Joint.THROUGH] == self:
+            next_section = target_junction.connected_sections[Joint.CONVERGING]
+        elif target_junction.connected_sections[Joint.DIVERGING] == self:
+            next_section = target_junction.connected_sections[Joint.CONVERGING]
+        elif target_junction.connected_sections[Joint.CONVERGING] == self:
+            if target_junction.current_direction == Direction.STRAIGHT:
+                next_section = target_junction.connected_sections[Joint.THROUGH]
+            elif target_junction.current_direction == Direction.CURVE:
+                next_section = target_junction.connected_sections[Joint.DIVERGING]
+            else:
+                raise
+        else:
+            raise
+
+        next_target_junction = next_section.get_opposite_junction(target_junction)
+        return next_section, next_target_junction
+
+    def get_next_section_and_target_junction_strict(self, target_junction: Junction) -> tuple[Section, Junction] | None:
+        """
+        与えられたセクションと目指すジャンクションから、次のセクションと目指すジャンクションを計算する。
+        ジャンクションが開通しておらず先に進めない場合は、Noneを返す。
+        """
+
+        if target_junction.connected_sections[Joint.THROUGH] == self:
+            if target_junction.current_direction == Direction.STRAIGHT:
+                next_section = target_junction.connected_sections[Joint.CONVERGING]
+            elif target_junction.current_direction == Direction.CURVE:
+                return None
+            else:
+                raise
+        elif target_junction.connected_sections[Joint.DIVERGING] == self:
+            if target_junction.current_direction == Direction.STRAIGHT:
+                return None
+            elif target_junction.current_direction == Direction.CURVE:
+                next_section = target_junction.connected_sections[Joint.CONVERGING]
+            else:
+                raise
+        elif target_junction.connected_sections[Joint.CONVERGING] == self:
+            if target_junction.current_direction == Direction.STRAIGHT:
+                next_section = target_junction.connected_sections[Joint.THROUGH]
+            elif target_junction.current_direction == Direction.CURVE:
+                next_section = target_junction.connected_sections[Joint.DIVERGING]
+            else:
+                raise
+        else:
+            raise
+
+        next_target_junction = next_section.get_opposite_junction(target_junction)
+        return next_section, next_target_junction

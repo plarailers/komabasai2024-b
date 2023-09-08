@@ -5,7 +5,6 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from .base import BaseComponent
-from .section import SectionConnection
 
 if TYPE_CHECKING:
     from .junction import Junction
@@ -57,36 +56,9 @@ class Train(BaseComponent):
         列車を距離 delta 分だけ進める。
         """
 
-        current_section = self.current_section
-
-        if self.target_junction == current_section.connected_junctions[SectionConnection.B]:
-            self.mileage += delta
-        elif self.target_junction == current_section.connected_junctions[SectionConnection.A]:
-            self.mileage -= delta
-        else:
-            raise
-
-        while self.mileage > current_section.length or self.mileage < 0:
-            if self.mileage > current_section.length:
-                surplus_mileage = self.mileage - current_section.length
-            elif self.mileage < 0:
-                surplus_mileage = -self.mileage
-            else:
-                raise
-
-            next_section, next_target_junction = self.control._get_next_section_and_junction(
-                self.current_section, self.target_junction
-            )
-
-            self.current_section = next_section
-            current_section = next_section
-            self.target_junction = next_target_junction
-            if self.target_junction == current_section.connected_junctions[SectionConnection.B]:
-                self.mileage = surplus_mileage
-            elif self.target_junction == current_section.connected_junctions[SectionConnection.A]:
-                self.mileage = current_section.length - surplus_mileage
-            else:
-                raise
+        self.current_section, self.mileage, self.target_junction = self.control._get_new_position(
+            self.current_section, self.mileage, self.target_junction, delta
+        )
 
     def fix_position(self, sensor: SensorPosition) -> None:
         """
