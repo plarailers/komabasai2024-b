@@ -83,7 +83,7 @@ def create_app_with_bridge() -> FastAPI:
     # すべての列車への信号
     def send_to_trains() -> None:
         for train in control.trains.values():
-            motor_input = train.calc_input(train.command_speed)
+            motor_input = train.calc_input(train.speed_command)
             bridges.send(train.id, {"mI": motor_input})
 
     # すべてのポイントへの信号

@@ -74,7 +74,7 @@ def update_junction(junction_id: str, params: UpdateJunctionParams, request: Req
     """
     control: Control = request.app.state.control
     junction = control.junctions[junction_id]
-    control.update_junction(junction, params.direction)
+    junction.set_direction(params.direction)
 
 
 @api_router.post("/state/sections/{section_id}/block")

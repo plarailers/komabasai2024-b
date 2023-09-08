@@ -31,7 +31,7 @@ class Train(BaseComponent):
     departure_time: int | None = field(default=None)  # 発車予定時刻
 
     # commands
-    command_speed: float = field(default=0.0)  # 速度指令値
+    speed_command: float = field(default=0.0)  # 速度指令値
 
     def calc_input(self, speed: float) -> int:
         if speed > self.max_speed:
@@ -62,3 +62,10 @@ class Train(BaseComponent):
         """
 
         self.position = DirectedPosition(sensor.section, sensor.target_junction, sensor.mileage)
+
+    def send_speed_command(self, speed_command: float) -> None:
+        """
+        指定された列車の速度を指示する。
+        """
+
+        self.speed_command = speed_command

@@ -106,27 +106,6 @@ class Control:
         """
         self.current_time += increment
 
-    def toggle_junction(self, junction: Junction, direction: Direction) -> None:
-        """
-        指定された分岐・合流点の方向を指示する。
-        """
-
-        junction.command_direction = direction
-
-    def set_speed(self, train: Train, speed: float) -> None:
-        """
-        指定された列車の速度を指示する。
-        """
-
-        train.command_speed = speed
-
-    def update_junction(self, junction: Junction, direction: Direction) -> None:
-        """
-        指定された分岐・合流点の方向を更新する。
-        """
-
-        junction.current_direction = direction
-
     def update(self) -> None:
         """
         状態に変化が起こった後、すべてを再計算する。
@@ -223,28 +202,8 @@ class Control:
 
         # ポイント変更
         for junction, direction in junction_direction:
-            if not self.junction_toggle_prohibited(junction):
-                self.update_junction(junction, direction)
-
-    def junction_toggle_prohibited(self, junction: Junction) -> bool:
-        """
-        指定されたjunctionを列車が通過中であり、切り替えてはいけない場合にTrueを返す
-        """
-
-        MERGIN: float = 40  # ポイント通過後すぐに切り替えるとまずいので余裕距離をとる
-        TRAIN_LENGTH: float = 60  # 列車の長さ[cm] NOTE: 将来的には車両等のパラメータとして外に出す
-
-        for train in self.trains.values():
-            # 列車の最後尾からMERGIN離れた位置(tail)を取得
-            tail = train.position.get_retracted_position(TRAIN_LENGTH + MERGIN)
-
-            # 列車の先頭は指定されたjunctionに向かっていないが、
-            # 列車の最後尾は指定されたjunctionに向かっている場合、
-            # 列車はそのjunctinoを通過中なので、切り替えを禁止する
-            if train.position.target_junction != junction and tail.target_junction == junction:
-                return True
-
-        return False  # 誰も通過していなければFalseを返す
+            if not junction.is_toggle_prohibited():
+                junction.set_direction(direction)
 
     def _calc_speed(self) -> None:
         BREAK_ACCLT: float = 10  # ブレーキ減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
@@ -343,14 +302,14 @@ class Control:
 
             # [ATO]急加速しないよう緩やかに速度を増やす
 
-            speed_command = train.command_speed
+            speed_command = train.speed_command
             loop_time = 0.1  # NOTE: 1回の制御ループが何秒で回るか？をあとで入れたい
             if stop_speed > speed_command + NORMAL_ACCLT * loop_time:
                 speed_command = speed_command + NORMAL_ACCLT * loop_time
             else:
                 speed_command = stop_speed
 
-            train.command_speed = speed_command
+            train.speed_command = speed_command
 
             print(
                 train.id,
