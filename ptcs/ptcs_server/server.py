@@ -1,4 +1,5 @@
 import logging
+import os
 import threading
 import time
 from typing import Any
@@ -6,6 +7,7 @@ from typing import Any
 import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
 from ptcs_control.control import Control
 from ptcs_control.mft2023 import create_control
@@ -17,9 +19,27 @@ from .button import Button
 from .points import PointSwitcher, PointSwitcherManager
 
 
+class ServerArgs(BaseModel):
+    bridge: bool = False
+
+
 def create_app() -> FastAPI:
     logger = logging.getLogger("uvicorn")
-    logger.setLevel(logging.INFO)
+
+    raw_args = os.environ.get("PTCS_SERVER_ARGS")
+    logger.info("raw server args: %s", raw_args)
+
+    args = ServerArgs.parse_raw(raw_args) if raw_args else ServerArgs()
+    logger.info("parsed server args: %s", args)
+
+    if args.bridge:
+        return create_app_with_bridge()
+    else:
+        return create_app_without_bridge()
+
+
+def create_app_without_bridge() -> FastAPI:
+    logger = logging.getLogger("uvicorn")
 
     control = create_control(logger=logger)
 
@@ -47,7 +67,7 @@ def create_app() -> FastAPI:
 
 
 def create_app_with_bridge() -> FastAPI:
-    app = create_app()
+    app = create_app_without_bridge()
 
     assert isinstance(app.state.control, Control)
     control = app.state.control
@@ -146,19 +166,14 @@ def serve(*, bridge: bool = False) -> None:
     """
     列車制御システムを Web サーバーとして起動する。
     """
-    if bridge:
-        uvicorn.run(
-            "ptcs_server.server:create_app_with_bridge",
-            port=5000,
-            log_level="info",
-            reload=True,
-            reload_dirs=["ptcs_control", "ptcs_server", "usb_bt_bridge"],
-        )
-    else:
-        uvicorn.run(
-            "ptcs_server.server:create_app",
-            port=5000,
-            log_level="info",
-            reload=True,
-            reload_dirs=["ptcs_control", "ptcs_server", "usb_bt_bridge"],
-        )
+
+    os.environ["PTCS_SERVER_ARGS"] = ServerArgs(bridge=bridge).json()
+
+    uvicorn.run(
+        "ptcs_server.server:create_app",
+        factory=True,
+        port=5000,
+        log_level="info",
+        reload=True,
+        reload_dirs=["ptcs_control", "ptcs_server", "usb_bt_bridge"],
+    )
