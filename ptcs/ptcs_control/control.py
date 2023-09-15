@@ -228,7 +228,7 @@ class Control:
                     break
 
                 # 先行列車に到達できる -> 先行列車の手前で停止
-                elif forward_train_and_distance := self._get_forward_train(train):
+                elif forward_train_and_distance := train.find_forward_train():
                     distance += forward_train_and_distance[1] - MERGIN
                     break
 
@@ -320,84 +320,6 @@ class Control:
                 speed_command,
             )
 
-    def _get_forward_train(self, train: Train) -> tuple[Train, float] | None:
-        """
-        指定された列車の先行列車とその最後尾までの距離を取得する。
-        一周して指定された列車自身にたどりついた場合は、指定された列車自身を先行列車とみなす。
-        ジャンクションの開通方向によっては先行列車に到達できない場合があり、そのときはNoneを返す。
-        """
-
-        TRAIN_LENGTH: float = 60  # 列車の長さ[cm] NOTE:将来的には車両のパラメータとして定義
-
-        section = train.position.section
-
-        forward_train: Train | None = None
-        forward_train_distance: float = 99999999  # ありえない大きな値
-
-        # 指定された列車と同一セクションに存在する、指定された列車とは異なる列車で、
-        # 指定された列車の前方にいる列車のうち、最も近いもの`forward_train`を取得
-
-        for other_train in self.trains.values():
-            if other_train.position.section == train.position.section:
-                if other_train != train:
-                    if (
-                        # 端点A(target_junction)<---|other_train|--train---<端点B
-                        train.position.target_junction == section.connected_junctions[SectionConnection.A]
-                        and train.position.mileage <= train.position.mileage
-                    ) or (
-                        # 端点A>---train--|other_train|--->端点B(target_junction)
-                        train.position.target_junction == section.connected_junctions[SectionConnection.B]
-                        and train.position.mileage <= other_train.position.mileage
-                    ):
-                        distance = abs(train.position.mileage - other_train.position.mileage)
-                        if distance < forward_train_distance:
-                            forward_train = other_train
-                            forward_train_distance = distance
-
-        # 指定された列車と同一セクションに先行列車が存在しなければ次のセクションに移り、
-        # 先行列車が見つかるまで繰り返す
-
-        section = train.position.section
-        target_junction = train.position.target_junction
-
-        if train.position.target_junction == section.connected_junctions[SectionConnection.A]:
-            distance = train.position.mileage
-        elif train.position.target_junction == section.connected_junctions[SectionConnection.B]:
-            distance = section.length - train.position.mileage
-        else:
-            raise
-
-        while forward_train is None:
-            next_section_and_junction = section.get_next_section_and_target_junction_strict(target_junction)
-
-            if next_section_and_junction:
-                section, target_junction = next_section_and_junction
-
-                for other_train in self.trains.values():
-                    if other_train.position.section == section:
-                        # 端点A(target_junction)<---|other_train|-----<端点B
-                        if target_junction == section.connected_junctions[SectionConnection.A]:
-                            new_distance = distance + section.length - other_train.position.mileage
-                        # 端点A>-----|other_train|--->端点B(target_junction)
-                        elif target_junction == section.connected_junctions[SectionConnection.B]:
-                            new_distance = distance + other_train.position.mileage
-                        else:
-                            raise
-
-                        if new_distance < forward_train_distance:
-                            forward_train = other_train
-                            forward_train_distance = new_distance
-            else:
-                break
-
-            distance += section.length
-
-        # 先行列車を発見できたら、その最後尾までの距離を計算し、返す
-        if forward_train:
-            return (forward_train, forward_train_distance - TRAIN_LENGTH)
-        else:
-            return None
-
     def _calc_stop(self) -> None:
         """
         列車の現在あるべき停止目標を割り出し、列車の状態として格納する。
@@ -413,8 +335,7 @@ class Control:
 
         for train in self.trains.values():
             # 列車より手前にある停止目標を取得する
-            forward_stop_and_distance = self._get_forward_stop(train)
-            forward_stop, forward_stop_distance = forward_stop_and_distance if forward_stop_and_distance else (None, 0)
+            forward_stop, forward_stop_distance = train.find_forward_stop() or (None, 0)
 
             # 停止目標がないままのとき（None → None）
             # 停止目標を見つけたとき（None → not None）
@@ -445,90 +366,3 @@ class Control:
             # 停止目標が変わらないとき
             else:
                 train.stop_distance = forward_stop_distance
-
-    def _get_forward_stop(self, train: Train) -> tuple[Stop, float] | None:
-        """
-        指定された列車が次にたどり着く停止位置とそこまでの距離を取得する。
-        停止位置に到達できない場合は None を返す。
-        NOTE: `_get_forward_train` とほぼ同じアルゴリズム
-        """
-
-        section = train.position.section
-
-        forward_stop: Stop | None = None
-        forward_stop_distance: float = 99999999  # ありえない大きな値
-
-        # 指定された列車と同一セクションに存在する、
-        # 指定された列車の前方にある停止位置のうち、最も近いもの`forward_stop`を取得
-
-        for stop in self.stops.values():
-            if (
-                stop.position.section == train.position.section
-                and stop.position.target_junction == train.position.target_junction
-            ):
-                if (
-                    # 端点A(target_junction)<---|stop|--train---<端点B
-                    train.position.target_junction == section.connected_junctions[SectionConnection.A]
-                    and stop.position.mileage <= train.position.mileage
-                ) or (
-                    # 端点A>---train--|stop|--->端点B(target_junction)
-                    train.position.target_junction == section.connected_junctions[SectionConnection.B]
-                    and train.position.mileage <= stop.position.mileage
-                ):
-                    distance = abs(train.position.mileage - stop.position.mileage)
-                    if distance < forward_stop_distance:
-                        forward_stop = stop
-                        forward_stop_distance = distance
-
-        # 指定された列車と同一セクションに停止位置が存在しなければ次のセクションに移り、
-        # 停止位置が見つかるまで繰り返す
-
-        section = train.position.section
-        target_junction = train.position.target_junction
-
-        if train.position.target_junction == section.connected_junctions[SectionConnection.A]:
-            distance = train.position.mileage
-        elif train.position.target_junction == section.connected_junctions[SectionConnection.B]:
-            distance = section.length - train.position.mileage
-        else:
-            raise
-
-        # 無限ループ検出用
-        visited: set[tuple[Section, Junction]] = set()
-
-        while forward_stop is None:
-            next_section_and_junction = section.get_next_section_and_target_junction_strict(target_junction)
-
-            if next_section_and_junction:
-                # 無限ループを検出したら None を返す
-                if next_section_and_junction in visited:
-                    return None
-
-                visited.add(next_section_and_junction)
-
-                section, target_junction = next_section_and_junction
-
-                for stop in self.stops.values():
-                    if stop.position.section == section and stop.position.target_junction == target_junction:
-                        # 端点A(target_junction)<---|stop|-----<端点B
-                        if target_junction == section.connected_junctions[SectionConnection.A]:
-                            new_distance = distance + section.length - stop.position.mileage
-                        # 端点A>-----|stop|--->端点B(target_junction)
-                        elif target_junction == section.connected_junctions[SectionConnection.B]:
-                            new_distance = distance + stop.position.mileage
-                        else:
-                            raise
-
-                        if new_distance < forward_stop_distance:
-                            forward_stop = stop
-                            forward_stop_distance = new_distance
-            else:
-                break
-
-            distance += section.length
-
-        # 停止目標を発見できたら、そこまでの距離とともに返す
-        if forward_stop:
-            return (forward_stop, forward_stop_distance)
-        else:
-            return None
