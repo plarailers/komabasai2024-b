@@ -147,6 +147,18 @@ def serve(*, bridge: bool = False) -> None:
     列車制御システムを Web サーバーとして起動する。
     """
     if bridge:
-        uvicorn.run("ptcs_server.server:create_app_with_bridge", port=5000, log_level="info", reload=True)
+        uvicorn.run(
+            "ptcs_server.server:create_app_with_bridge",
+            port=5000,
+            log_level="info",
+            reload=True,
+            reload_dirs=["ptcs_control", "ptcs_server", "usb_bt_bridge"],
+        )
     else:
-        uvicorn.run("ptcs_server.server:create_app", port=5000, log_level="info", reload=True)
+        uvicorn.run(
+            "ptcs_server.server:create_app",
+            port=5000,
+            log_level="info",
+            reload=True,
+            reload_dirs=["ptcs_control", "ptcs_server", "usb_bt_bridge"],
+        )
