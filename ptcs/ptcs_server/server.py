@@ -18,8 +18,11 @@ from .bridges import BridgeManager, BridgeTarget
 from .button import Button
 from .points import PointSwitcher, PointSwitcherManager
 
+DEFAULT_PORT = 5000
+
 
 class ServerArgs(BaseModel):
+    port: int = DEFAULT_PORT
     bridge: bool = False
     debug: bool = False
 
@@ -163,13 +166,13 @@ def create_app_with_bridge() -> FastAPI:
     return app
 
 
-def serve(*, bridge: bool = False, debug: bool = False) -> None:
+def serve(*, port: int = DEFAULT_PORT, bridge: bool = False, debug: bool = False) -> None:
     """
     列車制御システムを Web サーバーとして起動する。
     `debug` を `True` にすると、ソースコードに変更があったときにリロードされる。
     """
 
-    args = ServerArgs(bridge=bridge, debug=debug)
+    args = ServerArgs(port=port, bridge=bridge, debug=debug)
 
     os.environ["PTCS_SERVER_ARGS"] = args.json()
 
@@ -177,7 +180,7 @@ def serve(*, bridge: bool = False, debug: bool = False) -> None:
         uvicorn.run(
             "ptcs_server.server:create_app",
             factory=True,
-            port=5000,
+            port=port,
             log_level="info",
             reload=True,
             reload_dirs=["ptcs_control", "ptcs_server", "usb_bt_bridge"],
@@ -186,6 +189,6 @@ def serve(*, bridge: bool = False, debug: bool = False) -> None:
         uvicorn.run(
             "ptcs_server.server:create_app",
             factory=True,
-            port=5000,
+            port=port,
             log_level="info",
         )
