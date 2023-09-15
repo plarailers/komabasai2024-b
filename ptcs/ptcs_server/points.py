@@ -5,7 +5,7 @@ from typing import Any, Optional
 
 import serial.tools.list_ports
 
-from ptcs_control.components import Direction, JunctionId
+from ptcs_control.components.junction import PointDirection
 
 
 class PointSwitcher:
@@ -25,7 +25,7 @@ class PointSwitcher:
         self.serial.close()
 
 
-PointTarget = JunctionId
+PointTarget = str
 PointDict = dict[PointTarget, tuple[PointSwitcher, int]]
 
 
@@ -74,10 +74,10 @@ class PointSwitcherManager:
             target, direction = self.send_queue.get()  # ブロッキング処理
             logging.info(f"SEND {target} {direction}")
             point_switcher, servo_no = self.points[target]
-            servo_state = 0 if direction == Direction.STRAIGHT else 1
+            servo_state = 0 if direction == PointDirection.STRAIGHT else 1
             point_switcher.send((servo_no, servo_state))
 
-    def send(self, target: PointTarget, direction: Direction) -> None:
+    def send(self, target: PointTarget, direction: PointDirection) -> None:
         """
         servoを繋いだarduino nano に向けて データ `direction` を送信する。
         (実際にはすぐに送信せず、送信キューに入れておく。)
