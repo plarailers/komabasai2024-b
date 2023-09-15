@@ -21,6 +21,7 @@ from .points import PointSwitcher, PointSwitcherManager
 
 class ServerArgs(BaseModel):
     bridge: bool = False
+    debug: bool = False
 
 
 def create_app() -> FastAPI:
@@ -162,18 +163,29 @@ def create_app_with_bridge() -> FastAPI:
     return app
 
 
-def serve(*, bridge: bool = False) -> None:
+def serve(*, bridge: bool = False, debug: bool = False) -> None:
     """
     列車制御システムを Web サーバーとして起動する。
+    `debug` を `True` にすると、ソースコードに変更があったときにリロードされる。
     """
 
-    os.environ["PTCS_SERVER_ARGS"] = ServerArgs(bridge=bridge).json()
+    args = ServerArgs(bridge=bridge, debug=debug)
 
-    uvicorn.run(
-        "ptcs_server.server:create_app",
-        factory=True,
-        port=5000,
-        log_level="info",
-        reload=True,
-        reload_dirs=["ptcs_control", "ptcs_server", "usb_bt_bridge"],
-    )
+    os.environ["PTCS_SERVER_ARGS"] = args.json()
+
+    if debug:
+        uvicorn.run(
+            "ptcs_server.server:create_app",
+            factory=True,
+            port=5000,
+            log_level="info",
+            reload=True,
+            reload_dirs=["ptcs_control", "ptcs_server", "usb_bt_bridge"],
+        )
+    else:
+        uvicorn.run(
+            "ptcs_server.server:create_app",
+            factory=True,
+            port=5000,
+            log_level="info",
+        )

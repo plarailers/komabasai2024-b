@@ -5,8 +5,9 @@ from . import server
 
 @click.command()
 @click.option("--bridge", is_flag=True)
-def main(bridge: bool) -> None:
-    server.serve(bridge=bridge)
+@click.option("--debug", is_flag=True)
+def main(bridge: bool, debug: bool) -> None:
+    server.serve(bridge=bridge, debug=debug)
 
 
 if __name__ == "__main__":

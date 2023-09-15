@@ -68,8 +68,8 @@ npm install
 ### 開発サーバー起動
 
 ```bash
-# ptcs_server を起動
-poetry run server
+# ptcs_server をデバッグモードで起動
+poetry run server --debug
 
 # ptcs_ui を起動
 npm run ui:dev
