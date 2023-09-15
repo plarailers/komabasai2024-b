@@ -25,3 +25,7 @@
     - センサー位置
   - `components/position.py`
     - 汎用的な位置や方向
+- `ato/`
+  - ATO (自動列車運転装置)
+- `atp/`
+  - ATP (自動列車防護)
