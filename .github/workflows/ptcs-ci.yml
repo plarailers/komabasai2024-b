@@ -1,0 +1,75 @@
+name: Lint and format ptcs
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/ptcs-ci.yml'
+      - 'ptcs/ptcs_control/**'
+      - 'ptcs/ptcs_server/**'
+      - 'ptcs/usb_bt_bridge/**'
+      - 'ptcs/.flake8'
+      - 'ptcs/poetry.lock'
+      - 'ptcs/poetry.toml'
+      - 'ptcs/pyproject.toml'
+  workflow_dispatch:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 'ptcs'
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: reviewdog/action-setup@v1
+        with:
+          reviewdog_version: latest
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry
+        run: |
+          export POETRY_HOME=/opt/poetry
+          python -m venv $POETRY_HOME
+          $POETRY_HOME/bin/pip install poetry==1.6.1
+          $POETRY_HOME/bin/poetry --version
+          echo "$POETRY_HOME/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        run: |
+          poetry install
+
+      - name: Sort imports
+        run: |
+          poetry run isort ptcs_control ptcs_server usb_bt_bridge 2>&1 | reviewdog -reporter=github-pr-review -f=isort
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Format
+        run: |
+          poetry run black ptcs_control ptcs_server usb_bt_bridge 2>&1 | reviewdog -reporter=github-pr-review -f=black
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add and commit
+        uses: EndBug/add-and-commit@v9
+        with:
+          default_author: github_actions
+
+      - name: Lint
+        run: |
+          poetry run flake8 ptcs_control ptcs_server usb_bt_bridge 2>&1 | reviewdog -reporter=github-pr-review -f=flake8
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Typecheck
+        run: |
+          poetry run mypy ptcs_control ptcs_server usb_bt_bridge 2>&1 | reviewdog -reporter=github-pr-review -f=mypy
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}

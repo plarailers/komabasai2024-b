@@ -2,8 +2,8 @@ import json
 import logging
 import threading
 from typing import Any, Callable, Optional
-import serial.tools.list_ports
 
+import serial.tools.list_ports
 
 ButtonCallback = Callable[[Any], None]
 

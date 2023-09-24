@@ -1,11 +1,13 @@
 from typing import Optional
+
 from pydantic import BaseModel, Field
+
 from .components import Direction, Junction, Section, Stop, Train
 from .constants import (
-    STRAIGHT_RAIL,
+    CURVE_RAIL,
     STRAIGHT_1_4_RAIL,
     STRAIGHT_1_6_RAIL,
-    CURVE_RAIL,
+    STRAIGHT_RAIL,
     U_TURN_RAIL,
     WATARI_RAIL_A,
     WATARI_RAIL_B,
@@ -26,9 +28,7 @@ class RailwayState(BaseModel):
     sections: dict[Section, "SectionState"] = Field(default_factory=dict)
     trains: dict[Train, "TrainState"] = Field(default_factory=dict)
 
-    def define_junctions(
-        self, *junction_tuples: tuple["Junction", "Direction"]
-    ) -> None:
+    def define_junctions(self, *junction_tuples: tuple["Junction", "Direction"]) -> None:
         """
         分岐・合流点を一斉に初期化する。
 
@@ -46,9 +46,7 @@ class RailwayState(BaseModel):
         for (section_id,) in section_tuples:
             self.sections[section_id] = SectionState()
 
-    def define_trains(
-        self, *train_tuples: tuple["Train", "Section", "Junction", float]
-    ) -> None:
+    def define_trains(self, *train_tuples: tuple["Train", "Section", "Junction", float]) -> None:
         for train_id, current_section, target_junction, mileage in train_tuples:
             self.trains[train_id] = TrainState(
                 current_section=current_section,

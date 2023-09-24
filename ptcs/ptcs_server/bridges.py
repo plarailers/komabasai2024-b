@@ -3,10 +3,11 @@ import logging
 import queue
 import threading
 from typing import Any, Callable, Optional
+
 import serial.tools.list_ports
+
 from ptcs_control.components import Position, Train
 from usb_bt_bridge.bridge import Bridge
-
 
 BridgeTarget = Train
 BridgeDict = dict[BridgeTarget, Bridge]

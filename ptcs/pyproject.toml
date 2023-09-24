@@ -24,10 +24,16 @@ pyserial = "^3.5"
 types-pyserial = "^3.5.0.8"
 
 [tool.poetry.group.dev.dependencies]
-black = "^22.12.0"
-isort = "^5.11.1"
-mypy = "^0.991"
-pyproject-flake8 = "^6.0.0"
+black = "^23.7.0"
+flake8 = "^6.1.0"
+isort = "^5.12.0"
+mypy = "^1.5.1"
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"
 
 [build-system]
 requires = ["poetry-core"]

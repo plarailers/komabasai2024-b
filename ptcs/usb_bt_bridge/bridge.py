@@ -1,6 +1,7 @@
 import json
-import serial
 import time
+
+import serial
 
 
 class Bridge:

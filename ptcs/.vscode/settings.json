@@ -1,0 +1,10 @@
+{
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+        }
+    },
+    "mypy-type-checker.args": ["--config-file=pyproject.toml"], // workaround
+}

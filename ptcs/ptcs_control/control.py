@@ -1,8 +1,9 @@
 import math
+
 from .components import Direction, Joint, Junction, Position, Section, Stop, Train
+from .railway_command import RailwayCommand, init_command
 from .railway_config import RailwayConfig, init_config
 from .railway_state import RailwayState, init_state
-from .railway_command import RailwayCommand, init_command
 
 
 class Control:
@@ -90,10 +91,7 @@ class Control:
         else:
             raise
 
-        while (
-            train_state.mileage > current_section_config.length
-            or train_state.mileage < 0
-        ):
+        while train_state.mileage > current_section_config.length or train_state.mileage < 0:
             if train_state.mileage > current_section_config.length:
                 surplus_mileage = train_state.mileage - current_section_config.length
             elif train_state.mileage < 0:
@@ -247,9 +245,7 @@ class Control:
             ) = self._get_new_position(
                 train_state.current_section,
                 train_state.mileage,
-                current_section_config.get_opposite_junction(  # 進行方向と反対向きにたどる
-                    train_state.target_junction
-                ),
+                current_section_config.get_opposite_junction(train_state.target_junction),  # 進行方向と反対向きにたどる
                 TRAIN_LENGTH + MERGIN,
             )
             tail_section_config = self.config.sections[tail_section]
@@ -260,10 +256,7 @@ class Control:
             # 列車の先頭は指定されたjunctionに向かっていないが、
             # 列車の最後尾は指定されたjunctionに向かっている場合、
             # 列車はそのjunctinoを通過中なので、切り替えを禁止する
-            if (
-                train_state.target_junction != junction_id
-                and tail_target_junction == junction_id
-            ):
+            if train_state.target_junction != junction_id and tail_target_junction == junction_id:
                 return True
 
         return False  # 誰も通過していなければFalseを返す
@@ -285,17 +278,12 @@ class Control:
             while True:
                 current_section_config = self.config.sections[current_section]
                 current_section_state = self.state.sections[current_section]
-                next_section, next_junction = self._get_next_section_and_junction(
-                    current_section, target_junction
-                )
+                next_section, next_junction = self._get_next_section_and_junction(current_section, target_junction)
                 next_section_state = self.state.sections[next_section]
 
                 # いま見ているセクションが閉鎖 -> 即時停止
                 # ただしすでに列車が閉鎖セクションに入ってしまった場合は、駅まで動かしたいので、止めない
-                if (
-                    current_section != train_state.current_section
-                    and current_section_state.blocked is True
-                ):
+                if current_section != train_state.current_section and current_section_state.blocked is True:
                     distance += 0
                     break
 
@@ -307,21 +295,14 @@ class Control:
                 # 目指すジャンクションが自列車側に開通していない or 次のセクションが閉鎖
                 # -> 目指すジャンクションの手前で停止
                 elif (
-                    self._get_next_section_and_junction_strict(
-                        current_section, target_junction
-                    )
-                    is None
+                    self._get_next_section_and_junction_strict(current_section, target_junction) is None
                     or next_section_state.blocked is True
                 ):
                     if current_section == train_state.current_section:
                         if target_junction == current_section_config.junction_0:
                             distance += train_state.mileage - MERGIN
                         elif target_junction == current_section_config.junction_1:
-                            distance += (
-                                current_section_config.length
-                                - train_state.mileage
-                                - MERGIN
-                            )
+                            distance += current_section_config.length - train_state.mileage - MERGIN
                         else:
                             raise
                     else:
@@ -333,9 +314,7 @@ class Control:
                     if target_junction == current_section_config.junction_0:
                         distance += train_state.mileage - MERGIN
                     elif target_junction == current_section_config.junction_1:
-                        distance += (
-                            current_section_config.length - train_state.mileage - MERGIN
-                        )
+                        distance += current_section_config.length - train_state.mileage - MERGIN
                     else:
                         raise
                     break
@@ -343,18 +322,10 @@ class Control:
                 # 停止条件を満たさなければ次に移る
                 else:
                     if current_section == train_state.current_section:
-                        if (
-                            train_state.target_junction
-                            == current_section_config.junction_0
-                        ):
+                        if train_state.target_junction == current_section_config.junction_0:
                             distance += train_state.mileage
-                        elif (
-                            train_state.target_junction
-                            == current_section_config.junction_1
-                        ):
-                            distance += (
-                                current_section_config.length - train_state.mileage
-                            )
+                        elif train_state.target_junction == current_section_config.junction_1:
+                            distance += current_section_config.length - train_state.mileage
                         else:
                             raise
                     else:
@@ -362,9 +333,7 @@ class Control:
                     (
                         current_section,
                         target_junction,
-                    ) = self._get_next_section_and_junction(
-                        current_section, target_junction
-                    )
+                    ) = self._get_next_section_and_junction(current_section, target_junction)
 
             if distance < 0:
                 distance = 0
@@ -440,9 +409,7 @@ class Control:
             else:
                 raise
 
-            next_section, next_target_junction = self._get_next_section_and_junction(
-                section, target_junction
-            )
+            next_section, next_target_junction = self._get_next_section_and_junction(section, target_junction)
 
             section = next_section
             section_config = self.config.sections[next_section]
@@ -505,9 +472,7 @@ class Control:
             raise
 
         while forward_train is None:
-            next_section_and_junction = self._get_next_section_and_junction_strict(
-                section, target_junction
-            )
+            next_section_and_junction = self._get_next_section_and_junction_strict(section, target_junction)
 
             if next_section_and_junction:
                 section, target_junction = next_section_and_junction
@@ -517,11 +482,7 @@ class Control:
                     if other_train_state.current_section == section:
                         # 端点0(target_junction)<---|other_train|-----<端点1
                         if target_junction == section_config.junction_0:
-                            new_distance = (
-                                distance
-                                + section_config.length
-                                - other_train_state.mileage
-                            )
+                            new_distance = distance + section_config.length - other_train_state.mileage
                         # 端点0>-----|other_train|--->端点1(target_junction)
                         elif target_junction == section_config.junction_1:
                             new_distance = distance + other_train_state.mileage
@@ -567,9 +528,7 @@ class Control:
             raise
 
         next_section_config = self.config.sections[next_section]
-        next_target_junction = next_section_config.get_opposite_junction(
-            target_junction
-        )
+        next_target_junction = next_section_config.get_opposite_junction(target_junction)
         return next_section, next_target_junction
 
     def _get_next_section_and_junction_strict(
@@ -608,9 +567,7 @@ class Control:
             raise
 
         next_section_config = self.config.sections[next_section]
-        next_target_junction = next_section_config.get_opposite_junction(
-            target_junction
-        )
+        next_target_junction = next_section_config.get_opposite_junction(target_junction)
         return next_section, next_target_junction
 
     def _calc_stop(self) -> None:
@@ -629,9 +586,7 @@ class Control:
         for train_id, train_state in self.state.trains.items():
             # 列車より手前にある停止目標を取得する
             forward_stop_and_distance = self._get_forward_stop(train_id)
-            forward_stop, forward_stop_distance = (
-                forward_stop_and_distance if forward_stop_and_distance else (None, 0)
-            )
+            forward_stop, forward_stop_distance = forward_stop_and_distance if forward_stop_and_distance else (None, 0)
 
             # 停止目標がないままのとき（None → None）
             # 停止目標を見つけたとき（None → not None）
@@ -715,9 +670,7 @@ class Control:
         visited: set[tuple[Section, Junction]] = set()
 
         while forward_stop is None:
-            next_section_and_junction = self._get_next_section_and_junction_strict(
-                section, target_junction
-            )
+            next_section_and_junction = self._get_next_section_and_junction_strict(section, target_junction)
 
             if next_section_and_junction:
                 # 無限ループを検出したら None を返す
@@ -730,15 +683,10 @@ class Control:
                 section_config = self.config.sections[section]
 
                 for stop, stop_config in self.config.stops.items():
-                    if (
-                        stop_config.section == section
-                        and stop_config.target_junction == target_junction
-                    ):
+                    if stop_config.section == section and stop_config.target_junction == target_junction:
                         # 端点0(target_junction)<---|stop|-----<端点1
                         if target_junction == section_config.junction_0:
-                            new_distance = (
-                                distance + section_config.length - stop_config.mileage
-                            )
+                            new_distance = distance + section_config.length - stop_config.mileage
                         # 端点0>-----|stop|--->端点1(target_junction)
                         elif target_junction == section_config.junction_1:
                             new_distance = distance + stop_config.mileage
