@@ -53,13 +53,6 @@ class CharacteristicSpeedCallbacks : public BLECharacteristicCallbacks {
   }
 };
 
-class CharacteristicPositionIdCallbacks : public BLECharacteristicCallbacks {
-  void onWrite(BLECharacteristic *pCharacteristicPositionId) {
-    pCharacteristicPositionId->setValue((uint8_t*)&positionID, 1);
-    pCharacteristicPositionId->notify();
-  }
-};
-
 void setup() {
   Serial.begin(115200);
   Serial.println("Starting BLE");
@@ -95,7 +88,6 @@ void setup() {
     BLECharacteristic::PROPERTY_NOTIFY |
     BLECharacteristic::PROPERTY_INDICATE
   );
-  pCharacteristicPositionId->setCallbacks(new CharacteristicPositionIdCallbacks());
   pCharacteristicPositionId->setValue("Initial value");
   pCharacteristicPositionId->addDescriptor(new BLE2902());
 
@@ -114,5 +106,8 @@ void setup() {
 }
 
 void loop() {
+  pCharacteristicPositionId->setValue((uint8_t*)&positionID, 1);
+  pCharacteristicPositionId->notify();
+  Serial.println("Notified PositionId");
   delay(1000);
 }

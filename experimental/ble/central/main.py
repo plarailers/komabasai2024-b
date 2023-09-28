@@ -35,6 +35,7 @@ async def main():
             print("  - ", characteristic)
         characteristicSpeed = service.get_characteristic(CHARACTERISTIC_SPEED_UUID)
         characteristicPositionId = service.get_characteristic(CHARACTERISTIC_POSITIONID_UUID)
+        print(characteristicSpeed, characteristicPositionId)
 
         # await client.start_notify(characteristicPositionId, notification_callback)
 
@@ -42,6 +43,7 @@ async def main():
             await client.write_gatt_char(characteristicSpeed, f"{i}".encode())
             print("Wrote", i)
             await asyncio.sleep(1)
+        
 
 async def notification_callback(sender, data):
     # Notifyを受け取ったときの処理をここに記述
