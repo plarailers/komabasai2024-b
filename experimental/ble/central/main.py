@@ -37,7 +37,7 @@ async def main():
         characteristicPositionId = service.get_characteristic(CHARACTERISTIC_POSITIONID_UUID)
         print(characteristicSpeed, characteristicPositionId)
 
-        # await client.start_notify(characteristicPositionId, notification_callback)
+        await client.start_notify(characteristicPositionId, notification_callback)
 
         for i in range(100, 200):
             await client.write_gatt_char(characteristicSpeed, f"{i}".encode())
