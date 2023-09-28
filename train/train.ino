@@ -42,8 +42,11 @@ void loop(){
 
     /* 積算位置検知(IPS) */
     //TODO: IPSのコードを書く
+    // 左右のエンコーダから入力が来たらcharacteristec_ips(value: 'o')をnotifyする
 
     /* 絶対位置検知(APS) */
+    // characteristic_apsにsetValue(pID)をする
+    // notifyする
     int     positionID      = train.positionID_Detector.getPositionID();
     if (positionID > 0) train.sendData("pID", positionID);
 }
