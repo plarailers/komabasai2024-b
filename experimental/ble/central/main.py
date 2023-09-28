@@ -4,7 +4,7 @@ import platform
 from bleak import BleakClient, BleakScanner
 
 if platform.system() == "Windows":
-    ADDRESS_E5 = "9c:9c:1f:cb:d9:f2"
+    ADDRESS_E5 = "7C:9E:BD:93:2E:72"
     ADDRESS_E6 = "24:62:ab:e3:67:9a"
     ADDRESS_DR = "9c:9c:1f:cf:ea:de"
 elif platform.system() == "Darwin":
@@ -38,8 +38,8 @@ async def main():
 
         # await client.start_notify(characteristicPositionId, notification_callback)
 
-        for i in range(100,200):
-            await client.write_gatt_char(characteristic, f"{i}".encode())
+        for i in range(100, 200):
+            await client.write_gatt_char(characteristicSpeed, f"{i}".encode())
             print("Wrote", i)
             await asyncio.sleep(1)
 
