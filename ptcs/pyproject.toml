@@ -5,9 +5,9 @@ description = ""
 authors = ["UTokyo Plarailers <plarailers@gmail.com>"]
 readme = "README.md"
 packages = [
+    { include = "ptcs_bridge" },
     { include = "ptcs_control" },
     { include = "ptcs_server" },
-    { include = "usb_bt_bridge" },
 ]
 
 [tool.poetry.scripts]

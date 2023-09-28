@@ -6,8 +6,8 @@ from typing import Any, Callable, Optional
 
 import serial.tools.list_ports
 
+from ptcs_bridge.bridge import Bridge
 from ptcs_control.components.sensor_position import SensorPosition
-from usb_bt_bridge.bridge import Bridge
 
 BridgeTarget = str
 BridgeDict = dict[BridgeTarget, Bridge]

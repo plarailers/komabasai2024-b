@@ -9,9 +9,9 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from ptcs_bridge import Bridge
 from ptcs_control.control import Control
 from ptcs_control.mft2023 import create_control
-from usb_bt_bridge import Bridge
 
 from .api import api_router
 from .bridges import BridgeManager, BridgeTarget
@@ -183,7 +183,7 @@ def serve(*, port: int = DEFAULT_PORT, bridge: bool = False, debug: bool = False
             port=port,
             log_level="info",
             reload=True,
-            reload_dirs=["ptcs_control", "ptcs_server", "usb_bt_bridge"],
+            reload_dirs=["ptcs_bridge", "ptcs_control", "ptcs_server"],
         )
     else:
         uvicorn.run(
