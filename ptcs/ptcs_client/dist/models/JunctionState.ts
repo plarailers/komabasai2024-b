@@ -2,9 +2,11 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import type { Direction } from './Direction';
+import type { PointDirection } from './PointDirection';
 
 export type JunctionState = {
-    direction: Direction;
+    id: string;
+    connected_section_ids: Record<string, string>;
+    current_direction: PointDirection;
+    direction_command: PointDirection;
 };
-

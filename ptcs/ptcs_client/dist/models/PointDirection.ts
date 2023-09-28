@@ -3,7 +3,6 @@
 /* eslint-disable */
 
 /**
- *
  * サーボモーターの方向を表す列挙型
  *
  * ```
@@ -12,9 +11,8 @@
  * \ \______
  * \_______ curve
  * ```
- *
  */
-export enum Direction {
+export enum PointDirection {
     STRAIGHT = 'straight',
     CURVE = 'curve',
 }

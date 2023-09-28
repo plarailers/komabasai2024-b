@@ -3,8 +3,6 @@
 /* eslint-disable */
 import type { MoveTrainParams } from '../models/MoveTrainParams';
 import type { PutTrainParams } from '../models/PutTrainParams';
-import type { RailwayCommand } from '../models/RailwayCommand';
-import type { RailwayConfig } from '../models/RailwayConfig';
 import type { RailwayState } from '../models/RailwayState';
 import type { UpdateJunctionParams } from '../models/UpdateJunctionParams';
 
@@ -27,18 +25,6 @@ export class DefaultService {
     }
 
     /**
-     * Get Config
-     * @returns RailwayConfig Successful Response
-     * @throws ApiError
-     */
-    public static getConfig(): CancelablePromise<RailwayConfig> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/config',
-        });
-    }
-
-    /**
      * Get State
      * @returns RailwayState Successful Response
      * @throws ApiError
@@ -51,30 +37,18 @@ export class DefaultService {
     }
 
     /**
-     * Get Command
-     * @returns RailwayCommand Successful Response
-     * @throws ApiError
-     */
-    public static getCommand(): CancelablePromise<RailwayCommand> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/command',
-        });
-    }
-
-    /**
      * Move Train
      * 指定された列車を距離 delta 分だけ進める。
-     * デバッグ用。
-     * @param trainId
-     * @param requestBody
+ * デバッグ用。
+     * @param trainId 
+     * @param requestBody 
      * @returns any Successful Response
      * @throws ApiError
      */
     public static moveTrain(
-        trainId: string,
-        requestBody: MoveTrainParams,
-    ): CancelablePromise<any> {
+trainId: string,
+requestBody: MoveTrainParams,
+): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/state/trains/{train_id}/move',
@@ -92,16 +66,16 @@ export class DefaultService {
     /**
      * Put Train
      * 指定された列車の位置を修正する。
-     * デバッグ用。
-     * @param trainId
-     * @param requestBody
+ * デバッグ用。
+     * @param trainId 
+     * @param requestBody 
      * @returns any Successful Response
      * @throws ApiError
      */
     public static putTrain(
-        trainId: string,
-        requestBody: PutTrainParams,
-    ): CancelablePromise<any> {
+trainId: string,
+requestBody: PutTrainParams,
+): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/state/trains/{train_id}/put',
@@ -119,16 +93,16 @@ export class DefaultService {
     /**
      * Update Junction
      * 指定された分岐点の方向を更新する。
-     * デバッグ用。
-     * @param junctionId
-     * @param requestBody
+ * デバッグ用。
+     * @param junctionId 
+     * @param requestBody 
      * @returns any Successful Response
      * @throws ApiError
      */
     public static updateJunction(
-        junctionId: string,
-        requestBody: UpdateJunctionParams,
-    ): CancelablePromise<any> {
+junctionId: string,
+requestBody: UpdateJunctionParams,
+): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/state/junctions/{junction_id}/update',
@@ -146,14 +120,14 @@ export class DefaultService {
     /**
      * Block Section
      * 指定された区間に障害物を発生させる。
-     * デバッグ用。
-     * @param sectionId
+ * デバッグ用。
+     * @param sectionId 
      * @returns any Successful Response
      * @throws ApiError
      */
     public static blockSection(
-        sectionId: string,
-    ): CancelablePromise<any> {
+sectionId: string,
+): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/state/sections/{section_id}/block',
@@ -169,14 +143,14 @@ export class DefaultService {
     /**
      * Unblock Section
      * 指定された区間の障害物を取り除く。
-     * デバッグ用。
-     * @param sectionId
+ * デバッグ用。
+     * @param sectionId 
      * @returns any Successful Response
      * @throws ApiError
      */
     public static unblockSection(
-        sectionId: string,
-    ): CancelablePromise<any> {
+sectionId: string,
+): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/state/sections/{section_id}/unblock',
