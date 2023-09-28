@@ -11,7 +11,7 @@ export const Section: React.FC<SectionProps> = ({ id, points }) => {
 
   if (!railwayState) return null;
 
-  const state = railwayState.sections![id];
+  const sectionState = railwayState.sections[id];
 
   const shrunkPointFirst = shrink(points[0], points[1], 4);
 
@@ -29,8 +29,8 @@ export const Section: React.FC<SectionProps> = ({ id, points }) => {
     <polyline
       points={shrunkPoints.map((p) => `${p.x},${p.y}`).join(" ")}
       fill="none"
-      stroke={state.blocked ? "red" : "white"}
-      strokeWidth={state.blocked ? 4 : 2}
+      stroke={sectionState.is_blocked ? "red" : "white"}
+      strokeWidth={sectionState.is_blocked ? 4 : 2}
       strokeLinecap="square"
     />
   );
