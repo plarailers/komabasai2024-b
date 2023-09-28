@@ -4,12 +4,12 @@
 #include <BLE2902.h>
 
 static const char SERVICE_UUID[] = "63cb613b-6562-4aa5-b602-030f103834a4";
-static const char CHARACTERISTIC_SPEED_UUID[] = "88c9d9ae-bd53-4ab3-9f42-b3547575a743";
+static const char CHARACTERISTIC_MOTORINPUT_UUID[] = "88c9d9ae-bd53-4ab3-9f42-b3547575a743";
 static const char CHARACTERISTIC_POSITIONID_UUID[] = "8bcd68d5-78ca-c1c3-d1ba-96d527ce8968";
 
 BLEServer *pServer = NULL;
 BLEService *pService = NULL;
-BLECharacteristic *pCharacteristicSpeed = NULL;
+BLECharacteristic *pCharacteristicMotorInput = NULL;
 BLECharacteristic *pCharacteristicPositionId = NULL;
 BLEAdvertising *pAdvertising = NULL;
 uint8_t positionID = 70;
@@ -39,9 +39,9 @@ class MyServerCallbacks : public BLEServerCallbacks {
   }
 };
 
-class CharacteristicSpeedCallbacks : public BLECharacteristicCallbacks {
-  void onWrite(BLECharacteristic *pCharacteristicSpeed) {
-    std::string value = pCharacteristicSpeed->getValue();
+class CharacteristicMotorInputCallbacks : public BLECharacteristicCallbacks {
+  void onWrite(BLECharacteristic *pCharacteristicMotorInput) {
+    std::string value = pCharacteristicMotorInput->getValue();
 
     if (value.length() > 0) {
       Serial.print("Written: ");
@@ -70,16 +70,16 @@ void setup() {
 
   pService = pServer->createService(SERVICE_UUID);
 
-  pCharacteristicSpeed = pService->createCharacteristic(
-    CHARACTERISTIC_SPEED_UUID,
+  pCharacteristicMotorInput = pService->createCharacteristic(
+    CHARACTERISTIC_MOTORINPUT_UUID,
     BLECharacteristic::PROPERTY_READ | 
     BLECharacteristic::PROPERTY_WRITE | 
     BLECharacteristic::PROPERTY_NOTIFY |
     BLECharacteristic::PROPERTY_INDICATE
   );
-  pCharacteristicSpeed->setCallbacks(new CharacteristicSpeedCallbacks());
-  pCharacteristicSpeed->setValue("Initial value");
-  pCharacteristicSpeed->addDescriptor(new BLE2902());
+  pCharacteristicMotorInput->setCallbacks(new CharacteristicMotorInputCallbacks());
+  pCharacteristicMotorInput->setValue("Initial value");
+  pCharacteristicMotorInput->addDescriptor(new BLE2902());
 
   pCharacteristicPositionId = pService->createCharacteristic(
     CHARACTERISTIC_POSITIONID_UUID,
