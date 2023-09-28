@@ -4,6 +4,7 @@ import platform
 
 from bleak import BleakClient, BleakScanner
 
+####### TODO: アドレスを正しく設定してください #######
 if platform.system() == "Windows":
     ADDRESS_E5 = "7C:9E:BD:93:2E:72"
     ADDRESS_E6 = "24:62:ab:e3:67:9a"
@@ -12,6 +13,7 @@ elif platform.system() == "Darwin":
     ADDRESS_E5 = "28652C68-A2CE-F0EF-93F1-857DCA3C7A4D"
     ADDRESS_E6 = "4BE5DF57-4E86-18DB-E792-C5D2F118610E"
     ADDRESS_DR = "9c:9c:1f:cf:ea:de"
+    ADDRESS_JT = "66D22FDC-6B41-36D0-BB07-C80BADA29DB2"
 else:
     raise Exception(f"{platform.system()} not supported")
 
@@ -32,7 +34,8 @@ async def main():
     for d in devices:
         print("  - ", d)
 
-    async with BleakClient(ADDRESS_E5) as client:
+    ####### TODO: クライアントのアドレスを選択してください #######
+    async with BleakClient(ADDRESS_JT) as client:
         print("Connected to", client)
         print("Services:")
         for service in client.services:
