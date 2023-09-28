@@ -65,6 +65,10 @@ async def rotationNotification_callback(sender, data):
     # rotation Notifyを受け取ったとき，mileageを車輪1/24回転分進める
     mileage_cm_ += WHEEL_DIAMETER_cm_ * PI / 24
     print(f"mileage: {mileage_cm_}")
-        
+    # 24ステップのロータリエンコーダをギアで1/2に減速するため12ステップで1回転とするのが妥当と思われるが，
+    # ロータリエンコーダは左右の車輪に2つ搭載されており，左右のステップ数が合わせて24になったときに1回転とすることで，
+    # カーブなど移動距離に左右差が生じる際に平均の移動距離を算出できる．
+    # そのため，左右いずれかの1ステップを1/24回転として扱う．
+
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())

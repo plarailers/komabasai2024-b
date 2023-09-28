@@ -129,10 +129,7 @@ void setup() {
 
     pCharacteristicMotorInput = pService->createCharacteristic(
         CHARACTERISTIC_MOTORINPUT_UUID,
-        BLECharacteristic::PROPERTY_READ | 
-        BLECharacteristic::PROPERTY_WRITE | 
-        BLECharacteristic::PROPERTY_NOTIFY |
-        BLECharacteristic::PROPERTY_INDICATE
+        BLECharacteristic::PROPERTY_WRITE
     );
     pCharacteristicMotorInput->setCallbacks(new CharacteristicMotorInputCallbacks());
     pCharacteristicMotorInput->setValue("Initial value");
@@ -140,23 +137,17 @@ void setup() {
 
     pCharacteristicPositionId = pService->createCharacteristic(
         CHARACTERISTIC_POSITIONID_UUID,
-        BLECharacteristic::PROPERTY_READ | 
-        BLECharacteristic::PROPERTY_WRITE | 
-        BLECharacteristic::PROPERTY_NOTIFY |
-        BLECharacteristic::PROPERTY_INDICATE
+        BLECharacteristic::PROPERTY_NOTIFY
     );
     pCharacteristicPositionId->setValue("Initial value");
     pCharacteristicPositionId->addDescriptor(new BLE2902());
 
     pCharacteristicRotation = pService->createCharacteristic(
         CHARACTERISTIC_ROTATION_UUID,
-        BLECharacteristic::PROPERTY_READ | 
-        BLECharacteristic::PROPERTY_WRITE | 
-        BLECharacteristic::PROPERTY_NOTIFY |
-        BLECharacteristic::PROPERTY_INDICATE
+        BLECharacteristic::PROPERTY_NOTIFY
     );
-    pCharacteristicPositionId->setValue("Initial value");
-    pCharacteristicPositionId->addDescriptor(new BLE2902());
+    pCharacteristicRotation->setValue("Initial value");
+    pCharacteristicRotation->addDescriptor(new BLE2902());
 
     pService->start();
 
