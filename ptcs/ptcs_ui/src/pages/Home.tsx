@@ -124,7 +124,7 @@ export const Home: React.FC = () => {
 
   useEffect(() => {
     DefaultService.getConfig().then((config) => {
-      setRailwayConfig(config);
+      // setRailwayConfig(config);
     });
   }, []);
 
@@ -132,10 +132,10 @@ export const Home: React.FC = () => {
     const interval = setInterval(() => {
       setTime(new Date());
       DefaultService.getState().then((state) => {
-        setRailwayState(state);
+        // setRailwayState(state);
       });
       DefaultService.getCommand().then((command) => {
-        setRailwayCommand(command);
+        // setRailwayCommand(command);
       });
     }, 500);
     return () => {
