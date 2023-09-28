@@ -5,18 +5,19 @@
 #include <BLEServer.h>
 #include <BLEUtils.h>
 #include <BLE2902.h>
-#include "src/PositionID_Detector.h"
+#include "MFRC522Uart.h"
 
-PositionID_Detector positionID_Detector;
-
+/* BLE パラメーラ・関数 ここから */
 static const char SERVICE_UUID[] = "63cb613b-6562-4aa5-b602-030f103834a4";
 static const char CHARACTERISTIC_MOTORINPUT_UUID[] = "88c9d9ae-bd53-4ab3-9f42-b3547575a743";
 static const char CHARACTERISTIC_POSITIONID_UUID[] = "8bcd68d5-78ca-c1c3-d1ba-96d527ce8968";
+static const char CHARACTERISTIC_ROTATION_UUID[] = "aab17457-2755-8b50-caa1-432ff553d533";
 
 BLEServer *pServer = NULL;
 BLEService *pService = NULL;
 BLECharacteristic *pCharacteristicMotorInput = NULL;
 BLECharacteristic *pCharacteristicPositionId = NULL;
+BLECharacteristic *pCharacteristicRotation = NULL;
 BLEAdvertising *pAdvertising = NULL;
 
 std::string getTrainName() {
@@ -58,12 +59,59 @@ class CharacteristicMotorInputCallbacks : public BLECharacteristicCallbacks {
     }
   }
 };
+/* BLE パラメーラ・関数 ここまで */
+
+
+/* PWM(ledc) パラメータ */ 
+const int FORWARD_PWM_CH = 0;
+const int REVERSE_PWM_CH = 1;
+const float PWM_FREQ_HZ = 20000;
+
+
+/* RFID(MFRC522) パラメーラ */
+#define MFRC522_RX_PIN 5
+#define MFRC522_TX_PIN 19
+#define MFRC522_RST_PIN 27
+MFRC522Uart mfrc522(&Serial2, MFRC522_RX_PIN, MFRC522_TX_PIN, MFRC522_RST_PIN);
+
+
+/* ロータリエンコーダ パラメータ・関数 */
+byte rotation = 1;
+const int ENCODER_1A_PIN  = 16; // 進行方向右
+const int ENCODER_2A_PIN  = 36; // 進行方向左
+volatile unsigned long preTime = 0, nowTime;
+unsigned long chattaringTime = 10;
+
+void notifyRotation() {
+    nowTime = millis();
+    if(nowTime - preTime > chattaringTime){
+        pCharacteristicRotation->setValue((uint8_t*)&rotation, 1);
+        pCharacteristicRotation->notify();
+        Serial.println("Rotation Notified");
+        preTime = nowTime;
+    }
+}
+
+
+/*
+  ■■■■  ■■■■■■■■■■■■■    ■     ■   ■■■■■  
+ ■      ■■       ■       ■     ■   ■■  ■■ 
+ ■      ■■       ■       ■     ■   ■■   ■ 
+ ■■     ■■       ■       ■     ■   ■■  ■■ 
+  ■■■   ■■■■■    ■       ■     ■   ■■■■■  
+     ■  ■■       ■       ■     ■   ■■     
+     ■■ ■■       ■       ■■    ■   ■■     
+     ■  ■■       ■        ■   ■■   ■■     
+ ■■■■   ■■■■■■   ■         ■■■■    ■■    
+*/
 
 void setup() {
 
-    /* Serial */
+    /* Serial セットアップ */
     Serial.begin(115200);
     while (!Serial);
+
+    /* BLE セットアップ ここから*/
     Serial.println("Starting BLE");
 
     Serial.print("Chip ID: ");
@@ -100,36 +148,77 @@ void setup() {
     pCharacteristicPositionId->setValue("Initial value");
     pCharacteristicPositionId->addDescriptor(new BLE2902());
 
+    pCharacteristicRotation = pService->createCharacteristic(
+        CHARACTERISTIC_ROTATION_UUID,
+        BLECharacteristic::PROPERTY_READ | 
+        BLECharacteristic::PROPERTY_WRITE | 
+        BLECharacteristic::PROPERTY_NOTIFY |
+        BLECharacteristic::PROPERTY_INDICATE
+    );
+    pCharacteristicPositionId->setValue("Initial value");
+    pCharacteristicPositionId->addDescriptor(new BLE2902());
+
     pService->start();
 
     pAdvertising = BLEDevice::getAdvertising();
     pAdvertising->addServiceUUID(SERVICE_UUID);
     pAdvertising->start();
     Serial.println("Advertising started");
+    /* BLE セットアップ ここまで */
 
-    /* ledcセットアップ */
+
+    /* PWM(ledc) セットアップ */
     ledcSetup(0, 20000, 8);
     ledcAttachPin(25, 0);
     ledcWrite(0, 0);
-    Serial.println("LEDC Setup done!!");
+    Serial.println("PWM Setup done");
 
-    /* MFRC522セットアップ */
-    positionID_Detector.MFRC522Setup();
-    Serial.println("MFRC522 Setup done!!");
+
+    /* RFID(MFRC522) セットアップ */
+    mfrc522.PCD_Init();
+    delay(4);
+    mfrc522.PCD_DumpVersionToSerial();
+    Serial.println("RFID Setup done");
+
+
+    /* ロータリエンコーダ セットアップ*/
+    pinMode(ENCODER_1A_PIN, INPUT);
+    pinMode(ENCODER_2A_PIN, INPUT);
+    attachInterrupt(ENCODER_1A_PIN, notifyRotation, CHANGE);
+    attachInterrupt(ENCODER_2A_PIN, notifyRotation, CHANGE);
+    Serial.println("ロータリエンコーダ Setup done");
 
 }
+    
+/*
+■■       ■■■■      ■■■■    ■■■■■  
+■■      ■■   ■■   ■■   ■■  ■■  ■■ 
+■■     ■■     ■  ■■     ■  ■■   ■ 
+■■     ■      ■  ■      ■  ■■  ■■ 
+■■     ■      ■  ■      ■  ■■■■■  
+■■     ■      ■  ■      ■  ■■     
+■■     ■■     ■  ■■     ■  ■■     
+■■      ■■   ■■   ■■   ■■  ■■     
+■■■■■■   ■■■■      ■■■■    ■■ 
+*/
 
 void loop(){
 
-    /* 積算位置検知(IPS) */
-    //TODO: IPSのコードを書く
-    // 左右のエンコーダから入力が来たらcharacteristec_ips(value: 'o')をnotifyする
+    /* RFIDの読み取り */
 
-    /* 絶対位置検知(APS) */
-    int     positionID      = positionID_Detector.getPositionID();
-    if (positionID > 0) {
-        pCharacteristicPositionId->setValue((uint8_t*)&positionID, 1);
-        pCharacteristicPositionId->notify();
-        Serial.println("Notified PositionId");
-    }
+    // Reset the loop if no new card present on the sensor/reader. This saves the entire process when idle.
+	if ( ! mfrc522.PICC_IsNewCardPresent()) return;
+
+	// Select one of the cards
+	if ( ! mfrc522.PICC_ReadCardSerial()) return;
+	
+	byte positionID = mfrc522.uid.uidByte[0]; //UIDの最初の1バイトをpositionIDとする
+	Serial.print("positionID: ");
+	Serial.print(positionID);
+    pCharacteristicPositionId->setValue((uint8_t*)&positionID, 1);
+    pCharacteristicPositionId->notify();
+    Serial.println(" Notified");
+
+	mfrc522.PICC_HaltA(); // 卡片進入停止模式
+
 }

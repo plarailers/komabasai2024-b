@@ -18,9 +18,8 @@ else:
 SERVICE_UUID = "63cb613b-6562-4aa5-b602-030f103834a4"
 CHARACTERISTIC_SPEED_UUID = "88c9d9ae-bd53-4ab3-9f42-b3547575a743"
 CHARACTERISTIC_POSITIONID_UUID = "8bcd68d5-78ca-c1c3-d1ba-96d527ce8968"
+CHARACTERISTIC_ROTATION_UUID = "aab17457-2755-8b50-caa1-432ff553d533"
 
-old_time = 0
-new_time = 0
 mileage_cm_ = 0.0
 
 GEAR_RATIO = 175/8448
@@ -44,9 +43,11 @@ async def main():
             print("  - ", characteristic)
         characteristicSpeed = service.get_characteristic(CHARACTERISTIC_SPEED_UUID)
         characteristicPositionId = service.get_characteristic(CHARACTERISTIC_POSITIONID_UUID)
-        print(characteristicSpeed, characteristicPositionId)
+        characteristicRotation = service.get_characteristic(CHARACTERISTIC_ROTATION_UUID)
+        print(characteristicSpeed, characteristicPositionId, characteristicRotation)
 
-        await client.start_notify(characteristicPositionId, notification_callback)
+        await client.start_notify(characteristicPositionId, positionIdNotification_callback)
+        await client.start_notify(characteristicRotation, rotationNotification_callback)
 
         for i in range(100, 200):
             await client.write_gatt_char(characteristicSpeed, f"{i}".encode())
@@ -54,10 +55,16 @@ async def main():
             await asyncio.sleep(1)
         
 
-async def notification_callback(sender, data):
-    # Notifyを受け取ったときの処理をここに記述
+async def positionIdNotification_callback(sender, data):
+    # positionId Notifyを受け取ったとき，positionIDを表示．mileageはリセット
     positionID = int.from_bytes(data, byteorder='big')
     print(f"positionID: {positionID}")
+    mileage_cm_ = 0
+
+async def rotationNotification_callback(sender, data):
+    # rotation Notifyを受け取ったとき，mileageを車輪1/24回転分進める
+    mileage_cm_ += WHEEL_DIAMETER_cm_ * PI / 24
+    print(f"mileage: {mileage_cm_}")
         
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
