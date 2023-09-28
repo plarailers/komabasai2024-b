@@ -2,21 +2,17 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export type TrainState = {
-    current_section: string;
-    target_junction: string;
-    mileage: number;
-    /**
-     * 列車の停止目標
-     */
-    stop?: string;
-    /**
-     * 停止目標までの距離[cm]
-     */
-    stop_distance?: number;
-    /**
-     * 発車予定時刻
-     */
-    departure_time?: number;
-};
+import type { DirectedPosition } from './DirectedPosition';
 
+export type TrainState = {
+    id: string;
+    min_input: number;
+    max_input: number;
+    max_speed: number;
+    delta_per_motor_rotation: number;
+    position: DirectedPosition;
+    stop_id: (string | null);
+    stop_distance: number;
+    departure_time: (number | null);
+    speed_command: number;
+};

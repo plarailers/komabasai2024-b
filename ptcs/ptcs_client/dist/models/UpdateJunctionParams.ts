@@ -2,9 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import type { Direction } from './Direction';
+import type { PointDirection } from './PointDirection';
 
 export type UpdateJunctionParams = {
-    direction: Direction;
+    direction: PointDirection;
 };
-

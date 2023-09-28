@@ -1,26 +1,16 @@
 import { Code, Container, DEFAULT_THEME, Grid, Stack } from "@mantine/core";
-import {
-  DefaultService,
-  RailwayCommand,
-  RailwayConfig,
-  RailwayState,
-} from "ptcs_client";
+import { DefaultService, RailwayState } from "ptcs_client";
 import { Layout } from "../components/Layout";
 import { useEffect, useState } from "react";
 import { Railway } from "../components/Railway";
 import { RailwayUI } from "../types";
 import { Debugger } from "../components/Debugger";
-import {
-  RailwayConfigContext,
-  RailwayStateContext,
-  RailwayUIContext,
-} from "../contexts";
+import { RailwayStateContext, RailwayUIContext } from "../contexts";
 
 const ui: RailwayUI = {
   width: 440,
   height: 340,
-  platforms: {
-  },
+  platforms: {},
   junctions: {
     j0: { position: { x: 400, y: 160 } },
     j1: { position: { x: 360, y: 200 } },
@@ -113,18 +103,12 @@ const ui: RailwayUI = {
 };
 
 export const Home: React.FC = () => {
-  const [railwayConfig, setRailwayConfig] = useState<RailwayConfig | null>(
-    null
-  );
   const [railwayState, setRailwayState] = useState<RailwayState | null>(null);
-  const [railwayCommand, setRailwayCommand] = useState<RailwayCommand | null>(
-    null
-  );
   const [time, setTime] = useState<Date>();
 
   useEffect(() => {
-    DefaultService.getConfig().then((config) => {
-      // setRailwayConfig(config);
+    DefaultService.getState().then((state) => {
+      setRailwayState(state);
     });
   }, []);
 
@@ -132,10 +116,7 @@ export const Home: React.FC = () => {
     const interval = setInterval(() => {
       setTime(new Date());
       DefaultService.getState().then((state) => {
-        // setRailwayState(state);
-      });
-      DefaultService.getCommand().then((command) => {
-        // setRailwayCommand(command);
+        setRailwayState(state);
       });
     }, 500);
     return () => {
@@ -144,28 +125,24 @@ export const Home: React.FC = () => {
   }, []);
 
   return (
-    <RailwayConfigContext.Provider value={railwayConfig}>
-      <RailwayStateContext.Provider value={railwayState}>
-        <RailwayUIContext.Provider value={ui}>
-          <Layout>
-            <Container>
-              <Stack>
-                {time?.toLocaleString()}
-                <Railway />
-                <Debugger />
-                <Grid>
-                  <Grid.Col span={6}>
-                    <Code block>{JSON.stringify(railwayState, null, 4)}</Code>
-                  </Grid.Col>
-                  <Grid.Col span={6}>
-                    <Code block>{JSON.stringify(railwayCommand, null, 4)}</Code>
-                  </Grid.Col>
-                </Grid>
-              </Stack>
-            </Container>
-          </Layout>
-        </RailwayUIContext.Provider>
-      </RailwayStateContext.Provider>
-    </RailwayConfigContext.Provider>
+    <RailwayStateContext.Provider value={railwayState}>
+      <RailwayUIContext.Provider value={ui}>
+        <Layout>
+          <Container>
+            <Stack>
+              {time?.toLocaleString()}
+              <Railway />
+              <Debugger />
+              <Grid>
+                <Grid.Col span={6}>
+                  <Code block>{JSON.stringify(railwayState, null, 4)}</Code>
+                </Grid.Col>
+                <Grid.Col span={6}></Grid.Col>
+              </Grid>
+            </Stack>
+          </Container>
+        </Layout>
+      </RailwayUIContext.Provider>
+    </RailwayStateContext.Provider>
   );
 };

@@ -1,7 +1,7 @@
-import { Button, Code, Group } from "@mantine/core";
+import { Button, Group } from "@mantine/core";
 import { DefaultService } from "ptcs_client";
 import React, { useContext } from "react";
-import { RailwayConfigContext, RailwayStateContext } from "../contexts";
+import { RailwayStateContext } from "../contexts";
 
 export const Debugger: React.FC = () => {
   return (
@@ -44,11 +44,11 @@ interface PutTrainButtonProps {
 }
 
 const PutTrainButton: React.FC<PutTrainButtonProps> = ({ id, positionId }) => {
-  const railwayConfig = useContext(RailwayConfigContext);
+  const railwayState = useContext(RailwayStateContext);
 
-  if (!railwayConfig) return null;
+  if (!railwayState) return null;
 
-  const positionConfig = railwayConfig.positions![positionId];
+  const sensorPositionState = railwayState.sensor_positions[positionId];
 
   return (
     <Button
@@ -62,7 +62,8 @@ const PutTrainButton: React.FC<PutTrainButtonProps> = ({ id, positionId }) => {
         DefaultService.putTrain(id, { position_id: positionId });
       }}
     >
-      PutTrain({id}, ({positionConfig.section}, {positionConfig.mileage}))
+      PutTrain({id}, ({sensorPositionState.section_id},{" "}
+      {sensorPositionState.mileage}))
     </Button>
   );
 };
@@ -76,11 +77,11 @@ const BlockSectionButton: React.FC<BlockSectionButtonProps> = ({ id }) => {
 
   if (!railwayState) return null;
 
-  const state = railwayState.sections![id];
+  const sectionState = railwayState.sections[id];
 
   return (
     <Button
-      variant={!state.blocked ? "light" : "filled"}
+      variant={!sectionState.is_blocked ? "light" : "filled"}
       color="red"
       styles={(theme) => ({
         label: {
@@ -88,14 +89,16 @@ const BlockSectionButton: React.FC<BlockSectionButtonProps> = ({ id }) => {
         },
       })}
       onClick={() => {
-        if (!state.blocked) {
+        if (!sectionState.is_blocked) {
           DefaultService.blockSection(id);
         } else {
           DefaultService.unblockSection(id);
         }
       }}
     >
-      {!state.blocked ? `BlockSection(${id})` : `UnblockSection(${id})`}
+      {!sectionState.is_blocked
+        ? `BlockSection(${id})`
+        : `UnblockSection(${id})`}
     </Button>
   );
 };

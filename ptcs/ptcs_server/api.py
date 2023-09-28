@@ -1,10 +1,10 @@
-from typing import Any
-
 import pydantic
 from fastapi import APIRouter, Request
 
 from ptcs_control.components.junction import PointDirection
 from ptcs_control.control import Control
+
+from .types.state import RailwayState, get_state_from_control
 
 api_router = APIRouter()
 
@@ -14,19 +14,10 @@ def hello() -> dict:
     return {"message": "hello"}
 
 
-@api_router.get("/config")
-def get_config(request: Request) -> Any:
-    return {}
-
-
 @api_router.get("/state")
-def get_state(request: Request) -> Any:
-    return {}
-
-
-@api_router.get("/command")
-def get_command(request: Request) -> Any:
-    return {}
+def get_state(request: Request) -> RailwayState:
+    control: Control = request.app.state.control
+    return get_state_from_control(control)
 
 
 class MoveTrainParams(pydantic.BaseModel):
