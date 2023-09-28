@@ -24,15 +24,15 @@ def create_control(logger: logging.Logger | None = None) -> Control:
 
     control = Control(logger=logger)
 
-    j0a = Junction(id="j0")
-    j0b = Junction(id="j1")
-    j1a = Junction(id="j2")
-    j1b = Junction(id="j3")
+    j0 = Junction(id="j0")
+    j1 = Junction(id="j1")
+    j2 = Junction(id="j2")
+    j3 = Junction(id="j3")
 
-    control.add_junction(j0a)
-    control.add_junction(j0b)
-    control.add_junction(j1a)
-    control.add_junction(j1b)
+    control.add_junction(j0)
+    control.add_junction(j1)
+    control.add_junction(j2)
+    control.add_junction(j3)
 
     s0 = Section(
         id="s0",
@@ -72,18 +72,18 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         JunctionConnection.DIVERGING,
         JunctionConnection.CONVERGING,
     )
-    control.connect(s0, A, j0a, CONVERGING)
-    control.connect(s0, B, j0b, THROUGH)
-    control.connect(s1, A, j0b, CONVERGING)
-    control.connect(s1, B, j1b, CONVERGING)
-    control.connect(s2, A, j1b, THROUGH)
-    control.connect(s2, B, j1a, CONVERGING)
-    control.connect(s3, A, j1a, THROUGH)
-    control.connect(s3, B, j0a, THROUGH)
-    control.connect(s4, A, j0a, DIVERGING)
-    control.connect(s4, B, j0b, DIVERGING)
-    control.connect(s5, A, j1a, DIVERGING)
-    control.connect(s5, B, j1b, DIVERGING)
+    control.connect(s0, A, j0, THROUGH)
+    control.connect(s0, B, j3, THROUGH)
+    control.connect(s1, A, j3, CONVERGING)
+    control.connect(s1, B, j0, CONVERGING)
+    control.connect(s2, A, j1, CONVERGING)
+    control.connect(s2, B, j2, CONVERGING)
+    control.connect(s3, A, j2, THROUGH)
+    control.connect(s3, B, j1, THROUGH)
+    control.connect(s4, A, j0, DIVERGING)
+    control.connect(s4, B, j1, DIVERGING)
+    control.connect(s5, A, j2, DIVERGING)
+    control.connect(s5, B, j3, DIVERGING)
 
     t0 = Train(
         id="t0",
@@ -93,7 +93,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         delta_per_motor_rotation=0.2435 * 0.9,
         position=DirectedPosition(
             section=s0,
-            target_junction=j0b,
+            target_junction=j3,
             mileage=STRAIGHT_RAIL * 4.5 + WATARI_RAIL_B + 1,  # 次駅探索の都合上、stopを1cm通り過ぎた場所にしておく
         ),
     )  # Dr
@@ -105,7 +105,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         delta_per_motor_rotation=0.1919 * 1.1 * 0.9,
         position=DirectedPosition(
             section=s1,
-            target_junction=j1b,
+            target_junction=j0,
             mileage=STRAIGHT_RAIL * 2.5 + WATARI_RAIL_B + 1,
         ),
     )  # E6
@@ -118,7 +118,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         id="stop_0",
         position=DirectedPosition(
             section=s0,
-            target_junction=j0b,
+            target_junction=j1,
             mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 4.5,
         ),
     )
@@ -126,7 +126,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         id="stop_1",
         position=DirectedPosition(
             section=s0,
-            target_junction=j0b,
+            target_junction=j1,
             mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 10.0 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
         ),
     )
@@ -134,7 +134,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         id="stop_2",
         position=DirectedPosition(
             section=s1,
-            target_junction=j0b,
+            target_junction=j1,
             mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 1.5,
         ),
     )
@@ -142,7 +142,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         id="stop_3",
         position=DirectedPosition(
             section=s1,
-            target_junction=j1b,
+            target_junction=j3,
             mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 1.5,
         ),
     )
@@ -150,7 +150,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         id="stop_4",
         position=DirectedPosition(
             section=s3,
-            target_junction=j0a,
+            target_junction=j0,
             mileage=WATARI_RAIL_A * 1 + STRAIGHT_RAIL * 1.5,
         ),
     )
@@ -170,25 +170,25 @@ def create_control(logger: logging.Logger | None = None) -> Control:
     position_173 = SensorPosition(
         id="position_173",
         section=s0,
-        target_junction=j0b,
+        target_junction=j1,
         mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 2.5,
     )
     position_138 = SensorPosition(
         id="position_138",
         section=s0,
-        target_junction=j0b,
+        target_junction=j1,
         mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 9.5 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
     )
     position_80 = SensorPosition(
         id="position_80",
         section=s0,
-        target_junction=j0b,
+        target_junction=j1,
         mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 13.5 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
     )
     position_255 = SensorPosition(
         id="position_255",
         section=s2,
-        target_junction=j1a,
+        target_junction=j2,
         mileage=WATARI_RAIL_A * 1 + STRAIGHT_RAIL * 5.5 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
     )
 

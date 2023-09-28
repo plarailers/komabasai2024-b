@@ -30,7 +30,7 @@ const ui: RailwayUI = {
     },
     s1: {
       from: "j3",
-      to: "j2",
+      to: "j0",
       points: [
         { x: 260, y: 300 },
         { x: 60, y: 300 },
