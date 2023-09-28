@@ -5,4 +5,3 @@
 export type PutTrainParams = {
     position_id: string;
 };
-

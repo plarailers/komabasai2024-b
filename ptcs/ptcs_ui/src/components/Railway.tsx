@@ -7,26 +7,26 @@ import { useContext } from "react";
 import { Stop } from "./Stop";
 
 export const Railway: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const ui = useContext(RailwayUIContext);
+  const railwayUI = useContext(RailwayUIContext);
 
-  if (!ui) return null;
+  if (!railwayUI) return null;
 
   return (
-    <svg width="100%" viewBox={`0 0 ${ui.width} ${ui.height}`}>
-      <rect width={ui.width} height={ui.height} fill="#222222" />
-      {Object.entries(ui.platforms).map(([id, platform]) => (
+    <svg width="100%" viewBox={`0 0 ${railwayUI.width} ${railwayUI.height}`}>
+      <rect width={railwayUI.width} height={railwayUI.height} fill="#222222" />
+      {Object.entries(railwayUI.platforms).map(([id, platform]) => (
         <Platform key={id} position={platform.position} />
       ))}
-      {Object.entries(ui.stops).map(([id, stop]) => (
+      {Object.entries(railwayUI.stops).map(([id, stop]) => (
         <Stop key={id} id={id} />
       ))}
-      {Object.entries(ui.sections).map(([id, section]) => (
+      {Object.entries(railwayUI.sections).map(([id, section]) => (
         <Section key={id} id={id} points={section.points} />
       ))}
-      {Object.entries(ui.junctions).map(([id, junction]) => (
+      {Object.entries(railwayUI.junctions).map(([id, junction]) => (
         <Junction key={id} id={id} position={junction.position} />
       ))}
-      {Object.entries(ui.trains).map(([id, train]) => (
+      {Object.entries(railwayUI.trains).map(([id, train]) => (
         <Train key={id} id={id} />
       ))}
       {children}

@@ -1,11 +1,8 @@
 import { useContext } from "react";
 import { useMantineTheme } from "@mantine/core";
-import {
-  RailwayConfigContext,
-  RailwayStateContext,
-  RailwayUIContext,
-} from "../contexts";
+import { RailwayStateContext, RailwayUIContext } from "../contexts";
 import { calculatePositionAndDirection } from "../lib/point";
+import { SectionConnection } from "ptcs_client";
 
 interface TrainProps {
   id: string;
@@ -14,42 +11,45 @@ interface TrainProps {
 export const Train: React.FC<TrainProps> = ({ id }) => {
   const theme = useMantineTheme();
 
-  const railwayConfig = useContext(RailwayConfigContext);
   const railwayState = useContext(RailwayStateContext);
   const railwayUI = useContext(RailwayUIContext);
 
-  if (!(railwayConfig && railwayState && railwayUI)) {
+  if (!(railwayState && railwayUI)) {
     return null;
   }
 
-  const state = railwayState.trains![id];
-  const currentSectionConfig = railwayConfig.sections![state.current_section];
-  const currentSectionUI = railwayUI.sections![state.current_section];
+  const trainState = railwayState.trains[id];
+  const currentSectionState =
+    railwayState.sections[trainState.position.section_id];
+  const currentSectionUI = railwayUI.sections[trainState.position.section_id];
   const { position, direction } = calculatePositionAndDirection(
-    state.mileage / currentSectionConfig.length,
+    trainState.position.mileage / currentSectionState.length,
     currentSectionUI.points
   );
-  if (state.target_junction === currentSectionConfig.junction_0) {
+  if (
+    trainState.position.target_junction_id ===
+    currentSectionState.connected_junction_ids[SectionConnection.A]
+  ) {
     direction.x *= -1;
     direction.y *= -1;
   }
   const angle = (Math.atan2(direction.y, direction.x) / Math.PI) * 180;
 
-  const ui = railwayUI.trains[id];
+  const trainUI = railwayUI.trains[id];
 
   return (
     <g transform={`translate(${position.x}, ${position.y})`}>
       <g transform={`rotate(${angle})`}>
         <polyline
           points="-5,-5 -5,5 5,5 10,0 5,-5"
-          fill={ui.fill}
-          stroke={ui.stroke}
+          fill={trainUI.fill}
+          stroke={trainUI.stroke}
         />
       </g>
-      {state.departure_time != null && (
+      {trainState.departure_time != null && (
         <g transform={`translate(${0}, ${-10})`}>
           <text textAnchor="middle" fill={theme.colors.gray[5]}>
-            {state.departure_time - railwayState.time!}
+            {trainState.departure_time - railwayState.current_time}
           </text>
         </g>
       )}

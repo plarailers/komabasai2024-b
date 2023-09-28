@@ -2,9 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export type StopConfig = {
-    section: string;
-    target_junction: string;
+export type DirectedPosition = {
+    section_id: string;
+    target_junction_id: string;
     mileage: number;
 };
-

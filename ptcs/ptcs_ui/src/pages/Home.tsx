@@ -1,95 +1,85 @@
 import { Code, Container, DEFAULT_THEME, Grid, Stack } from "@mantine/core";
-import {
-  DefaultService,
-  RailwayCommand,
-  RailwayConfig,
-  RailwayState,
-} from "ptcs_client";
+import { DefaultService, RailwayState } from "ptcs_client";
 import { Layout } from "../components/Layout";
 import { useEffect, useState } from "react";
 import { Railway } from "../components/Railway";
 import { RailwayUI } from "../types";
 import { Debugger } from "../components/Debugger";
-import {
-  RailwayConfigContext,
-  RailwayStateContext,
-  RailwayUIContext,
-} from "../contexts";
+import { RailwayStateContext, RailwayUIContext } from "../contexts";
 
 const ui: RailwayUI = {
-  width: 680,
-  height: 160,
-  platforms: {
-    p0a: { position: { x: 220, y: 120 } },
-    p0b: { position: { x: 220, y: 40 } },
-    p1a: { position: { x: 460, y: 120 } },
-    p1b: { position: { x: 460, y: 40 } },
-  },
+  width: 440,
+  height: 340,
+  platforms: {},
   junctions: {
-    j0a: { position: { x: 380, y: 100 } },
-    j0b: { position: { x: 420, y: 60 } },
-    j1a: { position: { x: 540, y: 100 } },
-    j1b: { position: { x: 500, y: 60 } },
+    j0: { position: { x: 400, y: 160 } },
+    j1: { position: { x: 360, y: 200 } },
+    j2: { position: { x: 280, y: 280 } },
+    j3: { position: { x: 260, y: 300 } },
   },
   sections: {
     s0: {
-      from: "j0a",
-      to: "j0b",
+      from: "j0",
+      to: "j3",
       points: [
-        { x: 380, y: 100 },
-        { x: 120, y: 100 },
-        { x: 100, y: 120 },
-        { x: 40, y: 120 },
-        { x: 40, y: 40 },
-        { x: 100, y: 40 },
-        { x: 120, y: 60 },
-        { x: 420, y: 60 },
+        { x: 400, y: 160 },
+        { x: 400, y: 280 },
+        { x: 380, y: 300 },
+        { x: 260, y: 300 },
       ],
     },
     s1: {
-      from: "j0b",
-      to: "j1b",
+      from: "j3",
+      to: "j0",
       points: [
-        { x: 420, y: 60 },
-        { x: 500, y: 60 },
+        { x: 260, y: 300 },
+        { x: 60, y: 300 },
+        { x: 40, y: 280 },
+        { x: 40, y: 220 },
+        { x: 220, y: 40 },
+        { x: 380, y: 40 },
+        { x: 400, y: 60 },
+        { x: 400, y: 160 },
       ],
     },
     s2: {
-      from: "j1b",
-      to: "j1a",
+      from: "j1",
+      to: "j2",
       points: [
-        { x: 500, y: 60 },
-        { x: 560, y: 60 },
-        { x: 580, y: 40 },
-        { x: 640, y: 40 },
-        { x: 640, y: 120 },
-        { x: 580, y: 120 },
-        { x: 560, y: 100 },
-        { x: 540, y: 100 },
+        { x: 360, y: 200 },
+        { x: 360, y: 250 },
+        { x: 330, y: 280 },
+        { x: 280, y: 280 },
       ],
     },
     s3: {
-      from: "j1a",
-      to: "j0a",
+      from: "j2",
+      to: "j1",
       points: [
-        { x: 540, y: 100 },
-        { x: 380, y: 100 },
+        { x: 280, y: 280 },
+        { x: 110, y: 280 },
+        { x: 80, y: 250 },
+        { x: 80, y: 110 },
+        { x: 110, y: 80 },
+        { x: 330, y: 80 },
+        { x: 360, y: 110 },
+        { x: 360, y: 200 },
       ],
     },
     s4: {
-      from: "j0a",
-      to: "j0b",
+      from: "j0",
+      to: "j1",
       points: [
-        { x: 380, y: 100 },
-        { x: 420, y: 60 },
+        { x: 400, y: 160 },
+        { x: 360, y: 200 },
       ],
     },
     s5: {
-      from: "j1a",
-      to: "j1b",
+      from: "j2",
+      to: "j3",
       points: [
-        { x: 540, y: 100 },
-        { x: 500, y: 60 },
+        { x: 280, y: 280 },
+        { x: 260, y: 300 },
       ],
     },
   },
@@ -113,18 +103,12 @@ const ui: RailwayUI = {
 };
 
 export const Home: React.FC = () => {
-  const [railwayConfig, setRailwayConfig] = useState<RailwayConfig | null>(
-    null
-  );
   const [railwayState, setRailwayState] = useState<RailwayState | null>(null);
-  const [railwayCommand, setRailwayCommand] = useState<RailwayCommand | null>(
-    null
-  );
   const [time, setTime] = useState<Date>();
 
   useEffect(() => {
-    DefaultService.getConfig().then((config) => {
-      setRailwayConfig(config);
+    DefaultService.getState().then((state) => {
+      setRailwayState(state);
     });
   }, []);
 
@@ -134,9 +118,6 @@ export const Home: React.FC = () => {
       DefaultService.getState().then((state) => {
         setRailwayState(state);
       });
-      DefaultService.getCommand().then((command) => {
-        setRailwayCommand(command);
-      });
     }, 500);
     return () => {
       clearInterval(interval);
@@ -144,28 +125,24 @@ export const Home: React.FC = () => {
   }, []);
 
   return (
-    <RailwayConfigContext.Provider value={railwayConfig}>
-      <RailwayStateContext.Provider value={railwayState}>
-        <RailwayUIContext.Provider value={ui}>
-          <Layout>
-            <Container>
-              <Stack>
-                {time?.toLocaleString()}
-                <Railway />
-                <Debugger />
-                <Grid>
-                  <Grid.Col span={6}>
-                    <Code block>{JSON.stringify(railwayState, null, 4)}</Code>
-                  </Grid.Col>
-                  <Grid.Col span={6}>
-                    <Code block>{JSON.stringify(railwayCommand, null, 4)}</Code>
-                  </Grid.Col>
-                </Grid>
-              </Stack>
-            </Container>
-          </Layout>
-        </RailwayUIContext.Provider>
-      </RailwayStateContext.Provider>
-    </RailwayConfigContext.Provider>
+    <RailwayStateContext.Provider value={railwayState}>
+      <RailwayUIContext.Provider value={ui}>
+        <Layout>
+          <Container>
+            <Stack>
+              {time?.toLocaleString()}
+              <Railway />
+              <Debugger />
+              <Grid>
+                <Grid.Col span={6}>
+                  <Code block>{JSON.stringify(railwayState, null, 4)}</Code>
+                </Grid.Col>
+                <Grid.Col span={6}></Grid.Col>
+              </Grid>
+            </Stack>
+          </Container>
+        </Layout>
+      </RailwayUIContext.Provider>
+    </RailwayStateContext.Provider>
   );
 };

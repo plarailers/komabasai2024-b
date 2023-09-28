@@ -1,11 +1,10 @@
 import pydantic
 from fastapi import APIRouter, Request
 
-from ptcs_control import Control
-from ptcs_control.components import Direction, Junction, Position, Section, Train
-from ptcs_control.railway_command import RailwayCommand
-from ptcs_control.railway_config import RailwayConfig
-from ptcs_control.railway_state import RailwayState
+from ptcs_control.components.junction import PointDirection
+from ptcs_control.control import Control
+
+from .types.state import RailwayState, get_state_from_control
 
 api_router = APIRouter()
 
@@ -15,22 +14,10 @@ def hello() -> dict:
     return {"message": "hello"}
 
 
-@api_router.get("/config", response_model=RailwayConfig)
-def get_config(request: Request) -> "RailwayConfig":
+@api_router.get("/state")
+def get_state(request: Request) -> RailwayState:
     control: Control = request.app.state.control
-    return control.get_config()
-
-
-@api_router.get("/state", response_model=RailwayState)
-def get_state(request: Request) -> "RailwayState":
-    control: Control = request.app.state.control
-    return control.get_state()
-
-
-@api_router.get("/command", response_model=RailwayCommand)
-def get_command(request: Request) -> "RailwayCommand":
-    control: Control = request.app.state.control
-    return control.get_command()
+    return get_state_from_control(control)
 
 
 class MoveTrainParams(pydantic.BaseModel):
@@ -44,8 +31,8 @@ def move_train(train_id: str, params: MoveTrainParams, request: Request) -> None
     デバッグ用。
     """
     control: Control = request.app.state.control
-    train = Train(train_id)
-    control.move_train(train, params.delta)
+    train = control.trains[train_id]
+    train.move_forward(params.delta)
     control.update()
 
 
@@ -60,14 +47,14 @@ def put_train(train_id: str, params: PutTrainParams, request: Request) -> None:
     デバッグ用。
     """
     control: Control = request.app.state.control
-    train = Train(train_id)
-    position = Position(params.position_id)
-    control.put_train(train, position)
+    train = control.trains[train_id]
+    position = control.sensor_positions[params.position_id]
+    train.fix_position(position)
     control.update()
 
 
 class UpdateJunctionParams(pydantic.BaseModel):
-    direction: Direction
+    direction: PointDirection
 
 
 @api_router.post("/state/junctions/{junction_id}/update")
@@ -77,8 +64,8 @@ def update_junction(junction_id: str, params: UpdateJunctionParams, request: Req
     デバッグ用。
     """
     control: Control = request.app.state.control
-    junction = Junction(junction_id)
-    control.update_junction(junction, params.direction)
+    junction = control.junctions[junction_id]
+    junction.set_direction(params.direction)
 
 
 @api_router.post("/state/sections/{section_id}/block")
@@ -88,8 +75,8 @@ def block_section(section_id: str, request: Request) -> None:
     デバッグ用。
     """
     control: Control = request.app.state.control
-    section = Section(section_id)
-    control.block_section(section)
+    section = control.sections[section_id]
+    section.block()
     control.update()
 
 
@@ -100,6 +87,6 @@ def unblock_section(section_id: str, request: Request) -> None:
     デバッグ用。
     """
     control: Control = request.app.state.control
-    section = Section(section_id)
-    control.unblock_section(section)
+    section = control.sections[section_id]
+    section.unblock()
     control.update()

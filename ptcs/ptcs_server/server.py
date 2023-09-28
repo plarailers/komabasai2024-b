@@ -1,4 +1,5 @@
 import logging
+import os
 import threading
 import time
 from typing import Any
@@ -6,9 +7,10 @@ from typing import Any
 import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
-from ptcs_control import Control
-from ptcs_control.components import Junction, Position, Section, Train
+from ptcs_control.control import Control
+from ptcs_control.mft2023 import create_control
 from usb_bt_bridge import Bridge
 
 from .api import api_router
@@ -16,11 +18,34 @@ from .bridges import BridgeManager, BridgeTarget
 from .button import Button
 from .points import PointSwitcher, PointSwitcherManager
 
+DEFAULT_PORT = 5000
+
+
+class ServerArgs(BaseModel):
+    port: int = DEFAULT_PORT
+    bridge: bool = False
+    debug: bool = False
+
 
 def create_app() -> FastAPI:
-    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger("uvicorn")
 
-    control = Control()
+    raw_args = os.environ.get("PTCS_SERVER_ARGS")
+    logger.info("raw server args: %s", raw_args)
+
+    args = ServerArgs.parse_raw(raw_args) if raw_args else ServerArgs()
+    logger.info("parsed server args: %s", args)
+
+    if args.bridge:
+        return create_app_with_bridge()
+    else:
+        return create_app_without_bridge()
+
+
+def create_app_without_bridge() -> FastAPI:
+    logger = logging.getLogger("uvicorn")
+
+    control = create_control(logger=logger)
 
     # control 内部の時計を現実世界の時間において進める
     def run_clock() -> None:
@@ -46,8 +71,10 @@ def create_app() -> FastAPI:
 
 
 def create_app_with_bridge() -> FastAPI:
-    app = create_app()
-    control: Control = app.state.control
+    app = create_app_without_bridge()
+
+    assert isinstance(app.state.control, Control)
+    control = app.state.control
 
     # TODO: ソースコードの変更なしに COM ポートを指定できるようにする
     ENABLE_TRAINS = True
@@ -59,45 +86,45 @@ def create_app_with_bridge() -> FastAPI:
 
     # 列車からの信号
     def receive_from_train(train_id: BridgeTarget, data: Any) -> None:
+        train = control.trains[train_id]
         # モーター回転量
         if "mR" in data:
-            control.move_train_mr(train_id, data["mR"])
+            train.move_forward_mr(data["mR"])
         # APS 信号
         elif "pID" in data:
             position_id = bridges.get_position(data["pID"])
             if position_id is not None:
-                control.put_train(train_id, position_id)
+                train.fix_position(position_id)
 
     # 異常発生ボタンからの信号
     def receive_from_button(data: Any) -> None:
-        s3 = Section("s3")
+        s3 = control.sections["s3"]
         if data["blocked"]:
-            control.block_section(s3)
+            s3.block()
         else:
-            control.unblock_section(s3)
+            s3.unblock()
 
     # すべての列車への信号
     def send_to_trains() -> None:
-        for train_id, train_command in control.command.trains.items():
-            train_config = control.config.trains[train_id]
-            motor_input = train_config.calc_input(train_command.speed)
-            bridges.send(train_id, {"mI": motor_input})
+        for train in control.trains.values():
+            motor_input = train.calc_input(train.speed_command)
+            bridges.send(train.id, {"mI": motor_input})
 
     # すべてのポイントへの信号
     def send_to_points() -> None:
-        for junction_id, junction_state in control.state.junctions.items():
-            point_switchers.send(junction_id, junction_state.direction)
+        for junction in control.junctions.values():
+            point_switchers.send(junction.id, junction.current_direction)
 
     # 列車
     if ENABLE_TRAINS:
         bridges = BridgeManager(callback=receive_from_train)
         bridges.print_ports()
-        bridges.register(Train("t0"), Bridge(TRAIN_PORTS["t0"]))
-        bridges.register(Train("t1"), Bridge(TRAIN_PORTS["t1"]))
-        bridges.register_position(Position("position_80"), 80)
-        bridges.register_position(Position("position_173"), 173)
-        bridges.register_position(Position("position_138"), 138)
-        bridges.register_position(Position("position_255"), 255)
+        bridges.register("t0", Bridge(TRAIN_PORTS["t0"]))
+        bridges.register("t1", Bridge(TRAIN_PORTS["t1"]))
+        bridges.register_position(control.sensor_positions["position_80"], 80)
+        bridges.register_position(control.sensor_positions["position_173"], 173)
+        bridges.register_position(control.sensor_positions["position_138"], 138)
+        bridges.register_position(control.sensor_positions["position_255"], 255)
         bridges.start()
         app.state.bridges = bridges
 
@@ -105,10 +132,10 @@ def create_app_with_bridge() -> FastAPI:
     if ENABLE_POINTS:
         point_switchers = PointSwitcherManager()
         point_switcher = PointSwitcher(POINTS_PORT)
-        point_switchers.register(Junction("j0a"), point_switcher, 0)
-        point_switchers.register(Junction("j0b"), point_switcher, 1)
-        point_switchers.register(Junction("j1a"), point_switcher, 2)
-        point_switchers.register(Junction("j1b"), point_switcher, 3)
+        point_switchers.register("j0", point_switcher, 0)
+        point_switchers.register("j1", point_switcher, 1)
+        point_switchers.register("j2", point_switcher, 2)
+        point_switchers.register("j3", point_switcher, 3)
         point_switchers.start()
         app.state.point_switchers = point_switchers
 
@@ -133,17 +160,35 @@ def create_app_with_bridge() -> FastAPI:
     @app.on_event("shutdown")
     def on_shutdown() -> None:
         print("shutting down...")
-        for train_id in control.command.trains.keys():
-            bridges.send(train_id, {"mI": 0})
+        for train in control.trains.values():
+            bridges.send(train.id, {"mI": 0})
 
     return app
 
 
-def serve(*, bridge: bool = False) -> None:
+def serve(*, port: int = DEFAULT_PORT, bridge: bool = False, debug: bool = False) -> None:
     """
     列車制御システムを Web サーバーとして起動する。
+    `debug` を `True` にすると、ソースコードに変更があったときにリロードされる。
     """
-    if bridge:
-        uvicorn.run("ptcs_server.server:create_app_with_bridge", port=5000, log_level="info", reload=True)
+
+    args = ServerArgs(port=port, bridge=bridge, debug=debug)
+
+    os.environ["PTCS_SERVER_ARGS"] = args.json()
+
+    if debug:
+        uvicorn.run(
+            "ptcs_server.server:create_app",
+            factory=True,
+            port=port,
+            log_level="info",
+            reload=True,
+            reload_dirs=["ptcs_control", "ptcs_server", "usb_bt_bridge"],
+        )
     else:
-        uvicorn.run("ptcs_server.server:create_app", port=5000, log_level="info", reload=True)
+        uvicorn.run(
+            "ptcs_server.server:create_app",
+            factory=True,
+            port=port,
+            log_level="info",
+        )

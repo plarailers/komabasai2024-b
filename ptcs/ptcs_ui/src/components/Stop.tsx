@@ -1,10 +1,6 @@
 import { useContext } from "react";
 import { useMantineTheme } from "@mantine/core";
-import {
-  RailwayConfigContext,
-  RailwayStateContext,
-  RailwayUIContext,
-} from "../contexts";
+import { RailwayStateContext, RailwayUIContext } from "../contexts";
 import { calculatePositionAndDirection } from "../lib/point";
 
 interface StopProps {
@@ -14,19 +10,19 @@ interface StopProps {
 export const Stop: React.FC<StopProps> = ({ id }) => {
   const theme = useMantineTheme();
 
-  const railwayConfig = useContext(RailwayConfigContext);
   const railwayState = useContext(RailwayStateContext);
   const railwayUI = useContext(RailwayUIContext);
 
-  if (!(railwayConfig && railwayState && railwayUI)) {
+  if (!(railwayState && railwayUI)) {
     return null;
   }
 
-  const config = railwayConfig.stops![id];
-  const currentSectionConfig = railwayConfig.sections![config.section];
-  const currentSectionUI = railwayUI.sections![config.section];
+  const stopState = railwayState.stops[id];
+  const currentSectionState =
+    railwayState.sections[stopState.position.section_id];
+  const currentSectionUI = railwayUI.sections[stopState.position.section_id];
   const { position, direction } = calculatePositionAndDirection(
-    config.mileage / currentSectionConfig.length,
+    stopState.position.mileage / currentSectionState.length,
     currentSectionUI.points
   );
   const angle = (Math.atan2(direction.y, direction.x) / Math.PI) * 180;
