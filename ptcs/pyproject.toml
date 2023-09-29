@@ -17,6 +17,7 @@ scan = "serial.tools.list_ports:main"
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
+bleak = "^0.21.1"
 click = "^8.1.3"
 fastapi = "^0.103.1"
 uvicorn = "^0.23.2"
