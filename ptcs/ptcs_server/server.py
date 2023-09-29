@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from ptcs_bridge.bridge import Bridge
+from ptcs_bridge.train_base import TrainBase
 from ptcs_bridge.train_simulator import TrainSimulator
 from ptcs_control.control import Control
 from ptcs_control.mft2023 import create_control
@@ -65,7 +66,7 @@ def create_app_without_bridge() -> FastAPI:
         await t0.connect()
         await t1.connect()
 
-        def handle_notify_rotation(train: TrainSimulator, _rotation: int):
+        def handle_notify_rotation(train: TrainBase, _rotation: int):
             match train.id:
                 case "t0":
                     control.trains["t0"].move_forward_mr(1)

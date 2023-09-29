@@ -1,14 +1,15 @@
 import asyncio
 import logging
 import math
-from typing import Callable, Self
+
+from .train_base import NotifyPositionIdCallback, NotifyRotationCallback, TrainBase
 
 logger = logging.getLogger(__name__)
 
 _background_tasks: set[asyncio.Task] = set()
 
 
-class TrainSimulator:
+class TrainSimulator(TrainBase):
     """
     BLE 通信を行わず、列車への速度指令とモーター回転通知をシミュレーションする。
     """
@@ -18,7 +19,7 @@ class TrainSimulator:
     _target_speed_cm_s: float
     _total_rotation: float
     _task: asyncio.Task | None
-    _notify_rotation_callback: Callable[[Self, int], None] | None
+    _notify_rotation_callback: NotifyRotationCallback | None
 
     INTERVAL_SECONDS = 0.1
     INPUT_TO_CENTIMETERS_PER_SECOND = 30.0 / 255
@@ -53,8 +54,8 @@ class TrainSimulator:
 
             if self._notify_rotation_callback is not None:
                 for _ in range(rotation):
-                    self._notify_rotation_callback(self, 1)
                     logger.info("%s notify rotation %s", self, 1)
+                    self._notify_rotation_callback(self, 1)
 
     async def connect(self) -> None:
         assert self._task is None
@@ -75,10 +76,10 @@ class TrainSimulator:
         self._target_speed_cm_s = speed * self.INPUT_TO_CENTIMETERS_PER_SECOND
         logger.info("%s send speed %s", self, speed)
 
-    async def start_notify_position_id(self, callback: Callable[[Self, int], None]) -> None:
+    async def start_notify_position_id(self, callback: NotifyPositionIdCallback) -> None:
         raise NotImplementedError()
 
-    async def start_notify_rotation(self, callback: Callable[[Self, int], None]) -> None:
+    async def start_notify_rotation(self, callback: NotifyRotationCallback) -> None:
         self._notify_rotation_callback = callback
 
 
