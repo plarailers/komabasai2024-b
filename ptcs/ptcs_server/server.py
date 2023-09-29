@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import threading
@@ -9,7 +10,8 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from ptcs_bridge import Bridge
+from ptcs_bridge.bridge import Bridge
+from ptcs_bridge.train_simulator import TrainSimulator
 from ptcs_control.control import Control
 from ptcs_control.mft2023 import create_control
 
@@ -45,27 +47,49 @@ def create_app() -> FastAPI:
 def create_app_without_bridge() -> FastAPI:
     logger = logging.getLogger("uvicorn")
 
-    control = create_control(logger=logger)
-
-    # control 内部の時計を現実世界の時間において進める
-    def run_clock() -> None:
-        while True:
-            time.sleep(0.1)
-            control.tick()
-            control.update()
-
-    clock_thread = threading.Thread(target=run_clock, daemon=True)
-    clock_thread.start()
-
     app = FastAPI(generate_unique_id_function=lambda route: route.name)
+
+    control = create_control(logger=logger)
     app.state.control = control
-    app.state.clock_thread = clock_thread
 
     # `/api` 以下で API を呼び出す
     app.include_router(api_router, prefix="/api")
 
     # `/` 以下で静的ファイルを配信する
     app.mount("/", StaticFiles(directory="./ptcs_ui/dist", html=True), name="static")
+
+    t0 = TrainSimulator("t0")
+    t1 = TrainSimulator("t1")
+
+    async def loop():
+        await t0.connect()
+        await t1.connect()
+
+        def handle_notify_rotation(train: TrainSimulator, _rotation: int):
+            match train.id:
+                case "t0":
+                    control.trains["t0"].move_forward_mr(1)
+                case "t1":
+                    control.trains["t1"].move_forward_mr(1)
+
+        await t0.start_notify_rotation(handle_notify_rotation)
+        await t1.start_notify_rotation(handle_notify_rotation)
+
+        while True:
+            # control 内部の時計を現実世界の時間において進める
+            await asyncio.sleep(0.1)
+            control.tick()
+            control.update()
+
+            for train_id, train in control.trains.items():
+                match train_id:
+                    case "t0":
+                        await t0.send_speed(train.speed_command)
+                    case "t1":
+                        await t1.send_speed(train.speed_command)
+
+    task = asyncio.create_task(loop())
+    app.state.task = task
 
     return app
 
