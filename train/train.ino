@@ -24,12 +24,14 @@ static const char SERVICE_UUID[] = "63cb613b-6562-4aa5-b602-030f103834a4";
 static const char CHARACTERISTIC_MOTORINPUT_UUID[] = "88c9d9ae-bd53-4ab3-9f42-b3547575a743";
 static const char CHARACTERISTIC_POSITIONID_UUID[] = "8bcd68d5-78ca-c1c3-d1ba-96d527ce8968";
 static const char CHARACTERISTIC_ROTATION_UUID[] = "aab17457-2755-8b50-caa1-432ff553d533";
+static const char CHARACTERISTIC_VOLTAGE_UUID[] = "7ecc0ed2-5ef9-c9e6-5d16-582f86035ecf";
 
 BLEServer *pServer = NULL;
 BLEService *pService = NULL;
 BLECharacteristic *pCharacteristicMotorInput = NULL;
 BLECharacteristic *pCharacteristicPositionId = NULL;
 BLECharacteristic *pCharacteristicRotation = NULL;
+BLECharacteristic *pCharacteristicVoltage = NULL;
 BLEAdvertising *pAdvertising = NULL;
 
 /* PWM(ledc) パラメータ */ 
@@ -83,8 +85,6 @@ std::string getTrainName() {
       return "E6";
     case 0xdceacf1f9c9c:
       return "Dr.";
-    case 0x2068d11f9c9c:
-      return "JT";
     default:
       return "unknown";
   }
@@ -161,6 +161,13 @@ void bleSetup() {
   );
   pCharacteristicRotation->setValue("Initial value");
   pCharacteristicRotation->addDescriptor(new BLE2902());
+
+  pCharacteristicVoltage = pService->createCharacteristic(
+      CHARACTERISTIC_VOLTAGE_UUID,
+      BLECharacteristic::PROPERTY_NOTIFY
+  );
+  pCharacteristicVoltage->setValue("Initial value");
+  pCharacteristicVoltage->addDescriptor(new BLE2902());
 
   pService->start();
 
@@ -251,7 +258,9 @@ void checkVoltage() {
   nowVoltageCheckTime = millis();
   if (nowVoltageCheckTime -  preVoltageCheckTime > 1000) {
     uint32_t vin = analogReadMilliVolts(VMONITOR_PIN) * (178.0f/ 68.0f);
-    Serial.printf("Vin = %d mV\n", vin);
+    pCharacteristicVoltage->setValue((uint8_t*)&vin, 4);
+    pCharacteristicVoltage->notify();
+    Serial.printf("Vin = %d mV Notified\n", vin);
     preVoltageCheckTime = nowVoltageCheckTime;
   }
 }
