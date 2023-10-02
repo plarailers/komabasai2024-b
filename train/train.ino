@@ -91,6 +91,8 @@ std::string getTrainName() {
 }
 
 class MyServerCallbacks : public BLEServerCallbacks {
+  /// @brief BLEサーバーとの接続．切れたときにモータ停止
+  /// @param pServer 
   void onConnect(BLEServer* pServer) {
     Serial.println("BLE Connected");
   }
@@ -103,6 +105,8 @@ class MyServerCallbacks : public BLEServerCallbacks {
 };
 
 class CharacteristicMotorInputCallbacks : public BLECharacteristicCallbacks {
+  /// @brief モータ入力が書き込まれたらPWM出力を変更する
+  /// @param pCharacteristicMotorInput 
   void onWrite(BLECharacteristic *pCharacteristicMotorInput) {
     std::string value = pCharacteristicMotorInput->getValue();
     String valueStr = value.c_str();
@@ -116,6 +120,11 @@ class CharacteristicMotorInputCallbacks : public BLECharacteristicCallbacks {
 };
 
 void bleSetup() {
+  /// @brief BLEのセットアップ．
+  /// 1. サーバー，サービスを設定モータ入力，
+  /// 2. 位置ID，ロータリエンコーダの3つのキャラクタリスティックを作る．
+  /// 3. BLE通信を開始
+
   Serial.println("Starting BLE");
 
   Serial.print("Chip ID: ");
@@ -160,9 +169,9 @@ void bleSetup() {
   pAdvertising->start();
   Serial.println("Advertising started");
 }
-/*----------- BLE 関数 ここまで ----------------------*/
+/*----------- BLE 関数 ここまで --------------------------*/
 
-/*------------ PWM(ledc) 関数 -----------------------*/
+/*------------ PWM(ledc) 関数 ここから -------------------*/
 void pwmSetup() {
   pinMode(PWM_ENABLE_PIN, OUTPUT);
   digitalWrite(PWM_ENABLE_PIN, HIGH);  // ENABLE = HIGHでPWM有効化
@@ -172,9 +181,14 @@ void pwmSetup() {
   digitalWrite(PWM_REVERSE_PIN, LOW);  // 逆転側はLOW固定
   Serial.println("PWM Setup done");
 }
+/*------------ PWM(ledc) 関数 ここまで -------------------*/
 
 /*------------- RFID(MFRC522) 関数 ここから --------------*/
 void getPositionId() {
+  /// @brief 位置IDを取得
+  /// カードがなくシリアル通信ができなければ抜け出す
+  /// 通信できたら，UIDを読み出し，キャラクタリスティックにセットしたのち通知する．
+
   // Reset the loop if no new card present on the sensor/reader. This saves the entire process when idle.
   if ( ! mfrc522.PICC_IsNewCardPresent()) return;
 
@@ -199,23 +213,25 @@ void rfidSetup() {
 
 /*--------- ロータリエンコーダ 関数 ここから ---------------*/
 void IRAM_ATTR notifyRotationRight() {
-    nowRightStepTime = millis();
-    if(nowRightStepTime - preRightStepTime > rightChattaringTime){
-        pCharacteristicRotation->setValue((uint8_t*)&rotation, 1); //rotationはbyte型なので1バイト
-        pCharacteristicRotation->notify();
-        // Serial.println("Rotation Notified");
-        preRightStepTime = nowRightStepTime;
-    }
+  /// @brief 進行方向右側のロータリエンコーダの割り込み処理
+  nowRightStepTime = millis();
+  if(nowRightStepTime - preRightStepTime > rightChattaringTime){
+      pCharacteristicRotation->setValue((uint8_t*)&rotation, 1); //rotationはbyte型なので1バイト
+      pCharacteristicRotation->notify();
+      // Serial.println("Rotation Notified");
+      preRightStepTime = nowRightStepTime;
+  }
 }
 
 void IRAM_ATTR notifyRotationLeft() {
-    nowLeftStepTime = millis();
-    if(nowLeftStepTime - preLeftStepTime > leftChattaringTime){
-        pCharacteristicRotation->setValue((uint8_t*)&rotation, 1); //rotationはbyte型なので1バイト
-        pCharacteristicRotation->notify();
-        // Serial.println("Rotation Notified");
-        preLeftStepTime = nowLeftStepTime;
-    }
+  /// @brief 進行方向左側のロータリエンコーダの割り込み処理
+  nowLeftStepTime = millis();
+  if(nowLeftStepTime - preLeftStepTime > leftChattaringTime){
+      pCharacteristicRotation->setValue((uint8_t*)&rotation, 1); //rotationはbyte型なので1バイト
+      pCharacteristicRotation->notify();
+      // Serial.println("Rotation Notified");
+      preLeftStepTime = nowLeftStepTime;
+  }
 }
 
 void rotaryEncoderSetup() {
@@ -229,8 +245,9 @@ void rotaryEncoderSetup() {
 }
 /*---------- ロータリエンコーダ 関数 ここまで ------------*/
 
-/*-------------- 電源電圧読み取り 関数 -----------------*/
+/*---------- 電源電圧読み取り 関数 ここから---------------*/
 void checkVoltage() {
+  /// @brief 1秒に1回電源電圧を読みとる
   nowVoltageCheckTime = millis();
   if (nowVoltageCheckTime -  preVoltageCheckTime > 1000) {
     uint32_t vin = analogReadMilliVolts(VMONITOR_PIN) * (178.0f/ 68.0f);
@@ -238,7 +255,7 @@ void checkVoltage() {
     preVoltageCheckTime = nowVoltageCheckTime;
   }
 }
-
+/*---------- 電源電圧読み取り 関数 ここまで---------------*/
 
 /*
   ■■■  ■■■■ ■■■■■■    ■    ■  ■■■  

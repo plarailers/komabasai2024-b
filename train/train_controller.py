@@ -53,11 +53,12 @@ async def main():
         await client.start_notify(characteristicPositionId, positionIdNotification_callback)
         await client.start_notify(characteristicRotation, rotationNotification_callback)
 
-        while(1):
-            i=100
+        i=170 #3V時171で回り始める
+        while(i<=255):
+            i = i+1
             await client.write_gatt_char(characteristicSpeed, f"{i}".encode())
             print("motorInput:", i)
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.3)
         
 
 async def positionIdNotification_callback(sender, data):
