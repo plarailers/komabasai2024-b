@@ -14,6 +14,7 @@ elif platform.system() == "Darwin":
     ADDRESS_E6 = "4BE5DF57-4E86-18DB-E792-C5D2F118610E"
     ADDRESS_DR = "9c:9c:1f:cf:ea:de"
     ADDRESS_JT = "66D22FDC-6B41-36D0-BB07-C80BADA29DB2"
+    ADDRESS_JK = "00B55AE6-34AA-23C2-8C7B-8C11E6998E12"
 else:
     raise Exception(f"{platform.system()} not supported")
 
@@ -35,7 +36,7 @@ async def main():
         print("  - ", d)
 
     ####### TODO: クライアントのアドレスを選択してください #######
-    async with BleakClient(ADDRESS_JT) as client:
+    async with BleakClient(ADDRESS_JK) as client:
         print("Connected to", client)
         print("Services:")
         for service in client.services:
@@ -52,7 +53,8 @@ async def main():
         await client.start_notify(characteristicPositionId, positionIdNotification_callback)
         await client.start_notify(characteristicRotation, rotationNotification_callback)
 
-        for i in range(100, 200):
+        while(1):
+            i=100
             await client.write_gatt_char(characteristicSpeed, f"{i}".encode())
             print("motorInput:", i)
             await asyncio.sleep(1)
@@ -60,12 +62,14 @@ async def main():
 
 async def positionIdNotification_callback(sender, data):
     # positionId Notifyを受け取ったとき，positionIDを表示．mileageはリセット
+    global mileage_cm_
     positionID = int.from_bytes(data, byteorder='big')
     print(f"positionID: {positionID}")
     mileage_cm_ = 0
 
 async def rotationNotification_callback(sender, data):
     # rotation Notifyを受け取ったとき，mileageを車輪1/24回転分進める
+    global mileage_cm_
     mileage_cm_ += WHEEL_DIAMETER_cm_ * PI / 24
     print(f"mileage: {mileage_cm_}")
     # 24ステップのロータリエンコーダをギアで1/2に減速するため12ステップで1回転とするのが妥当と思われるが，

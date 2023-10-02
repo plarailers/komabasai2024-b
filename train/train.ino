@@ -7,6 +7,17 @@
 #include <BLE2902.h>
 #include "MFRC522Uart.h"
 
+/*
+■■■     ■    ■■■      ■    ■     ■   ■■■■ ■■■■■■ ■■■■  ■■■     ■■■ 
+■  ■■  ■■    ■  ■■   ■■    ■■    ■■  ■      ■■   ■     ■  ■■  ■    
+■   ■  ■ ■   ■   ■   ■ ■   ■■   ■■■  ■      ■■   ■     ■   ■  ■    
+■   ■  ■ ■   ■  ■■   ■ ■   ■ ■  ■ ■  ■      ■■   ■     ■  ■■  ■■   
+■■■■  ■■ ■■  ■■■■   ■■ ■■  ■ ■  ■ ■  ■■■■   ■■   ■■■■  ■■■■     ■■ 
+■     ■■■■■  ■  ■   ■■■■■  ■ ■ ■  ■  ■      ■■   ■     ■  ■      ■ 
+■     ■   ■  ■  ■■  ■   ■  ■  ■■  ■  ■      ■■   ■     ■  ■■     ■ 
+■    ■     ■ ■   ■ ■     ■ ■  ■   ■  ■■■■   ■■   ■■■■  ■   ■  ■■■■
+*/
+
 /* BLE パラメーラ */
 static const char SERVICE_UUID[] = "63cb613b-6562-4aa5-b602-030f103834a4";
 static const char CHARACTERISTIC_MOTORINPUT_UUID[] = "88c9d9ae-bd53-4ab3-9f42-b3547575a743";
@@ -35,16 +46,32 @@ const int MFRC522_RST_PIN = 27;
 MFRC522Uart mfrc522(&Serial2, MFRC522_RX_PIN, MFRC522_TX_PIN, MFRC522_RST_PIN);
 
 /* ロータリエンコーダ パラメータ */
-byte rotation = 1; //CharacteristicRotationには1を代入してnotifyする
 const int ENCODER_1A_PIN  = 16; // 進行方向右
+const int ENCODER_1B_PIN  = 17; // 進行方向右
 const int ENCODER_2A_PIN  = 36; // 進行方向左
-volatile unsigned long preTime = 0, nowTime;
-unsigned long chattaringTime = 10;
+const int ENCODER_2B_PIN  = 39; // 進行方向左
+volatile unsigned long preRightStepTime = 0, nowRightStepTime;
+volatile unsigned long preLeftStepTime = 0, nowLeftStepTime;
+unsigned long rightChattaringTime = 10;
+unsigned long leftChattaringTime = 10;
+byte rotation = 1; //CharacteristicRotationには1を代入してnotifyする
 
-/* 電源電圧読み取り */
+/* 電源電圧読み取り パラーメータ */
 const int VMONITOR_PIN    = 34;
+volatile unsigned long preVoltageCheckTime = 0, nowVoltageCheckTime;
 
-/* BLE 関数 ここから */
+/*
+■■■■  ■    ■  ■    ■    ■■■ ■■■■■■ ■■    ■■■   ■    ■   ■■■ 
+■     ■    ■  ■■   ■  ■■      ■■   ■   ■■  ■■  ■■   ■  ■    
+■     ■    ■  ■■■  ■  ■       ■■   ■   ■    ■  ■■■  ■  ■    
+■     ■    ■  ■ ■  ■  ■       ■■   ■   ■     ■ ■ ■  ■  ■■   
+■■■■  ■    ■  ■  ■ ■  ■       ■■   ■   ■     ■ ■  ■ ■    ■■ 
+■     ■    ■  ■  ■■■  ■       ■■   ■   ■    ■■ ■  ■■■     ■ 
+■     ■   ■■  ■   ■■  ■■      ■■   ■   ■    ■  ■   ■■     ■ 
+■      ■■■■   ■    ■   ■■■■   ■■   ■■   ■■■■   ■    ■  ■■■■ 
+*/
+
+/*---------------- BLE 関数 ここから --------------------*/
 std::string getTrainName() {
   //////// TODO: ここのchipIdを正しく設定してください ////////
   uint64_t chipId = ESP.getEfuseMac();
@@ -64,11 +91,11 @@ std::string getTrainName() {
 
 class MyServerCallbacks : public BLEServerCallbacks {
   void onConnect(BLEServer* pServer) {
-    Serial.println("Connected");
+    Serial.println("BLE Connected");
   }
 
   void onDisconnect(BLEServer *pServer) {
-    Serial.println("Disconnected");
+    Serial.println("BLE Disconnected");
     pServer->startAdvertising();
     ledcWrite(FORWARD_PWM_CH, 0); //モータを停止
   }
@@ -79,47 +106,14 @@ class CharacteristicMotorInputCallbacks : public BLECharacteristicCallbacks {
     std::string value = pCharacteristicMotorInput->getValue();
 
     if (value.length() > 0) {
-      Serial.print("motorInput: ");
       int motorInput = std::stoi(value);
-      Serial.print(motorInput);
       ledcWrite(FORWARD_PWM_CH, motorInput);
-      Serial.println();
+      Serial.printf("motorInput: %d\n", motorInput);
     }
   }
 };
-/* BLE 関数 ここまで */
 
-/* ロータリエンコーダ 関数 */
-void notifyRotation() {
-    nowTime = millis();
-    if(nowTime - preTime > chattaringTime){
-        pCharacteristicRotation->setValue((uint8_t*)&rotation, 1); //rotationはbyte型なので1バイト
-        pCharacteristicRotation->notify();
-        Serial.println("Rotation Notified");
-        preTime = nowTime;
-    }
-}
-
-
-/*
-  ■■■■  ■■■■■■■■■■■■■    ■     ■   ■■■■■  
- ■      ■■       ■       ■     ■   ■■  ■■ 
- ■      ■■       ■       ■     ■   ■■   ■ 
- ■■     ■■       ■       ■     ■   ■■  ■■ 
-  ■■■   ■■■■■    ■       ■     ■   ■■■■■  
-     ■  ■■       ■       ■     ■   ■■     
-     ■■ ■■       ■       ■■    ■   ■■     
-     ■  ■■       ■        ■   ■■   ■■     
- ■■■■   ■■■■■■   ■         ■■■■    ■■    
-*/
-
-void setup() {
-
-  /* Serial セットアップ */
-  Serial.begin(115200);
-  while (!Serial);
-
-  /* BLE セットアップ ここから*/
+void bleSetup() {
   Serial.println("Starting BLE");
 
   Serial.print("Chip ID: ");
@@ -163,10 +157,11 @@ void setup() {
   pAdvertising->addServiceUUID(SERVICE_UUID);
   pAdvertising->start();
   Serial.println("Advertising started");
-  /* BLE セットアップ ここまで */
+}
+/*----------- BLE 関数 ここまで ----------------------*/
 
-
-  /* PWM(ledc) セットアップ */
+/*------------ PWM(ledc) 関数 -----------------------*/
+void pwmSetup() {
   pinMode(PWM_ENABLE_PIN, OUTPUT);
   digitalWrite(PWM_ENABLE_PIN, HIGH);  // ENABLE = HIGHでPWM有効化
   ledcSetup(FORWARD_PWM_CH, PWM_FREQ_HZ, 8);
@@ -174,40 +169,10 @@ void setup() {
   pinMode(PWM_REVERSE_PIN, OUTPUT);
   digitalWrite(PWM_REVERSE_PIN, LOW);  // 逆転側はLOW固定
   Serial.println("PWM Setup done");
-
-
-  /* RFID(MFRC522) セットアップ */
-  mfrc522.PCD_Init();
-  delay(4);
-  mfrc522.PCD_DumpVersionToSerial();
-  Serial.println("RFID Setup done");
-
-
-  /* ロータリエンコーダ セットアップ*/
-  pinMode(ENCODER_1A_PIN, INPUT);
-  pinMode(ENCODER_2A_PIN, INPUT);
-  attachInterrupt(ENCODER_1A_PIN, notifyRotation, CHANGE);
-  attachInterrupt(ENCODER_2A_PIN, notifyRotation, CHANGE);
-  Serial.println("ロータリエンコーダ Setup done");
-
 }
-    
-/*
-■■       ■■■■      ■■■■    ■■■■■  
-■■      ■■   ■■   ■■   ■■  ■■  ■■ 
-■■     ■■     ■  ■■     ■  ■■   ■ 
-■■     ■      ■  ■      ■  ■■  ■■ 
-■■     ■      ■  ■      ■  ■■■■■  
-■■     ■      ■  ■      ■  ■■     
-■■     ■■     ■  ■■     ■  ■■     
-■■      ■■   ■■   ■■   ■■  ■■     
-■■■■■■   ■■■■      ■■■■    ■■ 
-*/
 
-void loop(){
-
-  /* RFIDの読み取り */
-
+/*------------- RFID(MFRC522) 関数 ここから --------------*/
+void getPositionId() {
   // Reset the loop if no new card present on the sensor/reader. This saves the entire process when idle.
   if ( ! mfrc522.PICC_IsNewCardPresent()) return;
 
@@ -215,12 +180,119 @@ void loop(){
   if ( ! mfrc522.PICC_ReadCardSerial()) return;
   
   byte positionID = mfrc522.uid.uidByte[0]; //UIDの最初の1バイトをpositionIDとする
-  Serial.print("positionID: ");
-  Serial.print(positionID);
-    pCharacteristicPositionId->setValue((uint8_t*)&positionID, 1);
-    pCharacteristicPositionId->notify();
-    Serial.println(" Notified");
+  pCharacteristicPositionId->setValue((uint8_t*)&positionID, 1);
+  pCharacteristicPositionId->notify();
+  Serial.printf("positionID: %d Notified\n", positionID);
 
   mfrc522.PICC_HaltA(); // 卡片進入停止模式
+}
+
+void rfidSetup() {
+  mfrc522.PCD_Init();
+  delay(4);
+  mfrc522.PCD_DumpVersionToSerial();
+  Serial.println("RFID Setup done");
+}
+/*---------- RFID(MFRC522) 関数 ここまで ----------------*/
+
+/*--------- ロータリエンコーダ 関数 ここから ---------------*/
+void notifyRotationRight() {
+    nowRightStepTime = millis();
+    if(nowRightStepTime - preRightStepTime > rightChattaringTime){
+        pCharacteristicRotation->setValue((uint8_t*)&rotation, 1); //rotationはbyte型なので1バイト
+        pCharacteristicRotation->notify();
+        // Serial.println("Rotation Notified");
+        preRightStepTime = nowRightStepTime;
+    }
+}
+
+void notifyRotationLeft() {
+    nowLeftStepTime = millis();
+    if(nowLeftStepTime - preLeftStepTime > leftChattaringTime){
+        pCharacteristicRotation->setValue((uint8_t*)&rotation, 1); //rotationはbyte型なので1バイト
+        pCharacteristicRotation->notify();
+        // Serial.println("Rotation Notified");
+        preLeftStepTime = nowLeftStepTime;
+    }
+}
+
+void rotaryEncoderSetup() {
+  pinMode(ENCODER_1A_PIN, INPUT);
+  pinMode(ENCODER_1B_PIN, INPUT);
+  pinMode(ENCODER_2A_PIN, INPUT);
+  pinMode(ENCODER_2B_PIN, INPUT);
+  attachInterrupt(ENCODER_1A_PIN, notifyRotationRight, CHANGE);
+  attachInterrupt(ENCODER_1B_PIN, notifyRotationLeft, CHANGE);
+  Serial.println("ロータリエンコーダ Setup done");
+}
+/*---------- ロータリエンコーダ 関数 ここまで ------------*/
+
+/*-------------- 電源電圧読み取り 関数 -----------------*/
+void checkVoltage() {
+  nowVoltageCheckTime = millis();
+  if (nowVoltageCheckTime -  preVoltageCheckTime > 1000) {
+    uint32_t vin = analogReadMilliVolts(VMONITOR_PIN) * (178.0f/ 68.0f);
+    Serial.printf("Vin = %d mV\n", vin);
+    preVoltageCheckTime = nowVoltageCheckTime;
+  }
+}
+
+
+/*
+  ■■■  ■■■■ ■■■■■■    ■    ■  ■■■  
+ ■     ■      ■■      ■    ■  ■  ■■
+ ■     ■      ■■      ■    ■  ■   ■
+ ■■    ■      ■■      ■    ■  ■   ■
+   ■■  ■■■■   ■■      ■    ■  ■■■■ 
+    ■  ■      ■■      ■    ■  ■    
+    ■  ■      ■■      ■   ■■  ■    
+ ■■■■  ■■■■   ■■       ■■■■   ■    
+*/
+
+void setup() {
+
+  /* Serial セットアップ */
+  Serial.begin(115200);
+  while (!Serial);
+
+  /* BLE セットアップ */
+  bleSetup();
+
+  /* PWM(ledc) セットアップ */
+  pwmSetup();
+
+  /* RFID(MFRC522) セットアップ */
+  rfidSetup();
+
+  /* ロータリエンコーダ セットアップ*/
+  rotaryEncoderSetup();
+
+}
+    
+/*
+■       ■■■     ■■■   ■■■  
+■     ■■  ■■  ■■  ■■  ■  ■■
+■     ■    ■  ■    ■  ■   ■
+■     ■     ■ ■     ■ ■   ■
+■     ■     ■ ■     ■ ■■■■ 
+■     ■    ■■ ■    ■■ ■    
+■     ■    ■  ■    ■  ■    
+■■■■   ■■■■    ■■■■   ■    
+*/
+
+void loop(){
+
+  /* 電源電圧計 */
+  checkVoltage();
+
+  /* エンコーダ */
+  int enc1A = digitalRead(ENCODER_1A_PIN);
+  int enc1B = digitalRead(ENCODER_1B_PIN);
+  int enc2A = digitalRead(ENCODER_2A_PIN);
+  int enc2B = digitalRead(ENCODER_2B_PIN);
+  Serial.printf("encoder = [%d, %d, %d, %d]\n", enc1A, enc1B, enc2A, enc2B);
+
+  /* RFIDの読み取り */
+  getPositionId();
 
 }
