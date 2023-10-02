@@ -5,6 +5,7 @@
 #include <BLEServer.h>
 #include <BLEUtils.h>
 #include <BLE2902.h>
+#include <driver/adc.h>
 #include "MFRC522Uart.h"
 
 /*
@@ -104,9 +105,10 @@ class MyServerCallbacks : public BLEServerCallbacks {
 class CharacteristicMotorInputCallbacks : public BLECharacteristicCallbacks {
   void onWrite(BLECharacteristic *pCharacteristicMotorInput) {
     std::string value = pCharacteristicMotorInput->getValue();
+    String valueStr = value.c_str();
 
     if (value.length() > 0) {
-      int motorInput = std::stoi(value);
+      int motorInput = valueStr.toInt();
       ledcWrite(FORWARD_PWM_CH, motorInput);
       Serial.printf("motorInput: %d\n", motorInput);
     }
@@ -196,7 +198,7 @@ void rfidSetup() {
 /*---------- RFID(MFRC522) 関数 ここまで ----------------*/
 
 /*--------- ロータリエンコーダ 関数 ここから ---------------*/
-void notifyRotationRight() {
+void IRAM_ATTR notifyRotationRight() {
     nowRightStepTime = millis();
     if(nowRightStepTime - preRightStepTime > rightChattaringTime){
         pCharacteristicRotation->setValue((uint8_t*)&rotation, 1); //rotationはbyte型なので1バイト
@@ -206,7 +208,7 @@ void notifyRotationRight() {
     }
 }
 
-void notifyRotationLeft() {
+void IRAM_ATTR notifyRotationLeft() {
     nowLeftStepTime = millis();
     if(nowLeftStepTime - preLeftStepTime > leftChattaringTime){
         pCharacteristicRotation->setValue((uint8_t*)&rotation, 1); //rotationはbyte型なので1バイト
@@ -222,7 +224,7 @@ void rotaryEncoderSetup() {
   pinMode(ENCODER_2A_PIN, INPUT);
   pinMode(ENCODER_2B_PIN, INPUT);
   attachInterrupt(ENCODER_1A_PIN, notifyRotationRight, CHANGE);
-  attachInterrupt(ENCODER_1B_PIN, notifyRotationLeft, CHANGE);
+  attachInterrupt(ENCODER_2A_PIN, notifyRotationLeft, CHANGE);
   Serial.println("ロータリエンコーダ Setup done");
 }
 /*---------- ロータリエンコーダ 関数 ここまで ------------*/
@@ -254,6 +256,10 @@ void setup() {
   /* Serial セットアップ */
   Serial.begin(115200);
   while (!Serial);
+
+  /*エンコーダ2割り込みバグ回避 */
+  /* https://www.mgo-tec.com/blog-entry-trouble-shooting-esp32-wroom.html/7 */
+  adc_power_acquire();
 
   /* BLE セットアップ */
   bleSetup();
