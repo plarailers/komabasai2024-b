@@ -9,6 +9,8 @@ from .components.stop import Stop
 from .components.train import Train
 from .constants import (
     CURVE_RAIL,
+    OUTER_CURVE_RAIL,
+    STRAIGHT_1_2_RAIL,
     STRAIGHT_1_4_RAIL,
     STRAIGHT_RAIL,
     WATARI_RAIL_A,
@@ -36,23 +38,41 @@ def create_control(logger: logging.Logger | None = None) -> Control:
 
     s0 = Section(
         id="s0",
-        length=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 14 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1 + WATARI_RAIL_A * 1,
+        length=WATARI_RAIL_A + 7.03 + STRAIGHT_RAIL + CURVE_RAIL + STRAIGHT_RAIL + WATARI_RAIL_A,
     )
     s1 = Section(
         id="s1",
-        length=STRAIGHT_RAIL * 3 + WATARI_RAIL_B * 2,
+        length=WATARI_RAIL_B
+        + STRAIGHT_RAIL * 4
+        + CURVE_RAIL * 3
+        + STRAIGHT_RAIL * 4
+        + CURVE_RAIL
+        + STRAIGHT_RAIL * 2
+        + 3.67
+        + CURVE_RAIL * 2
+        + STRAIGHT_1_2_RAIL
+        + WATARI_RAIL_B,
     )
     s2 = Section(
         id="s2",
-        length=WATARI_RAIL_A * 1 + STRAIGHT_RAIL * 6 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1 + WATARI_RAIL_B * 1,
+        length=WATARI_RAIL_B + 4.70 + OUTER_CURVE_RAIL * 2 + WATARI_RAIL_B,
     )
     s3 = Section(
         id="s3",
-        length=WATARI_RAIL_A * 2 + STRAIGHT_RAIL * 3,
+        length=WATARI_RAIL_A
+        + STRAIGHT_RAIL * 2
+        + OUTER_CURVE_RAIL * 2
+        + STRAIGHT_RAIL * 2
+        + STRAIGHT_1_2_RAIL
+        + OUTER_CURVE_RAIL * 2
+        + STRAIGHT_RAIL * 3
+        + OUTER_CURVE_RAIL * 2
+        + 6.01
+        + WATARI_RAIL_A,
     )
     s4 = Section(
         id="s4",
-        length=WATARI_RAIL_C,
+        length=WATARI_RAIL_C + WATARI_RAIL_C,
     )
     s5 = Section(
         id="s5",
