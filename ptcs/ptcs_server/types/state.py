@@ -44,7 +44,8 @@ class TrainState(BaseModel):
     max_speed: float
     length: float
     delta_per_motor_rotation: float
-    position: DirectedPosition
+    head_position: DirectedPosition
+    tail_position: DirectedPosition
     stop_id: str | None
     stop_distance: float
     departure_time: int | None
@@ -110,10 +111,15 @@ def get_state_from_control(control: Control) -> RailwayState:
                 max_speed=train.max_speed,
                 length=train.length,
                 delta_per_motor_rotation=train.delta_per_motor_rotation,
-                position=DirectedPosition(
-                    section_id=train.position.section.id,
-                    target_junction_id=train.position.target_junction.id,
-                    mileage=train.position.mileage,
+                head_position=DirectedPosition(
+                    section_id=train.head_position.section.id,
+                    target_junction_id=train.head_position.target_junction.id,
+                    mileage=train.head_position.mileage,
+                ),
+                tail_position=DirectedPosition(
+                    section_id=(tail_position := train.head_position.get_retracted_position(train.length)).section.id,
+                    target_junction_id=tail_position.target_junction.id,
+                    mileage=tail_position.mileage,
                 ),
                 stop_id=train.stop.id if train.stop else None,
                 stop_distance=train.stop_distance,
