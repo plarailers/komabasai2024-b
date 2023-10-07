@@ -1,5 +1,5 @@
 import { Button, Group } from "@mantine/core";
-import { DefaultService } from "ptcs_client";
+import { DefaultService, PointDirection } from "ptcs_client";
 import React, { useContext } from "react";
 import { RailwayStateContext } from "../contexts";
 
@@ -9,6 +9,10 @@ export const Debugger: React.FC = () => {
       <Group>
         <MoveTrainButton id="t0" delta={10} />
         <MoveTrainButton id="t1" delta={10} />
+        <ToggleJunctionButton id="j0" />
+        <ToggleJunctionButton id="j1" />
+        <ToggleJunctionButton id="j2" />
+        <ToggleJunctionButton id="j3" />
         <BlockSectionButton id="s3" />
       </Group>
     </div>
@@ -64,6 +68,42 @@ const PutTrainButton: React.FC<PutTrainButtonProps> = ({ id, positionId }) => {
     >
       PutTrain({id}, ({sensorPositionState.section_id},{" "}
       {sensorPositionState.mileage}))
+    </Button>
+  );
+};
+
+interface ToggleJunctionButtonProps {
+  id: string;
+}
+
+const ToggleJunctionButton: React.FC<ToggleJunctionButtonProps> = ({ id }) => {
+  const railwayState = useContext(RailwayStateContext);
+
+  if (!railwayState) return null;
+
+  const junctionState = railwayState.junctions[id];
+
+  return (
+    <Button
+      key={id}
+      styles={(theme) => ({
+        label: {
+          fontFamily: theme.fontFamilyMonospace,
+        },
+      })}
+      onClick={() => {
+        if (junctionState.current_direction == PointDirection.STRAIGHT) {
+          DefaultService.updateJunction(id, {
+            direction: PointDirection.CURVE,
+          });
+        } else {
+          DefaultService.updateJunction(id, {
+            direction: PointDirection.STRAIGHT,
+          });
+        }
+      }}
+    >
+      ToggleJunction({id})
     </Button>
   );
 };

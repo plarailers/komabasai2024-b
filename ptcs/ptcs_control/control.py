@@ -118,6 +118,11 @@ class Control:
         ポイントをどちら向きにするかを計算する。
         """
 
+        for junction in self.junctions.values():
+            if not junction.is_toggle_prohibited():
+                junction.set_direction(junction.direction_command)
+        return
+
         # junction定義
         j0a = self.junctions["j0"]
         j0b = self.junctions["j1"]
