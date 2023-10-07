@@ -15,6 +15,11 @@ export const calculatePositionAndDirection = (
 ): {
   position: { x: number; y: number };
   direction: { x: number; y: number };
+  /**
+   * UI 上のパスを `[...points.slice(0, partitionIndex), position]` と
+   * `[...position, points.slice(partitionIndex)]` とに分割するのに使えるインデックス。
+   */
+  partitionIndex: number;
 } => {
   let totalLength = 0;
   for (let i = 0; i < points.length - 1; i++) {
@@ -27,7 +32,11 @@ export const calculatePositionAndDirection = (
   if (targetLength < 0) {
     const p = points[0];
     const q = points[1];
-    return { position: p, direction: { x: q.x - p.x, y: q.y - p.y } };
+    return {
+      position: p,
+      direction: { x: q.x - p.x, y: q.y - p.y },
+      partitionIndex: 0,
+    };
   }
   for (let i = 0; i < points.length - 1; i++) {
     const p = points[i];
@@ -45,12 +54,17 @@ export const calculatePositionAndDirection = (
           x: q.x - p.x,
           y: q.y - p.y,
         },
+        partitionIndex: i + 1,
       };
     }
   }
   {
     const p = points[points.length - 2];
     const q = points[points.length - 1];
-    return { position: q, direction: { x: q.x - p.x, y: q.y - p.y } };
+    return {
+      position: q,
+      direction: { x: q.x - p.x, y: q.y - p.y },
+      partitionIndex: points.length,
+    };
   }
 };

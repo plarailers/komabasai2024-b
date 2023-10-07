@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 from ptcs_control.components.junction import JunctionConnection, PointDirection
 from ptcs_control.components.section import SectionConnection
+from ptcs_control.components.train import Train
 from ptcs_control.control import Control
 
 
@@ -46,10 +47,38 @@ class TrainState(BaseModel):
     delta_per_motor_rotation: float
     head_position: DirectedPosition
     tail_position: DirectedPosition
+    covered_section_ids: list[str]
     stop_id: str | None
     stop_distance: float
     departure_time: int | None
     speed_command: float
+
+    @staticmethod
+    def from_control(train: Train) -> TrainState:
+        tail_position, covered_sections = train.head_position.get_retracted_position_with_path(train.length)
+        return TrainState(
+            id=train.id,
+            min_input=train.min_input,
+            max_input=train.max_input,
+            max_speed=train.max_speed,
+            length=train.length,
+            delta_per_motor_rotation=train.delta_per_motor_rotation,
+            head_position=DirectedPosition(
+                section_id=train.head_position.section.id,
+                target_junction_id=train.head_position.target_junction.id,
+                mileage=train.head_position.mileage,
+            ),
+            tail_position=DirectedPosition(
+                section_id=tail_position.section.id,
+                target_junction_id=tail_position.target_junction.id,
+                mileage=tail_position.mileage,
+            ),
+            covered_section_ids=[section.id for section in covered_sections],
+            stop_id=train.stop.id if train.stop else None,
+            stop_distance=train.stop_distance,
+            departure_time=train.departure_time,
+            speed_command=train.speed_command,
+        )
 
 
 class StopState(BaseModel):
@@ -103,31 +132,7 @@ def get_state_from_control(control: Control) -> RailwayState:
             )
             for section in control.sections.values()
         },
-        trains={
-            train.id: TrainState(
-                id=train.id,
-                min_input=train.min_input,
-                max_input=train.max_input,
-                max_speed=train.max_speed,
-                length=train.length,
-                delta_per_motor_rotation=train.delta_per_motor_rotation,
-                head_position=DirectedPosition(
-                    section_id=train.head_position.section.id,
-                    target_junction_id=train.head_position.target_junction.id,
-                    mileage=train.head_position.mileage,
-                ),
-                tail_position=DirectedPosition(
-                    section_id=(tail_position := train.head_position.get_retracted_position(train.length)).section.id,
-                    target_junction_id=tail_position.target_junction.id,
-                    mileage=tail_position.mileage,
-                ),
-                stop_id=train.stop.id if train.stop else None,
-                stop_distance=train.stop_distance,
-                departure_time=train.departure_time,
-                speed_command=train.speed_command,
-            )
-            for train in control.trains.values()
-        },
+        trains={train.id: TrainState.from_control(train) for train in control.trains.values()},
         stops={
             stop.id: StopState(
                 id=stop.id,

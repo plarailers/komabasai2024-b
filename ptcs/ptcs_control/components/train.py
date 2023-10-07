@@ -41,8 +41,10 @@ class Train(BaseComponent):
         super().verify()
         assert (
             self.head_position.target_junction in self.head_position.section.connected_junctions.values()
-        ), f"{self}.position.target_junction is wrong"
-        assert 0 <= self.head_position.mileage <= self.head_position.section.length, f"{self}.position.length is wrong"
+        ), f"{self}.head_position.target_junction is wrong"
+        assert (
+            0 <= self.head_position.mileage <= self.head_position.section.length
+        ), f"{self}.head_position.length is wrong"
 
     def calc_input(self, speed: float) -> int:
         if speed > self.max_speed:

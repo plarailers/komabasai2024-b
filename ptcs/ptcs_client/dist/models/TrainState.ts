@@ -13,6 +13,7 @@ export type TrainState = {
     delta_per_motor_rotation: number;
     head_position: DirectedPosition;
     tail_position: DirectedPosition;
+    covered_section_ids: Array<string>;
     stop_id: (string | null);
     stop_distance: number;
     departure_time: (number | null);
