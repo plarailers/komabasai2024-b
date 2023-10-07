@@ -5,15 +5,21 @@ import { Train } from "./Train";
 import { Junction } from "./Junction";
 import { useContext } from "react";
 import { Stop } from "./Stop";
+import { useMantineTheme } from "@mantine/core";
 
 export const Railway: React.FC<React.PropsWithChildren> = ({ children }) => {
+  const theme = useMantineTheme();
   const railwayUI = useContext(RailwayUIContext);
 
   if (!railwayUI) return null;
 
   return (
     <svg width="100%" viewBox={`0 0 ${railwayUI.width} ${railwayUI.height}`}>
-      <rect width={railwayUI.width} height={railwayUI.height} fill="#222222" />
+      <rect
+        width={railwayUI.width}
+        height={railwayUI.height}
+        fill={theme.colors.dark[7]}
+      />
       {Object.entries(railwayUI.platforms).map(([id, platform]) => (
         <Platform key={id} position={platform.position} />
       ))}
