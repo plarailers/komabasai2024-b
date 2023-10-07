@@ -26,3 +26,8 @@ class SensorPosition(BaseComponent):
     具体的には、通った向きがわかるようなセンシング技術を用いるか、
     計算で向きを予測するか（限界はある）のどちらか。
     """
+
+    def verify(self) -> None:
+        super().verify()
+        assert self.target_junction in self.section.connected_junctions.values(), f"{self}.target_junction is wrong"
+        assert 0 <= self.mileage <= self.section.length, f"{self}.length is wrong"

@@ -36,6 +36,13 @@ class Train(BaseComponent):
     # commands
     speed_command: float = field(default=0.0)  # 速度指令値
 
+    def verify(self) -> None:
+        super().verify()
+        assert (
+            self.position.target_junction in self.position.section.connected_junctions.values()
+        ), f"{self}.position.target_junction is wrong"
+        assert 0 <= self.position.mileage <= self.position.section.length, f"{self}.position.length is wrong"
+
     def calc_input(self, speed: float) -> int:
         if speed > self.max_speed:
             return self.max_input

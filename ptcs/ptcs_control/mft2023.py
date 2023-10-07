@@ -175,17 +175,17 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         ),
     )
 
-    control.add_stop(stop_0)
-    control.add_stop(stop_1)
-    control.add_stop(stop_2)
-    control.add_stop(stop_3)
-    control.add_stop(stop_4)
+    # control.add_stop(stop_0)
+    # control.add_stop(stop_1)
+    # control.add_stop(stop_2)
+    # control.add_stop(stop_3)
+    # control.add_stop(stop_4)
 
     station_0 = Station(id="station_0", stops=[stop_0, stop_1])
     station_1 = Station(id="station_1", stops=[stop_2, stop_3, stop_4])
 
-    control.add_station(station_0)
-    control.add_station(station_1)
+    # control.add_station(station_0)
+    # control.add_station(station_1)
 
     position_173 = SensorPosition(
         id="position_173",
@@ -212,10 +212,10 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         mileage=WATARI_RAIL_A * 1 + STRAIGHT_RAIL * 5.5 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
     )
 
-    control.add_sensor_position(position_173)
-    control.add_sensor_position(position_138)
-    control.add_sensor_position(position_80)
-    control.add_sensor_position(position_255)
+    # control.add_sensor_position(position_173)
+    # control.add_sensor_position(position_138)
+    # control.add_sensor_position(position_80)
+    # control.add_sensor_position(position_255)
 
     control.verify()
     return control
