@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from ptcs_bridge.bridge import Bridge
+from ptcs_bridge.bridge2 import Bridge2
 from ptcs_bridge.train_base import TrainBase
 from ptcs_bridge.train_simulator import TrainSimulator
 from ptcs_control.control import Control
@@ -59,22 +60,21 @@ def create_app_without_bridge() -> FastAPI:
     # `/` 以下で静的ファイルを配信する
     app.mount("/", StaticFiles(directory="./ptcs_ui/dist", html=True), name="static")
 
-    t0 = TrainSimulator("t0")
-    t1 = TrainSimulator("t1")
+    bridge = Bridge2()
+    bridge.add_train(TrainSimulator("t0"))
+    bridge.add_train(TrainSimulator("t1"))
 
     async def loop():
-        await t0.connect()
-        await t1.connect()
+        await bridge.connect_all()
 
-        def handle_notify_rotation(train: TrainBase, _rotation: int):
-            match train.id:
-                case "t0":
-                    control.trains["t0"].move_forward_mr(1)
-                case "t1":
-                    control.trains["t1"].move_forward_mr(1)
+        def handle_notify_rotation(train_client: TrainBase, _rotation: int):
+            train_control = control.trains.get(train_client.id)
+            if train_control is None:
+                return
+            train_control.move_forward_mr(1)
 
-        await t0.start_notify_rotation(handle_notify_rotation)
-        await t1.start_notify_rotation(handle_notify_rotation)
+        for train in bridge.trains.values():
+            await train.start_notify_rotation(handle_notify_rotation)
 
         while True:
             # control 内部の時計を現実世界の時間において進める
@@ -82,15 +82,21 @@ def create_app_without_bridge() -> FastAPI:
             control.tick()
             control.update()
 
-            for train_id, train in control.trains.items():
-                match train_id:
-                    case "t0":
-                        await t0.send_speed(train.speed_command)
-                    case "t1":
-                        await t1.send_speed(train.speed_command)
+            for train_id, train_control in control.trains.items():
+                train_client = bridge.trains.get(train_id)
+                if train_client is None:
+                    continue
+                await train_client.send_speed(train_control.speed_command)
 
-    task = asyncio.create_task(loop())
-    app.state.task = task
+    loop_task = asyncio.create_task(loop())
+    app.state.loop_task = loop_task
+
+    @app.on_event("shutdown")
+    async def on_shutdown():
+        for train in bridge.trains.values():
+            await train.send_speed(0)
+
+        await bridge.disconnect_all()
 
     return app
 
