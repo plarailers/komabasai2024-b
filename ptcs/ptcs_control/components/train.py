@@ -25,6 +25,7 @@ class Train(BaseComponent):
     min_input: int
     max_input: int
     max_speed: float
+    length: float  # 列車の長さ[cm]
     delta_per_motor_rotation: float  # モータ1回転で進む距離[cm]
 
     # state
@@ -86,8 +87,6 @@ class Train(BaseComponent):
         一周して指定された列車自身にたどりついた場合は、指定された列車自身を先行列車とみなす。
         ジャンクションの開通方向によっては先行列車に到達できない場合があり、そのときはNoneを返す。
         """
-
-        TRAIN_LENGTH: float = 60  # 列車の長さ[cm] NOTE:将来的には車両のパラメータとして定義
 
         section = self.position.section
 
@@ -154,7 +153,7 @@ class Train(BaseComponent):
 
         # 先行列車を発見できたら、その最後尾までの距離を計算し、返す
         if forward_train:
-            return (forward_train, forward_train_distance - TRAIN_LENGTH)
+            return forward_train, forward_train_distance - forward_train.length
         else:
             return None
 
@@ -241,6 +240,6 @@ class Train(BaseComponent):
 
         # 停止目標を発見できたら、そこまでの距離とともに返す
         if forward_stop:
-            return (forward_stop, forward_stop_distance)
+            return forward_stop, forward_stop_distance
         else:
             return None

@@ -42,6 +42,7 @@ class TrainState(BaseModel):
     min_input: int
     max_input: int
     max_speed: float
+    length: float
     delta_per_motor_rotation: float
     position: DirectedPosition
     stop_id: str | None
@@ -107,6 +108,7 @@ def get_state_from_control(control: Control) -> RailwayState:
                 min_input=train.min_input,
                 max_input=train.max_input,
                 max_speed=train.max_speed,
+                length=train.length,
                 delta_per_motor_rotation=train.delta_per_motor_rotation,
                 position=DirectedPosition(
                     section_id=train.position.section.id,
