@@ -229,7 +229,7 @@ class Control:
 
         objects: list[tuple[Train, DirectedPosition] | tuple[Obstacle, UndirectedPosition]] = [
             *((train, train.compute_tail_position()) for train in self.trains.values()),
-            *((obstacle, obstacle.position) for obstacle in self.obstacles.values()),
+            *((obstacle, obstacle.position) for obstacle in self.obstacles.values() if obstacle.is_detected),
         ]
 
         for train in self.trains.values():

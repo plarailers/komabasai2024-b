@@ -13,6 +13,7 @@ export const Debugger: React.FC = () => {
         <ToggleJunctionButton id="j1" />
         <ToggleJunctionButton id="j2" />
         <ToggleJunctionButton id="j3" />
+        <DetectObstacleButton id="obstacle_0" />
         <BlockSectionButton id="s3" />
       </Group>
     </div>
@@ -104,6 +105,41 @@ const ToggleJunctionButton: React.FC<ToggleJunctionButtonProps> = ({ id }) => {
       }}
     >
       ToggleJunction({id})
+    </Button>
+  );
+};
+
+interface DetectObstacleButtonProps {
+  id: string;
+}
+
+const DetectObstacleButton: React.FC<DetectObstacleButtonProps> = ({ id }) => {
+  const railwayState = useContext(RailwayStateContext);
+
+  if (!railwayState) return null;
+
+  const obstacleState = railwayState.obstacles[id];
+
+  return (
+    <Button
+      variant={!obstacleState.is_detected ? "light" : "filled"}
+      color="red"
+      styles={(theme) => ({
+        label: {
+          fontFamily: theme.fontFamilyMonospace,
+        },
+      })}
+      onClick={() => {
+        if (!obstacleState.is_detected) {
+          DefaultService.detectObstacle(id);
+        } else {
+          DefaultService.clearObstacle(id);
+        }
+      }}
+    >
+      {!obstacleState.is_detected
+        ? `DetectObstacle(${id})`
+        : `ClearObstacle(${id})`}
     </Button>
   );
 };
