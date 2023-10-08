@@ -11,6 +11,7 @@ export type { HTTPValidationError } from './models/HTTPValidationError';
 export { JunctionConnection } from './models/JunctionConnection';
 export type { JunctionState } from './models/JunctionState';
 export type { MoveTrainParams } from './models/MoveTrainParams';
+export type { ObstacleState } from './models/ObstacleState';
 export { PointDirection } from './models/PointDirection';
 export type { PutTrainParams } from './models/PutTrainParams';
 export type { RailwayState } from './models/RailwayState';

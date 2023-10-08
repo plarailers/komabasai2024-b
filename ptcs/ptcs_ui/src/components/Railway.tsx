@@ -6,6 +6,7 @@ import { Junction } from "./Junction";
 import { useContext } from "react";
 import { Stop } from "./Stop";
 import { useMantineTheme } from "@mantine/core";
+import { Obstacle } from "./Obstacle";
 
 export const Railway: React.FC<React.PropsWithChildren> = ({ children }) => {
   const theme = useMantineTheme();
@@ -31,6 +32,9 @@ export const Railway: React.FC<React.PropsWithChildren> = ({ children }) => {
       ))}
       {Object.entries(railwayUI.junctions).map(([id, junction]) => (
         <Junction key={id} id={id} position={junction.position} />
+      ))}
+      {Object.entries(railwayUI.obstacles).map(([id, obstacle]) => (
+        <Obstacle key={id} id={id} />
       ))}
       {Object.entries(railwayUI.trains).map(([id, train]) => (
         <Train key={id} id={id} />

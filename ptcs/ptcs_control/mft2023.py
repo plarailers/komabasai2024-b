@@ -1,6 +1,7 @@
 import logging
 
 from .components.junction import Junction, JunctionConnection
+from .components.obstacle import Obstacle
 from .components.position import DirectedPosition
 from .components.section import Section, SectionConnection
 from .components.sensor_position import SensorPosition
@@ -218,6 +219,15 @@ def create_control(logger: logging.Logger | None = None) -> Control:
     # control.add_sensor_position(position_138)
     # control.add_sensor_position(position_80)
     # control.add_sensor_position(position_255)
+
+    obstacle_0 = Obstacle(
+        id="obstacle_0",
+        section=s3,
+        mileage=WATARI_RAIL_A + STRAIGHT_RAIL,
+        is_detected=True,
+    )
+
+    control.add_obstacle(obstacle_0)
 
     control.verify()
     return control

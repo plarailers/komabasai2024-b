@@ -106,6 +106,9 @@ const ui: RailwayUI = {
     // stop_3: {},
     // stop_4: {},
   },
+  obstacles: {
+    obstacle_0: {},
+  },
 };
 
 export const Home: React.FC = () => {

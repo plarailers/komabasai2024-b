@@ -22,6 +22,7 @@ class RailwayState(BaseModel):
     stops: dict[str, StopState]
     stations: dict[str, StationState]
     sensor_positions: dict[str, SensorPositionState]
+    obstacles: dict[str, ObstacleState]
 
 
 class JunctionState(BaseModel):
@@ -98,6 +99,13 @@ class SensorPositionState(BaseModel):
     target_junction_id: str
 
 
+class ObstacleState(BaseModel):
+    id: str
+    section_id: str
+    mileage: float
+    is_detected: bool
+
+
 class DirectedPosition(BaseModel):
     section_id: str
     target_junction_id: str
@@ -156,5 +164,14 @@ def get_state_from_control(control: Control) -> RailwayState:
                 target_junction_id=sensor_position.target_junction.id,
             )
             for sensor_position in control.sensor_positions.values()
+        },
+        obstacles={
+            obstacle.id: ObstacleState(
+                id=obstacle.id,
+                section_id=obstacle.section.id,
+                mileage=obstacle.mileage,
+                is_detected=obstacle.is_detected,
+            )
+            for obstacle in control.obstacles.values()
         },
     )

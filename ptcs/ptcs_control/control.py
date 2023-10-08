@@ -5,6 +5,7 @@ import math
 from dataclasses import dataclass, field
 
 from .components.junction import Junction, JunctionConnection, PointDirection
+from .components.obstacle import Obstacle
 from .components.section import Section, SectionConnection
 from .components.sensor_position import SensorPosition
 from .components.station import Station
@@ -32,6 +33,7 @@ class Control:
     stops: dict[str, Stop] = field(default_factory=dict)
     stations: dict[str, Station] = field(default_factory=dict)
     sensor_positions: dict[str, SensorPosition] = field(default_factory=dict)
+    obstacles: dict[str, Obstacle] = field(default_factory=dict)
 
     logger: logging.Logger = field(default_factory=create_empty_logger)
 
@@ -78,6 +80,11 @@ class Control:
         self.sensor_positions[position.id] = position
         position._control = self
 
+    def add_obstacle(self, obstacle: Obstacle) -> None:
+        assert obstacle.id not in self.obstacles
+        self.obstacles[obstacle.id] = obstacle
+        obstacle._control = self
+
     def verify(self) -> None:
         for junction in self.junctions.values():
             junction.verify()
@@ -89,6 +96,8 @@ class Control:
             stop.verify()
         for position in self.sensor_positions.values():
             position.verify()
+        for obstacle in self.obstacles.values():
+            obstacle.verify()
 
     @property
     def current_time(self) -> int:
