@@ -101,9 +101,13 @@ class SensorPositionState(BaseModel):
 
 class ObstacleState(BaseModel):
     id: str
+    position: UndirectedPosition
+    is_detected: bool
+
+
+class UndirectedPosition(BaseModel):
     section_id: str
     mileage: float
-    is_detected: bool
 
 
 class DirectedPosition(BaseModel):
@@ -168,8 +172,10 @@ def get_state_from_control(control: Control) -> RailwayState:
         obstacles={
             obstacle.id: ObstacleState(
                 id=obstacle.id,
-                section_id=obstacle.section.id,
-                mileage=obstacle.mileage,
+                position=UndirectedPosition(
+                    section_id=obstacle.position.section.id,
+                    mileage=obstacle.position.mileage,
+                ),
                 is_detected=obstacle.is_detected,
             )
             for obstacle in control.obstacles.values()

@@ -21,6 +21,7 @@ export type { SensorPositionState } from './models/SensorPositionState';
 export type { StationState } from './models/StationState';
 export type { StopState } from './models/StopState';
 export type { TrainState } from './models/TrainState';
+export type { UndirectedPosition } from './models/UndirectedPosition';
 export type { UpdateJunctionParams } from './models/UpdateJunctionParams';
 export type { ValidationError } from './models/ValidationError';
 

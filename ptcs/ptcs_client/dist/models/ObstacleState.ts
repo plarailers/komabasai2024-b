@@ -2,9 +2,10 @@
 /* tslint:disable */
 /* eslint-disable */
 
+import type { UndirectedPosition } from './UndirectedPosition';
+
 export type ObstacleState = {
     id: string;
-    section_id: string;
-    mileage: number;
+    position: UndirectedPosition;
     is_detected: boolean;
 };

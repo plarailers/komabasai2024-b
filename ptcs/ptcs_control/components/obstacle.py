@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from .base import BaseComponent
 
 if TYPE_CHECKING:
-    from .section import Section
+    from .position import UndirectedPosition
 
 
 @dataclass
@@ -16,12 +16,11 @@ class Obstacle(BaseComponent):
     id: str
 
     # config
-    section: Section
-    mileage: float
+    position: UndirectedPosition
 
     # state
     is_detected: bool
 
     def verify(self) -> None:
         super().verify()
-        assert 0 <= self.mileage <= self.section.length, f"{self}.length is wrong"
+        assert 0 <= self.position.mileage <= self.position.section.length, f"{self}.position.mileage is wrong"

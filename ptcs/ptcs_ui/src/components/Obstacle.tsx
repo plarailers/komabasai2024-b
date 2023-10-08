@@ -23,10 +23,12 @@ export const Obstacle: React.FC<ObstacleProps> = ({ id }) => {
     return null;
   }
 
-  const currentSectionState = railwayState.sections[obstacleState.section_id];
-  const currentSectionUI = railwayUI.sections[obstacleState.section_id];
+  const currentSectionState =
+    railwayState.sections[obstacleState.position.section_id];
+  const currentSectionUI =
+    railwayUI.sections[obstacleState.position.section_id];
   const { position, direction } = calculatePositionAndDirection(
-    obstacleState.mileage / currentSectionState.length,
+    obstacleState.position.mileage / currentSectionState.length,
     currentSectionUI.points
   );
   const angle = (Math.atan2(direction.y, direction.x) / Math.PI) * 180;

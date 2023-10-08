@@ -11,6 +11,14 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True)
+class UndirectedPosition:
+    """線路上の汎用的な位置"""
+
+    section: Section
+    mileage: float
+
+
+@dataclass(frozen=True)
 class DirectedPosition:
     """線路上の汎用的な位置と方向"""
 
