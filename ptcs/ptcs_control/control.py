@@ -128,6 +128,29 @@ class Control:
         ポイントをどちら向きにするかを計算する。
         """
 
+        for obstacle in self.obstacles.values():
+            # 発生している障害物のみを見る。
+            if not obstacle.is_detected:
+                continue
+
+            for train in self.trains.values():
+                # 障害物が発生した区間の手前の区間に列車がいるとき、
+                # 障害が発生した区間に列車が入らないように
+                # ポイントを切り替える。
+                next_section_and_target_junction = (
+                    train.head_position.section.get_next_section_and_target_junction_strict(
+                        train.head_position.target_junction
+                    )
+                )
+                if next_section_and_target_junction:
+                    next_section, next_target_junction = next_section_and_target_junction
+                    if obstacle.position.section == next_section:
+                        target_junction = train.head_position.target_junction
+                        if target_junction.connected_sections[JunctionConnection.THROUGH] == next_section:
+                            target_junction.manual_direction = PointDirection.CURVE
+                        elif target_junction.connected_sections[JunctionConnection.DIVERGING] == next_section:
+                            target_junction.manual_direction = PointDirection.STRAIGHT
+
         for junction in self.junctions.values():
             if junction.manual_direction:
                 if not junction.is_toggle_prohibited():
@@ -218,8 +241,7 @@ class Control:
 
         # ポイント変更
         for junction, direction in junction_direction:
-            if not junction.is_toggle_prohibited():
-                junction.set_direction(direction)
+            junction.set_direction(direction)
 
     def _calc_speed(self) -> None:
         BREAK_ACCLT: float = 10  # ブレーキ減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義

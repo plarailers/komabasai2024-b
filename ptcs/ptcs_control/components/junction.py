@@ -84,7 +84,7 @@ class Junction(BaseComponent):
         ジャンクションを列車が通過中であり、切り替えてはいけない場合に `True` を返す。
         """
 
-        MERGIN: float = 40.0  # ポイント通過後すぐに切り替えるとまずいので余裕距離をとる
+        MERGIN: float = 10.0  # ポイント通過後すぐに切り替えるとまずいので余裕距離をとる
 
         for train in self.control.trains.values():
             # 列車の最後尾からMERGIN離れた位置(tail)を取得
