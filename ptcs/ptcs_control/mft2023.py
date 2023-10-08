@@ -63,7 +63,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         length=WATARI_RAIL_A
         + STRAIGHT_RAIL * 2
         + OUTER_CURVE_RAIL * 2
-        + STRAIGHT_RAIL * 2
+        + STRAIGHT_RAIL
         + STRAIGHT_1_2_RAIL
         + OUTER_CURVE_RAIL * 2
         + STRAIGHT_RAIL * 3
@@ -111,16 +111,68 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         min_input=70,
         max_input=130,
         max_speed=40.0,
-        length=60.0,
+        length=20.0,
         delta_per_motor_rotation=0.2435 * 0.9,
         head_position=DirectedPosition(
-            section=s0,
-            target_junction=j3,
-            mileage=STRAIGHT_RAIL * 4.5 + WATARI_RAIL_B + 1,  # 次駅探索の都合上、stopを1cm通り過ぎた場所にしておく
+            section=s3,
+            target_junction=j1,
+            mileage=WATARI_RAIL_A + STRAIGHT_RAIL * 0.5,
         ),
-    )  # Dr
+    )
     t1 = Train(
         id="t1",
+        min_input=70,
+        max_input=130,
+        max_speed=40.0,
+        length=20.0,
+        delta_per_motor_rotation=0.2435 * 0.9,
+        head_position=DirectedPosition(
+            section=s3,
+            target_junction=j1,
+            mileage=WATARI_RAIL_A + STRAIGHT_RAIL * 2 + OUTER_CURVE_RAIL * 2 + STRAIGHT_RAIL,
+        ),
+    )
+    t2 = Train(
+        id="t2",
+        min_input=70,
+        max_input=130,
+        max_speed=40.0,
+        length=20.0,
+        delta_per_motor_rotation=0.2435 * 0.9,
+        head_position=DirectedPosition(
+            section=s3,
+            target_junction=j1,
+            mileage=WATARI_RAIL_A
+            + STRAIGHT_RAIL * 2
+            + OUTER_CURVE_RAIL * 2
+            + STRAIGHT_RAIL
+            + STRAIGHT_1_2_RAIL
+            + OUTER_CURVE_RAIL * 2
+            + STRAIGHT_RAIL,
+        ),
+    )
+    t3 = Train(
+        id="t3",
+        min_input=70,
+        max_input=130,
+        max_speed=40.0,
+        length=20.0,
+        delta_per_motor_rotation=0.2435 * 0.9,
+        head_position=DirectedPosition(
+            section=s3,
+            target_junction=j1,
+            mileage=WATARI_RAIL_A
+            + STRAIGHT_RAIL * 2
+            + OUTER_CURVE_RAIL * 2
+            + STRAIGHT_RAIL
+            + STRAIGHT_1_2_RAIL
+            + OUTER_CURVE_RAIL * 2
+            + STRAIGHT_RAIL * 3
+            + OUTER_CURVE_RAIL * 2,
+        ),
+    )
+    t4 = Train(
+        id="t4",
         min_input=90,
         max_input=130,
         max_speed=40.0,
@@ -129,13 +181,15 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         head_position=DirectedPosition(
             section=s1,
             target_junction=j0,
-            mileage=STRAIGHT_RAIL * 2.5 + WATARI_RAIL_B + 1,
+            mileage=WATARI_RAIL_B + STRAIGHT_RAIL * 4,
         ),
-    )  # E6
-    # E5はAPS故障につきまだ運用しない
+    )
 
     control.add_train(t0)
     control.add_train(t1)
+    control.add_train(t2)
+    control.add_train(t3)
+    control.add_train(t4)
 
     stop_0 = Stop(
         id="stop_0",

@@ -95,6 +95,18 @@ const ui: RailwayUI = {
       stroke: DEFAULT_THEME.colors.yellow[9],
     },
     t1: {
+      fill: DEFAULT_THEME.colors.green[5],
+      stroke: DEFAULT_THEME.colors.green[9],
+    },
+    t2: {
+      fill: DEFAULT_THEME.colors.cyan[4],
+      stroke: DEFAULT_THEME.colors.cyan[9],
+    },
+    t3: {
+      fill: DEFAULT_THEME.colors.indigo[5],
+      stroke: DEFAULT_THEME.colors.indigo[9],
+    },
+    t4: {
       fill: DEFAULT_THEME.colors.red[5],
       stroke: DEFAULT_THEME.colors.red[9],
     },
