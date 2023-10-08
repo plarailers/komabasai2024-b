@@ -81,17 +81,16 @@ class Junction(BaseComponent):
         ジャンクションを列車が通過中であり、切り替えてはいけない場合に `True` を返す。
         """
 
-        MERGIN: float = 40  # ポイント通過後すぐに切り替えるとまずいので余裕距離をとる
-        TRAIN_LENGTH: float = 60  # 列車の長さ[cm] NOTE: 将来的には車両等のパラメータとして外に出す
+        MERGIN: float = 40.0  # ポイント通過後すぐに切り替えるとまずいので余裕距離をとる
 
         for train in self.control.trains.values():
             # 列車の最後尾からMERGIN離れた位置(tail)を取得
-            tail_position = train.position.get_retracted_position(TRAIN_LENGTH + MERGIN)
+            tail_position = train.head_position.get_retracted_position(train.length + MERGIN)
 
             # 列車の先頭は指定されたjunctionに向かっていないが、
             # 列車の最後尾は指定されたjunctionに向かっている場合、
             # 列車はそのjunctinoを通過中なので、切り替えを禁止する
-            if train.position.target_junction != self and tail_position.target_junction == self:
+            if train.head_position.target_junction != self and tail_position.target_junction == self:
                 return True
 
         return False  # 誰も通過していなければFalseを返す

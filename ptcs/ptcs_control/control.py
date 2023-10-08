@@ -118,6 +118,11 @@ class Control:
         ポイントをどちら向きにするかを計算する。
         """
 
+        for junction in self.junctions.values():
+            if not junction.is_toggle_prohibited():
+                junction.set_direction(junction.direction_command)
+        return
+
         # junction定義
         j0a = self.junctions["j0"]
         j0b = self.junctions["j1"]
@@ -169,13 +174,13 @@ class Control:
         # s5にtrainが存在するか
         s5_exist: bool = False
         for train in self.trains.values():
-            if train.position.section == s1 and train.position.target_junction == j0b:
+            if train.head_position.section == s1 and train.head_position.target_junction == j0b:
                 s1_j0b_exist = True
-            if train.position.section == s1 and train.position.target_junction == j1b:
+            if train.head_position.section == s1 and train.head_position.target_junction == j1b:
                 s1_j1b_exist = True
-            if train.position.section == s4:
+            if train.head_position.section == s4:
                 s4_exist = True
-            if train.position.section == s5:
+            if train.head_position.section == s5:
                 s5_exist = True
 
         # ポイントの向きを判定
@@ -215,15 +220,15 @@ class Control:
 
             distance = 0.0
 
-            current_section = train.position.section
-            target_junction = train.position.target_junction
+            current_section = train.head_position.section
+            target_junction = train.head_position.target_junction
 
             while True:
                 next_section, next_junction = current_section.get_next_section_and_target_junction(target_junction)
 
                 # いま見ているセクションが閉鎖 -> 即時停止
                 # ただしすでに列車が閉鎖セクションに入ってしまった場合は、駅まで動かしたいので、止めない
-                if current_section != train.position.section and current_section.is_blocked is True:
+                if current_section != train.head_position.section and current_section.is_blocked is True:
                     distance += 0
                     break
 
@@ -238,11 +243,11 @@ class Control:
                     current_section.get_next_section_and_target_junction_strict(target_junction) is None
                     or next_section.is_blocked is True
                 ):
-                    if current_section == train.position.section:
+                    if current_section == train.head_position.section:
                         if target_junction == current_section.connected_junctions[SectionConnection.A]:
-                            distance += train.position.mileage - MERGIN
+                            distance += train.head_position.mileage - MERGIN
                         elif target_junction == current_section.connected_junctions[SectionConnection.B]:
-                            distance += current_section.length - train.position.mileage - MERGIN
+                            distance += current_section.length - train.head_position.mileage - MERGIN
                         else:
                             raise
                     else:
@@ -261,11 +266,17 @@ class Control:
 
                 # 停止条件を満たさなければ次に移る
                 else:
-                    if current_section == train.position.section:
-                        if train.position.target_junction == current_section.connected_junctions[SectionConnection.A]:
-                            distance += train.position.mileage
-                        elif train.position.target_junction == current_section.connected_junctions[SectionConnection.B]:
-                            distance += current_section.length - train.position.mileage
+                    if current_section == train.head_position.section:
+                        if (
+                            train.head_position.target_junction
+                            == current_section.connected_junctions[SectionConnection.A]
+                        ):
+                            distance += train.head_position.mileage
+                        elif (
+                            train.head_position.target_junction
+                            == current_section.connected_junctions[SectionConnection.B]
+                        ):
+                            distance += current_section.length - train.head_position.mileage
                         else:
                             raise
                     else:

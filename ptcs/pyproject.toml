@@ -5,9 +5,9 @@ description = ""
 authors = ["UTokyo Plarailers <plarailers@gmail.com>"]
 readme = "README.md"
 packages = [
+    { include = "ptcs_bridge" },
     { include = "ptcs_control" },
     { include = "ptcs_server" },
-    { include = "usb_bt_bridge" },
 ]
 
 [tool.poetry.scripts]
@@ -17,6 +17,7 @@ scan = "serial.tools.list_ports:main"
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
+bleak = "^0.21.1"
 click = "^8.1.3"
 fastapi = "^0.103.1"
 uvicorn = "^0.23.2"

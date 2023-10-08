@@ -1,4 +1,10 @@
-import { Code, Container, DEFAULT_THEME, Grid, Stack } from "@mantine/core";
+import {
+  Code,
+  Container,
+  DEFAULT_THEME,
+  Stack,
+  useMantineTheme,
+} from "@mantine/core";
 import { DefaultService, RailwayState } from "ptcs_client";
 import { Layout } from "../components/Layout";
 import { useEffect, useState } from "react";
@@ -94,28 +100,30 @@ const ui: RailwayUI = {
     },
   },
   stops: {
-    stop_0: {},
-    stop_1: {},
-    stop_2: {},
-    stop_3: {},
-    stop_4: {},
+    // stop_0: {},
+    // stop_1: {},
+    // stop_2: {},
+    // stop_3: {},
+    // stop_4: {},
   },
 };
 
 export const Home: React.FC = () => {
+  const theme = useMantineTheme();
   const [railwayState, setRailwayState] = useState<RailwayState | null>(null);
-  const [time, setTime] = useState<Date>();
+  const [time, setTime] = useState(() => new Date());
 
   useEffect(() => {
     DefaultService.getState().then((state) => {
+      setTime(new Date());
       setRailwayState(state);
     });
   }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setTime(new Date());
       DefaultService.getState().then((state) => {
+        setTime(new Date());
         setRailwayState(state);
       });
     }, 500);
@@ -129,16 +137,20 @@ export const Home: React.FC = () => {
       <RailwayUIContext.Provider value={ui}>
         <Layout>
           <Container>
-            <Stack>
-              {time?.toLocaleString()}
-              <Railway />
+            <Stack px={60}>
+              <Railway>
+                <text
+                  x={10}
+                  y={20}
+                  fontSize={12}
+                  fontFamily={theme.fontFamilyMonospace}
+                  fill={theme.white}
+                >
+                  {time.toLocaleString()}
+                </text>
+              </Railway>
               <Debugger />
-              <Grid>
-                <Grid.Col span={6}>
-                  <Code block>{JSON.stringify(railwayState, null, 4)}</Code>
-                </Grid.Col>
-                <Grid.Col span={6}></Grid.Col>
-              </Grid>
+              <Code block>{JSON.stringify(railwayState, null, 4)}</Code>
             </Stack>
           </Container>
         </Layout>
