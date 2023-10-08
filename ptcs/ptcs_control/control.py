@@ -128,15 +128,45 @@ class Control:
         ポイントをどちら向きにするかを計算する。
         """
 
+        # 合流点に向かっている列車が1つ以上ある場合、
+        # 最も近い列車のいるほうにポイントを切り替える。
+        for junction in self.junctions.values():
+            nearest_train: Train | None = None
+            nearest_distance = math.inf
+
+            for train in self.trains.values():
+                if train.head_position.target_junction == junction:
+                    if (
+                        train.head_position.target_junction
+                        == train.head_position.section.connected_junctions[SectionConnection.A]
+                    ):
+                        distance = train.head_position.mileage
+                    elif (
+                        train.head_position.target_junction
+                        == train.head_position.section.connected_junctions[SectionConnection.B]
+                    ):
+                        distance = train.head_position.section.length - train.head_position.mileage
+                    else:
+                        raise
+
+                    if distance < nearest_distance:
+                        nearest_train = train
+                        nearest_distance = distance
+
+            if nearest_train:
+                if junction.connected_sections[JunctionConnection.THROUGH] == nearest_train.head_position.section:
+                    junction.manual_direction = PointDirection.STRAIGHT
+                elif junction.connected_sections[JunctionConnection.DIVERGING] == nearest_train.head_position.section:
+                    junction.manual_direction = PointDirection.CURVE
+
+        # 障害物が発生した区間の手前の区間に列車がいるとき、
+        # 障害が発生した区間に列車が入らないように
+        # ポイントを切り替える。
         for obstacle in self.obstacles.values():
-            # 発生している障害物のみを見る。
             if not obstacle.is_detected:
                 continue
 
             for train in self.trains.values():
-                # 障害物が発生した区間の手前の区間に列車がいるとき、
-                # 障害が発生した区間に列車が入らないように
-                # ポイントを切り替える。
                 next_section_and_target_junction = (
                     train.head_position.section.get_next_section_and_target_junction_strict(
                         train.head_position.target_junction
