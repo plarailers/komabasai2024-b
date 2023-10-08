@@ -1,18 +1,22 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar
 
 from .base import BaseComponent
+from .position import DirectedPosition, UndirectedPosition
 from .section import SectionConnection
 
 if TYPE_CHECKING:
     from .junction import Junction
-    from .position import DirectedPosition
     from .section import Section
     from .sensor_position import SensorPosition
     from .stop import Stop
+
+
+T = TypeVar("T")
 
 
 @dataclass
@@ -53,6 +57,9 @@ class Train(BaseComponent):
             return 0
         else:
             return math.floor(self.min_input + (self.max_input - self.min_input) * speed / self.max_speed)
+
+    def compute_tail_position(self) -> DirectedPosition:
+        return self.head_position.get_retracted_position(self.length)
 
     def move_forward_mr(self, motor_rotation: int) -> None:
         """
@@ -243,5 +250,113 @@ class Train(BaseComponent):
         # 停止目標を発見できたら、そこまでの距離とともに返す
         if forward_stop:
             return forward_stop, forward_stop_distance
+        else:
+            return None
+
+    def find_forward_object(
+        self,
+        object_position_pairs: Iterable[tuple[T, UndirectedPosition | DirectedPosition]],
+    ) -> tuple[T, float] | None:
+        """
+        指定された列車が次にたどり着く停止位置とそこまでの距離を取得する。
+        停止位置に到達できない場合は None を返す。
+        NOTE: `find_forward_train` を一般化したアルゴリズム
+        """
+
+        section = self.head_position.section
+
+        forward_object: T | None = None
+        forward_object_distance: float = math.inf
+
+        # 指定された列車と同一セクションに存在する、
+        # 指定された列車の前方にある停止位置のうち、最も近いもの`forward_object`を取得
+
+        for object, object_position in object_position_pairs:
+            match object_position:
+                case UndirectedPosition():
+                    if not (object_position.section == self.head_position.section):
+                        continue
+                case DirectedPosition():
+                    if not (
+                        object_position.section == self.head_position.section
+                        and object_position.target_junction == self.head_position.target_junction
+                    ):
+                        continue
+
+            if (
+                # 端点A(target_junction)<---|object|--train---<端点B
+                self.head_position.target_junction == section.connected_junctions[SectionConnection.A]
+                and object_position.mileage <= self.head_position.mileage
+            ) or (
+                # 端点A>---train--|object|--->端点B(target_junction)
+                self.head_position.target_junction == section.connected_junctions[SectionConnection.B]
+                and self.head_position.mileage <= object_position.mileage
+            ):
+                distance = abs(self.head_position.mileage - object_position.mileage)
+                if distance < forward_object_distance:
+                    forward_object = object
+                    forward_object_distance = distance
+
+        # 指定された列車と同一セクションに停止位置が存在しなければ次のセクションに移り、
+        # 停止位置が見つかるまで繰り返す
+
+        section = self.head_position.section
+        target_junction = self.head_position.target_junction
+
+        if self.head_position.target_junction == section.connected_junctions[SectionConnection.A]:
+            distance = self.head_position.mileage
+        elif self.head_position.target_junction == section.connected_junctions[SectionConnection.B]:
+            distance = section.length - self.head_position.mileage
+        else:
+            raise
+
+        # 無限ループ検出用
+        visited: set[tuple[Section, Junction]] = set()
+
+        while forward_object is None:
+            next_section_and_junction = section.get_next_section_and_target_junction_strict(target_junction)
+
+            if next_section_and_junction:
+                # 無限ループを検出したら None を返す
+                if next_section_and_junction in visited:
+                    return None
+
+                visited.add(next_section_and_junction)
+
+                section, target_junction = next_section_and_junction
+
+                for object, object_position in object_position_pairs:
+                    match object_position:
+                        case UndirectedPosition():
+                            if not (object_position.section == section):
+                                continue
+                        case DirectedPosition():
+                            if not (
+                                object_position.section == section
+                                and object_position.target_junction == target_junction
+                            ):
+                                continue
+
+                    # 端点A(target_junction)<---|object|-----<端点B
+                    if target_junction == section.connected_junctions[SectionConnection.A]:
+                        new_distance = distance + section.length - object_position.mileage
+                    # 端点A>-----|object|--->端点B(target_junction)
+                    elif target_junction == section.connected_junctions[SectionConnection.B]:
+                        new_distance = distance + object_position.mileage
+                    else:
+                        raise
+
+                    if new_distance < forward_object_distance:
+                        forward_object = object
+                        forward_object_distance = new_distance
+
+            else:
+                break
+
+            distance += section.length
+
+        # 停止目標を発見できたら、そこまでの距離とともに返す
+        if forward_object:
+            return forward_object, forward_object_distance
         else:
             return None
