@@ -54,6 +54,9 @@ class Junction(BaseComponent):
     # config
     connected_sections: dict[JunctionConnection, Section] = field(default_factory=dict)
 
+    # manual
+    manual_direction: PointDirection | None = field(default=None)
+
     # state
     current_direction: PointDirection = field(default=PointDirection.STRAIGHT)
 

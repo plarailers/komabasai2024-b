@@ -129,8 +129,10 @@ class Control:
         """
 
         for junction in self.junctions.values():
-            if not junction.is_toggle_prohibited():
-                junction.set_direction(junction.direction_command)
+            if junction.manual_direction:
+                if not junction.is_toggle_prohibited():
+                    junction.set_direction(junction.manual_direction)
+                    junction.manual_direction = None
         return
 
         # junction定義

@@ -28,6 +28,7 @@ class RailwayState(BaseModel):
 class JunctionState(BaseModel):
     id: str
     connected_section_ids: dict[JunctionConnection, str]
+    manual_direction: PointDirection | None
     current_direction: PointDirection
     direction_command: PointDirection
 
@@ -128,6 +129,7 @@ def get_state_from_control(control: Control) -> RailwayState:
                 connected_section_ids={
                     connection: section.id for connection, section in junction.connected_sections.items()
                 },
+                manual_direction=junction.manual_direction,
                 current_direction=junction.current_direction,
                 direction_command=junction.direction_command,
             )
