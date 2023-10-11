@@ -130,6 +130,10 @@ class Control:
 
         # 合流点に向かっている列車が1つ以上ある場合、
         # 最も近い列車のいるほうにポイントを切り替える。
+        #
+        # 分岐点は決め打ちで、
+        # obstacle_0 が出ていないときは、t0-t3 を内側、t4 を外側に運ぶ。
+        # obstacle_0 が出ているときは、すべて外側に運ぶ。
         for junction in self.junctions.values():
             nearest_train: Train | None = None
             nearest_distance = math.inf
@@ -158,6 +162,26 @@ class Control:
                     junction.manual_direction = PointDirection.STRAIGHT
                 elif junction.connected_sections[JunctionConnection.DIVERGING] == nearest_train.head_position.section:
                     junction.manual_direction = PointDirection.CURVE
+
+                match junction.id:
+                    case "j0":
+                        if not self.obstacles["obstacle_0"].is_detected:
+                            match nearest_train.id:
+                                case "t0" | "t1" | "t2" | "t3":
+                                    junction.manual_direction = PointDirection.CURVE
+                                case "t4":
+                                    junction.manual_direction = PointDirection.STRAIGHT
+                        else:
+                            junction.manual_direction = PointDirection.STRAIGHT
+                    case "j2":
+                        if not self.obstacles["obstacle_0"].is_detected:
+                            match nearest_train.id:
+                                case "t0" | "t1" | "t2" | "t3":
+                                    junction.manual_direction = PointDirection.STRAIGHT
+                                case "t4":
+                                    junction.manual_direction = PointDirection.CURVE
+                        else:
+                            junction.manual_direction = PointDirection.CURVE
 
         # 障害物が発生した区間の手前の区間に列車がいるとき、
         # 障害が発生した区間に列車が入らないように
