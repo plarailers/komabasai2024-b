@@ -52,7 +52,7 @@ async def main():
         await client.start_notify(characteristicRotation, rotationNotification_callback)
         await client.start_notify(characteristicVoltage, voltageNotification_callback)
 
-        i=170 #3V時171で回り始める
+        i=150 #3V時171で回り始める
         while(i<=255):
             i = i+1
             await client.write_gatt_char(characteristicSpeed, f"{i}".encode())
@@ -79,7 +79,7 @@ async def rotationNotification_callback(sender, data):
 
 async def voltageNotification_callback(sender, data):
     # voltage Notifyを受け取ったとき，voltageを表示．
-    voltage = int.from_bytes(data, byteorder='big')
+    voltage = int.from_bytes(data, byteorder='little')
     print(f"Vin: {voltage} mV")
 
 loop = asyncio.get_event_loop()
