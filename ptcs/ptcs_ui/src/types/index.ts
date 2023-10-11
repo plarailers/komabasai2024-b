@@ -6,6 +6,7 @@ export interface RailwayUI {
   sections: Record<string, SectionUI>;
   trains: Record<string, TrainUI>;
   stops: Record<string, StopUI>;
+  obstacles: Record<string, ObstacleUI>;
 }
 
 export interface PlatformUI {
@@ -28,3 +29,5 @@ export interface TrainUI {
 }
 
 export interface StopUI {}
+
+export interface ObstacleUI {}

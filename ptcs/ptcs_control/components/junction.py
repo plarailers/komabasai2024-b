@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING
@@ -8,6 +9,7 @@ from .base import BaseComponent
 
 if TYPE_CHECKING:
     from .section import Section
+    from .train import Train
 
 
 class PointDirection(Enum):
@@ -54,6 +56,9 @@ class Junction(BaseComponent):
     # config
     connected_sections: dict[JunctionConnection, Section] = field(default_factory=dict)
 
+    # manual
+    manual_direction: PointDirection | None = field(default=None)
+
     # state
     current_direction: PointDirection = field(default=PointDirection.STRAIGHT)
 
@@ -81,7 +86,7 @@ class Junction(BaseComponent):
         ジャンクションを列車が通過中であり、切り替えてはいけない場合に `True` を返す。
         """
 
-        MERGIN: float = 40.0  # ポイント通過後すぐに切り替えるとまずいので余裕距離をとる
+        MERGIN: float = 10.0  # ポイント通過後すぐに切り替えるとまずいので余裕距離をとる
 
         for train in self.control.trains.values():
             # 列車の最後尾からMERGIN離れた位置(tail)を取得
@@ -94,3 +99,34 @@ class Junction(BaseComponent):
                 return True
 
         return False  # 誰も通過していなければFalseを返す
+
+    def find_nearest_train(self) -> Train | None:
+        """
+        ジャンクションに迫っている列車が1つ以上あれば、最も距離の近いものを返す。
+        """
+
+        from .section import SectionConnection
+
+        nearest_train: Train | None = None
+        nearest_distance = math.inf
+
+        for train in self.control.trains.values():
+            if train.head_position.target_junction == self:
+                if (
+                    train.head_position.target_junction
+                    == train.head_position.section.connected_junctions[SectionConnection.A]
+                ):
+                    distance = train.head_position.mileage
+                elif (
+                    train.head_position.target_junction
+                    == train.head_position.section.connected_junctions[SectionConnection.B]
+                ):
+                    distance = train.head_position.section.length - train.head_position.mileage
+                else:
+                    raise
+
+                if distance < nearest_distance:
+                    nearest_train = train
+                    nearest_distance = distance
+
+        return nearest_train

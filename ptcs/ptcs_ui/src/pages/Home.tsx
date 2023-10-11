@@ -2,6 +2,7 @@ import {
   Code,
   Container,
   DEFAULT_THEME,
+  Grid,
   Stack,
   useMantineTheme,
 } from "@mantine/core";
@@ -12,6 +13,7 @@ import { Railway } from "../components/Railway";
 import { RailwayUI } from "../types";
 import { Debugger } from "../components/Debugger";
 import { RailwayStateContext, RailwayUIContext } from "../contexts";
+import { Information } from "../components/Information";
 
 const ui: RailwayUI = {
   width: 440,
@@ -95,6 +97,18 @@ const ui: RailwayUI = {
       stroke: DEFAULT_THEME.colors.yellow[9],
     },
     t1: {
+      fill: DEFAULT_THEME.colors.green[5],
+      stroke: DEFAULT_THEME.colors.green[9],
+    },
+    t2: {
+      fill: DEFAULT_THEME.colors.cyan[4],
+      stroke: DEFAULT_THEME.colors.cyan[9],
+    },
+    t3: {
+      fill: DEFAULT_THEME.colors.indigo[5],
+      stroke: DEFAULT_THEME.colors.indigo[9],
+    },
+    t4: {
       fill: DEFAULT_THEME.colors.red[5],
       stroke: DEFAULT_THEME.colors.red[9],
     },
@@ -105,6 +119,9 @@ const ui: RailwayUI = {
     // stop_2: {},
     // stop_3: {},
     // stop_4: {},
+  },
+  obstacles: {
+    obstacle_0: {},
   },
 };
 
@@ -137,18 +154,25 @@ export const Home: React.FC = () => {
       <RailwayUIContext.Provider value={ui}>
         <Layout>
           <Container>
-            <Stack px={60}>
-              <Railway>
-                <text
-                  x={10}
-                  y={20}
-                  fontSize={12}
-                  fontFamily={theme.fontFamilyMonospace}
-                  fill={theme.white}
-                >
-                  {time.toLocaleString()}
-                </text>
-              </Railway>
+            <Stack>
+              <Grid>
+                <Grid.Col span={8}>
+                  <Railway>
+                    <text
+                      x={10}
+                      y={20}
+                      fontSize={12}
+                      fontFamily={theme.fontFamilyMonospace}
+                      fill={theme.white}
+                    >
+                      {time.toLocaleString()}
+                    </text>
+                  </Railway>
+                </Grid.Col>
+                <Grid.Col span={4}>
+                  <Information />
+                </Grid.Col>
+              </Grid>
               <Debugger />
               <Code block>{JSON.stringify(railwayState, null, 4)}</Code>
             </Stack>

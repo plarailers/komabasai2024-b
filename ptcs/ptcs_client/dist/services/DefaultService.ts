@@ -118,6 +118,52 @@ requestBody: UpdateJunctionParams,
     }
 
     /**
+     * Detect Obstacle
+     * 指定された障害物を発生させる。
+ * デバッグ用。
+     * @param obstacleId 
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static detectObstacle(
+obstacleId: string,
+): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/state/obstacles/{obstacle_id}/detect',
+            path: {
+                'obstacle_id': obstacleId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+
+    /**
+     * Clear Obstacle
+     * 指定された障害物を撤去する。
+ * デバッグ用。
+     * @param obstacleId 
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static clearObstacle(
+obstacleId: string,
+): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/state/obstacles/{obstacle_id}/clear',
+            path: {
+                'obstacle_id': obstacleId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+
+    /**
      * Block Section
      * 指定された区間に障害物を発生させる。
  * デバッグ用。

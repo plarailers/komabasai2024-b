@@ -5,6 +5,8 @@ import math
 from dataclasses import dataclass, field
 
 from .components.junction import Junction, JunctionConnection, PointDirection
+from .components.obstacle import Obstacle
+from .components.position import DirectedPosition, UndirectedPosition
 from .components.section import Section, SectionConnection
 from .components.sensor_position import SensorPosition
 from .components.station import Station
@@ -32,6 +34,7 @@ class Control:
     stops: dict[str, Stop] = field(default_factory=dict)
     stations: dict[str, Station] = field(default_factory=dict)
     sensor_positions: dict[str, SensorPosition] = field(default_factory=dict)
+    obstacles: dict[str, Obstacle] = field(default_factory=dict)
 
     logger: logging.Logger = field(default_factory=create_empty_logger)
 
@@ -78,6 +81,11 @@ class Control:
         self.sensor_positions[position.id] = position
         position._control = self
 
+    def add_obstacle(self, obstacle: Obstacle) -> None:
+        assert obstacle.id not in self.obstacles
+        self.obstacles[obstacle.id] = obstacle
+        obstacle._control = self
+
     def verify(self) -> None:
         for junction in self.junctions.values():
             junction.verify()
@@ -89,6 +97,8 @@ class Control:
             stop.verify()
         for position in self.sensor_positions.values():
             position.verify()
+        for obstacle in self.obstacles.values():
+            obstacle.verify()
 
     @property
     def current_time(self) -> int:
@@ -118,102 +128,85 @@ class Control:
         ポイントをどちら向きにするかを計算する。
         """
 
+        # 合流点に向かっている列車が1つ以上ある場合、
+        # 最も近い列車のいるほうにポイントを切り替える。
+        #
+        # 分岐点は決め打ちで、
+        # obstacle_0 が出ていないときは、t0-t3 を内側、t4 を外側に運ぶ。
+        # obstacle_0 が出ているときは、すべて外側に運ぶ。
         for junction in self.junctions.values():
-            if not junction.is_toggle_prohibited():
-                junction.set_direction(junction.direction_command)
-        return
+            nearest_train = junction.find_nearest_train()
 
-        # junction定義
-        j0a = self.junctions["j0"]
-        j0b = self.junctions["j1"]
-        j1a = self.junctions["j2"]
-        j1b = self.junctions["j3"]
-        # sectionの定義
-        s1 = self.sections["s1"]
-        s3 = self.sections["s3"]
-        s4 = self.sections["s4"]
-        s5 = self.sections["s5"]
-        # 「とりうるルート」の列挙
-        possible_junction_direction: dict[str, list[tuple[Junction, PointDirection]]] = {
-            "pattern1": [
-                (j0a, PointDirection.STRAIGHT),
-                (j0b, PointDirection.STRAIGHT),
-                (j1a, PointDirection.STRAIGHT),
-                (j1b, PointDirection.STRAIGHT),
-            ],
-            "pattern2": [
-                (j0a, PointDirection.CURVE),
-                (j0b, PointDirection.CURVE),
-                (j1a, PointDirection.STRAIGHT),
-                (j1b, PointDirection.STRAIGHT),
-            ],
-            "pattern3": [
-                (j0a, PointDirection.CURVE),
-                (j0b, PointDirection.STRAIGHT),
-                (j1a, PointDirection.CURVE),
-                (j1b, PointDirection.STRAIGHT),
-            ],
-            "pattern4": [
-                (j0a, PointDirection.CURVE),
-                (j0b, PointDirection.CURVE),
-                (j1a, PointDirection.CURVE),
-                (j1b, PointDirection.CURVE),
-            ],
-        }
+            if not nearest_train:
+                continue
 
-        # 列車位置と線路の状態（障害物の有無）に応じてどのルートを使うか判断する
-        # s3がblockされているか
-        s3_blocked: bool = s3.is_blocked
+            match junction.id:
+                case "j1" | "j3":
+                    if junction.connected_sections[JunctionConnection.THROUGH] == nearest_train.head_position.section:
+                        junction.manual_direction = PointDirection.STRAIGHT
+                    elif (
+                        junction.connected_sections[JunctionConnection.DIVERGING] == nearest_train.head_position.section
+                    ):
+                        junction.manual_direction = PointDirection.CURVE
 
-        # s1にtarget_junctionがj0bであるtrainが存在するか
-        s1_j0b_exist: bool = False
-        # s1にtarget_junctionがj1bであるtrainが存在するか
-        s1_j1b_exist: bool = False
-        # s4にtrainが存在するか
-        s4_exist: bool = False
-        # s5にtrainが存在するか
-        s5_exist: bool = False
-        for train in self.trains.values():
-            if train.head_position.section == s1 and train.head_position.target_junction == j0b:
-                s1_j0b_exist = True
-            if train.head_position.section == s1 and train.head_position.target_junction == j1b:
-                s1_j1b_exist = True
-            if train.head_position.section == s4:
-                s4_exist = True
-            if train.head_position.section == s5:
-                s5_exist = True
+                case "j0":
+                    if not self.obstacles["obstacle_0"].is_detected:
+                        match nearest_train.id:
+                            case "t0" | "t1" | "t2" | "t3":
+                                junction.manual_direction = PointDirection.CURVE
+                            case "t4":
+                                junction.manual_direction = PointDirection.STRAIGHT
+                    else:
+                        junction.manual_direction = PointDirection.STRAIGHT
 
-        # ポイントの向きを判定
-        junction_direction: list[tuple[Junction, PointDirection]]
-        if s3_blocked:
-            if not s1_j0b_exist and (s1_j1b_exist or not s5_exist):
-                junction_direction = possible_junction_direction["pattern3"]
-            elif s1_j0b_exist or (not s1_j1b_exist and s5_exist):
-                junction_direction = possible_junction_direction["pattern4"]
-            else:
-                raise
-        else:
-            if not s1_j0b_exist and not s4_exist and not s5_exist:
-                junction_direction = possible_junction_direction["pattern1"]
-            elif (s1_j0b_exist or s4_exist) and not s5_exist:
-                junction_direction = possible_junction_direction["pattern2"]
-            elif not s1_j0b_exist and (s1_j1b_exist or not s5_exist):
-                junction_direction = possible_junction_direction["pattern3"]
-            elif not s1_j1b_exist and s5_exist:
-                junction_direction = possible_junction_direction["pattern4"]
-            else:
-                raise
+                case "j2":
+                    if not self.obstacles["obstacle_0"].is_detected:
+                        match nearest_train.id:
+                            case "t0" | "t1" | "t2" | "t3":
+                                junction.manual_direction = PointDirection.STRAIGHT
+                            case "t4":
+                                junction.manual_direction = PointDirection.CURVE
+                    else:
+                        junction.manual_direction = PointDirection.CURVE
 
-        # ポイント変更
-        for junction, direction in junction_direction:
-            if not junction.is_toggle_prohibited():
-                junction.set_direction(direction)
+        # 障害物が発生した区間の手前の区間に列車がいるとき、
+        # 障害が発生した区間に列車が入らないように
+        # ポイントを切り替える。
+        for obstacle in self.obstacles.values():
+            if not obstacle.is_detected:
+                continue
+
+            for train in self.trains.values():
+                next_section_and_target_junction = (
+                    train.head_position.section.get_next_section_and_target_junction_strict(
+                        train.head_position.target_junction
+                    )
+                )
+                if next_section_and_target_junction:
+                    next_section, next_target_junction = next_section_and_target_junction
+                    if obstacle.position.section == next_section:
+                        target_junction = train.head_position.target_junction
+                        if target_junction.connected_sections[JunctionConnection.THROUGH] == next_section:
+                            target_junction.manual_direction = PointDirection.CURVE
+                        elif target_junction.connected_sections[JunctionConnection.DIVERGING] == next_section:
+                            target_junction.manual_direction = PointDirection.STRAIGHT
+
+        for junction in self.junctions.values():
+            if junction.manual_direction:
+                if not junction.is_toggle_prohibited():
+                    junction.set_direction(junction.manual_direction)
+                    junction.manual_direction = None
 
     def _calc_speed(self) -> None:
         BREAK_ACCLT: float = 10  # ブレーキ減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
         NORMAL_ACCLT: float = 5  # 常用加減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
         MAX_SPEED: float = 40  # 最高速度[cm/s]  NOTE:将来的には車両のパラメータとしてとして定義
         MERGIN: float = 10  # 停止余裕距離[cm]
+
+        objects: list[tuple[Train, DirectedPosition] | tuple[Obstacle, UndirectedPosition]] = [
+            *((train, train.compute_tail_position()) for train in self.trains.values()),
+            *((obstacle, obstacle.position) for obstacle in self.obstacles.values() if obstacle.is_detected),
+        ]
 
         for train in self.trains.values():
             # [ATP]停止位置までの距離`distance`を、先行列車の位置と、ジャンクションの状態をもとに計算する
@@ -223,68 +216,72 @@ class Control:
             current_section = train.head_position.section
             target_junction = train.head_position.target_junction
 
-            while True:
-                next_section, next_junction = current_section.get_next_section_and_target_junction(target_junction)
+            forward_object_and_distance = train.find_forward_object(objects)
+            if forward_object_and_distance:
+                distance += forward_object_and_distance[1] - MERGIN
+            else:
+                while True:
+                    next_section, next_junction = current_section.get_next_section_and_target_junction(target_junction)
 
-                # いま見ているセクションが閉鎖 -> 即時停止
-                # ただしすでに列車が閉鎖セクションに入ってしまった場合は、駅まで動かしたいので、止めない
-                if current_section != train.head_position.section and current_section.is_blocked is True:
-                    distance += 0
-                    break
+                    # いま見ているセクションが閉鎖 -> 即時停止
+                    # ただしすでに列車が閉鎖セクションに入ってしまった場合は、駅まで動かしたいので、止めない
+                    if current_section != train.head_position.section and current_section.is_blocked is True:
+                        distance += 0
+                        break
 
-                # 先行列車に到達できる -> 先行列車の手前で停止
-                elif forward_train_and_distance := train.find_forward_train():
-                    distance += forward_train_and_distance[1] - MERGIN
-                    break
+                    # 先行列車に到達できる -> 先行列車の手前で停止
+                    elif forward_train_and_distance := train.find_forward_train():
+                        distance += forward_train_and_distance[1] - MERGIN
+                        break
 
-                # 目指すジャンクションが自列車側に開通していない or 次のセクションが閉鎖
-                # -> 目指すジャンクションの手前で停止
-                elif (
-                    current_section.get_next_section_and_target_junction_strict(target_junction) is None
-                    or next_section.is_blocked is True
-                ):
-                    if current_section == train.head_position.section:
+                    # 目指すジャンクションが自列車側に開通していない or 次のセクションが閉鎖
+                    # -> 目指すジャンクションの手前で停止
+                    elif (
+                        current_section.get_next_section_and_target_junction_strict(target_junction) is None
+                        or next_section.is_blocked is True
+                    ):
+                        if current_section == train.head_position.section:
+                            if target_junction == current_section.connected_junctions[SectionConnection.A]:
+                                distance += train.head_position.mileage - MERGIN
+                            elif target_junction == current_section.connected_junctions[SectionConnection.B]:
+                                distance += current_section.length - train.head_position.mileage - MERGIN
+                            else:
+                                raise
+                        else:
+                            distance += current_section.length - MERGIN
+                        break
+
+                    # 次のセクションが閉鎖 -> 目指すジャンクションの手前で停止
+                    elif next_section.is_blocked is True:
                         if target_junction == current_section.connected_junctions[SectionConnection.A]:
-                            distance += train.head_position.mileage - MERGIN
+                            distance += train.mileage - MERGIN
                         elif target_junction == current_section.connected_junctions[SectionConnection.B]:
-                            distance += current_section.length - train.head_position.mileage - MERGIN
+                            distance += current_section.length - train.mileage - MERGIN
                         else:
                             raise
-                    else:
-                        distance += current_section.length - MERGIN
-                    break
+                        break
 
-                # 次のセクションが閉鎖 -> 目指すジャンクションの手前で停止
-                elif next_section.is_blocked is True:
-                    if target_junction == current_section.connected_junctions[SectionConnection.A]:
-                        distance += train.mileage - MERGIN
-                    elif target_junction == current_section.connected_junctions[SectionConnection.B]:
-                        distance += current_section.length - train.mileage - MERGIN
+                    # 停止条件を満たさなければ次に移る
                     else:
-                        raise
-                    break
-
-                # 停止条件を満たさなければ次に移る
-                else:
-                    if current_section == train.head_position.section:
-                        if (
-                            train.head_position.target_junction
-                            == current_section.connected_junctions[SectionConnection.A]
-                        ):
-                            distance += train.head_position.mileage
-                        elif (
-                            train.head_position.target_junction
-                            == current_section.connected_junctions[SectionConnection.B]
-                        ):
-                            distance += current_section.length - train.head_position.mileage
+                        if current_section == train.head_position.section:
+                            if (
+                                train.head_position.target_junction
+                                == current_section.connected_junctions[SectionConnection.A]
+                            ):
+                                distance += train.head_position.mileage
+                            elif (
+                                train.head_position.target_junction
+                                == current_section.connected_junctions[SectionConnection.B]
+                            ):
+                                distance += current_section.length - train.head_position.mileage
+                            else:
+                                raise
                         else:
-                            raise
-                    else:
-                        distance += current_section.length
-                    (
-                        current_section,
-                        target_junction,
-                    ) = current_section.get_next_section_and_target_junction(target_junction)
+                            distance += current_section.length
+                        (
+                            current_section,
+                            target_junction,
+                        ) = current_section.get_next_section_and_target_junction(target_junction)
 
             if distance < 0:
                 distance = 0

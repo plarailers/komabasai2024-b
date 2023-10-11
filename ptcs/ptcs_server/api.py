@@ -65,7 +65,32 @@ def update_junction(junction_id: str, params: UpdateJunctionParams, request: Req
     """
     control: Control = request.app.state.control
     junction = control.junctions[junction_id]
-    junction.direction_command = params.direction
+    junction.manual_direction = params.direction
+    control.update()
+
+
+@api_router.post("/state/obstacles/{obstacle_id}/detect")
+def detect_obstacle(obstacle_id: str, request: Request) -> None:
+    """
+    指定された障害物を発生させる。
+    デバッグ用。
+    """
+    control: Control = request.app.state.control
+    obstacle = control.obstacles[obstacle_id]
+    obstacle.is_detected = True
+    control.update()
+
+
+@api_router.post("/state/obstacles/{obstacle_id}/clear")
+def clear_obstacle(obstacle_id: str, request: Request) -> None:
+    """
+    指定された障害物を撤去する。
+    デバッグ用。
+    """
+    control: Control = request.app.state.control
+    obstacle = control.obstacles[obstacle_id]
+    obstacle.is_detected = False
+    control.update()
 
 
 @api_router.post("/state/sections/{section_id}/block")

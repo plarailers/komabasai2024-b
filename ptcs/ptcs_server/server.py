@@ -63,6 +63,9 @@ def create_app_without_bridge() -> FastAPI:
     bridge = Bridge2()
     bridge.add_train(TrainSimulator("t0"))
     bridge.add_train(TrainSimulator("t1"))
+    bridge.add_train(TrainSimulator("t2"))
+    bridge.add_train(TrainSimulator("t3"))
+    bridge.add_train(TrainSimulator("t4"))
 
     async def loop():
         await bridge.connect_all()
