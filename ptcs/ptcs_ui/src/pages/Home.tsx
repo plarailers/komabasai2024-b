@@ -2,6 +2,7 @@ import {
   Code,
   Container,
   DEFAULT_THEME,
+  Grid,
   Stack,
   useMantineTheme,
 } from "@mantine/core";
@@ -12,6 +13,7 @@ import { Railway } from "../components/Railway";
 import { RailwayUI } from "../types";
 import { Debugger } from "../components/Debugger";
 import { RailwayStateContext, RailwayUIContext } from "../contexts";
+import { Information } from "../components/Information";
 
 const ui: RailwayUI = {
   width: 440,
@@ -152,18 +154,25 @@ export const Home: React.FC = () => {
       <RailwayUIContext.Provider value={ui}>
         <Layout>
           <Container>
-            <Stack px={60}>
-              <Railway>
-                <text
-                  x={10}
-                  y={20}
-                  fontSize={12}
-                  fontFamily={theme.fontFamilyMonospace}
-                  fill={theme.white}
-                >
-                  {time.toLocaleString()}
-                </text>
-              </Railway>
+            <Stack>
+              <Grid>
+                <Grid.Col span={8}>
+                  <Railway>
+                    <text
+                      x={10}
+                      y={20}
+                      fontSize={12}
+                      fontFamily={theme.fontFamilyMonospace}
+                      fill={theme.white}
+                    >
+                      {time.toLocaleString()}
+                    </text>
+                  </Railway>
+                </Grid.Col>
+                <Grid.Col span={4}>
+                  <Information />
+                </Grid.Col>
+              </Grid>
               <Debugger />
               <Code block>{JSON.stringify(railwayState, null, 4)}</Code>
             </Stack>
