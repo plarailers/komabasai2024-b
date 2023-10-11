@@ -114,11 +114,8 @@ const ui: RailwayUI = {
     },
   },
   stops: {
-    // stop_0: {},
-    // stop_1: {},
-    // stop_2: {},
-    // stop_3: {},
-    // stop_4: {},
+    stop_0: {},
+    stop_1: {},
   },
   obstacles: {
     obstacle_0: {},

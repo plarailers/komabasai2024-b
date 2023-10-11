@@ -13,6 +13,7 @@ from .constants import (
     OUTER_CURVE_RAIL,
     STRAIGHT_1_2_RAIL,
     STRAIGHT_1_4_RAIL,
+    STRAIGHT_1_6_RAIL,
     STRAIGHT_RAIL,
     WATARI_RAIL_A,
     WATARI_RAIL_B,
@@ -194,55 +195,35 @@ def create_control(logger: logging.Logger | None = None) -> Control:
     stop_0 = Stop(
         id="stop_0",
         position=DirectedPosition(
-            section=s0,
+            section=s3,
             target_junction=j1,
-            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 4.5,
+            mileage=WATARI_RAIL_A + STRAIGHT_RAIL - STRAIGHT_1_6_RAIL,
         ),
     )
     stop_1 = Stop(
         id="stop_1",
         position=DirectedPosition(
-            section=s0,
-            target_junction=j1,
-            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 10.0 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
-        ),
-    )
-    stop_2 = Stop(
-        id="stop_2",
-        position=DirectedPosition(
-            section=s1,
-            target_junction=j1,
-            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 1.5,
-        ),
-    )
-    stop_3 = Stop(
-        id="stop_3",
-        position=DirectedPosition(
-            section=s1,
-            target_junction=j3,
-            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 1.5,
-        ),
-    )
-    stop_4 = Stop(
-        id="stop_4",
-        position=DirectedPosition(
             section=s3,
-            target_junction=j0,
-            mileage=WATARI_RAIL_A * 1 + STRAIGHT_RAIL * 1.5,
+            target_junction=j1,
+            mileage=WATARI_RAIL_A
+            + STRAIGHT_RAIL * 2
+            + OUTER_CURVE_RAIL * 2
+            + STRAIGHT_RAIL
+            + STRAIGHT_1_2_RAIL
+            + OUTER_CURVE_RAIL * 2
+            + STRAIGHT_RAIL * 2
+            - STRAIGHT_1_6_RAIL,
         ),
     )
 
-    # control.add_stop(stop_0)
-    # control.add_stop(stop_1)
-    # control.add_stop(stop_2)
-    # control.add_stop(stop_3)
-    # control.add_stop(stop_4)
+    control.add_stop(stop_0)
+    control.add_stop(stop_1)
 
-    station_0 = Station(id="station_0", stops=[stop_0, stop_1])
-    station_1 = Station(id="station_1", stops=[stop_2, stop_3, stop_4])
+    station_0 = Station(id="station_0", stops=[stop_0])
+    station_1 = Station(id="station_1", stops=[stop_1])
 
-    # control.add_station(station_0)
-    # control.add_station(station_1)
+    control.add_station(station_0)
+    control.add_station(station_1)
 
     position_173 = SensorPosition(
         id="position_173",
@@ -278,9 +259,9 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         id="obstacle_0",
         position=UndirectedPosition(
             section=s3,
-            mileage=WATARI_RAIL_A + STRAIGHT_RAIL,
+            mileage=WATARI_RAIL_A + STRAIGHT_RAIL * 1.5,
         ),
-        is_detected=True,
+        is_detected=False,
     )
 
     control.add_obstacle(obstacle_0)
