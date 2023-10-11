@@ -6,15 +6,12 @@ from bleak import BleakClient, BleakScanner
 
 ####### TODO: アドレスを正しく設定してください #######
 if platform.system() == "Windows":
-    ADDRESS_E5 = "7C:9E:BD:93:2E:72"
-    ADDRESS_E6 = "24:62:ab:e3:67:9a"
-    ADDRESS_DR = "9c:9c:1f:cf:ea:de"
+    ADDRESS_T0 = 'e0:5a:1b:e2:7a:f2'
+    ADDRESS_T1 = '94:b5:55:84:15:42'
+
 elif platform.system() == "Darwin":
-    ADDRESS_E5 = "28652C68-A2CE-F0EF-93F1-857DCA3C7A4D"
-    ADDRESS_E6 = "4BE5DF57-4E86-18DB-E792-C5D2F118610E"
-    ADDRESS_DR = "9c:9c:1f:cf:ea:de"
-    ADDRESS_JT = "66D22FDC-6B41-36D0-BB07-C80BADA29DB2"
-    ADDRESS_JK = "00B55AE6-34AA-23C2-8C7B-8C11E6998E12"
+    ADDRESS_T0 = "00B55AE6-34AA-23C2-8C7B-8C11E6998E12"
+    ADDRESS_T1 = "F2158243-18BB-D34C-88BC-F8F193CAD15E"
 else:
     raise Exception(f"{platform.system()} not supported")
 
@@ -22,10 +19,10 @@ SERVICE_UUID = "63cb613b-6562-4aa5-b602-030f103834a4"
 CHARACTERISTIC_SPEED_UUID = "88c9d9ae-bd53-4ab3-9f42-b3547575a743"
 CHARACTERISTIC_POSITIONID_UUID = "8bcd68d5-78ca-c1c3-d1ba-96d527ce8968"
 CHARACTERISTIC_ROTATION_UUID = "aab17457-2755-8b50-caa1-432ff553d533"
+CHARACTERISTIC_VOLTAGE_UUID = "7ecc0ed2-5ef9-c9e6-5d16-582f86035ecf"
 
 mileage_cm_ = 0.0
 
-GEAR_RATIO = 175/8448
 WHEEL_DIAMETER_cm_ = 2.4
 PI = 3.14159265358979
 
@@ -36,7 +33,7 @@ async def main():
         print("  - ", d)
 
     ####### TODO: クライアントのアドレスを選択してください #######
-    async with BleakClient(ADDRESS_JK) as client:
+    async with BleakClient(ADDRESS_T0) as client:
         print("Connected to", client)
         print("Services:")
         for service in client.services:
@@ -48,10 +45,12 @@ async def main():
         characteristicSpeed = service.get_characteristic(CHARACTERISTIC_SPEED_UUID)
         characteristicPositionId = service.get_characteristic(CHARACTERISTIC_POSITIONID_UUID)
         characteristicRotation = service.get_characteristic(CHARACTERISTIC_ROTATION_UUID)
-        print(characteristicSpeed, characteristicPositionId, characteristicRotation)
+        characteristicVoltage = service.get_characteristic(CHARACTERISTIC_VOLTAGE_UUID)
+        print(characteristicSpeed, characteristicPositionId, characteristicRotation, characteristicVoltage)
 
         await client.start_notify(characteristicPositionId, positionIdNotification_callback)
         await client.start_notify(characteristicRotation, rotationNotification_callback)
+        await client.start_notify(characteristicVoltage, voltageNotification_callback)
 
         i=170 #3V時171で回り始める
         while(i<=255):
@@ -77,6 +76,11 @@ async def rotationNotification_callback(sender, data):
     # ロータリエンコーダは左右の車輪に2つ搭載されており，左右のステップ数が合わせて24になったときに1回転とすることで，
     # カーブなど移動距離に左右差が生じる際に平均の移動距離を算出できる．
     # そのため，左右いずれかの1ステップを1/24回転として扱う．
+
+async def voltageNotification_callback(sender, data):
+    # voltage Notifyを受け取ったとき，voltageを表示．
+    voltage = int.from_bytes(data, byteorder='big')
+    print(f"Vin: {voltage} mV")
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
