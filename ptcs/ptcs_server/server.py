@@ -130,7 +130,11 @@ def create_app_without_bridge() -> FastAPI:
     @app.on_event("shutdown")
     async def on_shutdown():
         for train in bridge.trains.values():
-            await train.send_speed(0)
+            match train:
+                case TrainSimulator():
+                    await train.send_speed(0.0)
+                case TrainClient():
+                    await train.send_motor_input(0)
 
         await bridge.disconnect_all()
 
