@@ -8,13 +8,18 @@
 #include <BLE2902.h>
 
 #define MODULE_SELECT_PIN 17 //自分の環境に合わせてRXDピン(4ピン)と接続するesp32のピン番号を指定
-#define ADDRESS 0x52
+#define ADDRESS 0x52 //ToFモジュールのI2Cのaddress
 
 #define PWM_PIN 25 //自分の環境に合わせてPWMピンと接続するesp32のピン番号を指定
-#define DISTANCE_LEAVED 150 //車両が十分に遠ざかったと判断する距離
-#define DISTANCE_APPROACHING 100 //車両が接近したと判断する距離
+#define DISTANCE_APPROACHING 120 //車両が接近したと判断する距離
+#define DEGREE_NORMAL 90 //通常時の架線柱の角度
+#define DEGREE_COLLAPSE 180 //倒壊時の架線柱の角度
+
+#define TIME_OF_NORMAL 60000 //架線柱が倒れるまでの通常運行の最小時間
+#define TIME_OF_COLLAPSE 60000 //架線柱が倒れている時間
 
 Servo myservo;
+uint32_t nowtime, changetime, timedelta;
 bool iscollapsed;
 
 static const char SERVICE_UUID[] = "62dd9b52-2995-7978-82e2-6abf1ae56555";
@@ -38,23 +43,24 @@ class MyServerCallbacks : public BLEServerCallbacks {
 
 void bleSetup() {
     Serial.println("Starting BLE");
+    BLEDevice::init("Wire Pole");
     
     Serial.print("Address: ");
-    //Serial.println(BLEDevice::getAddress().toString().c_str());
+    Serial.println(BLEDevice::getAddress().toString().c_str());
     
     pServer = BLEDevice::createServer();
     pServer->setCallbacks(new MyServerCallbacks());
     
     pService = pServer->createService(SERVICE_UUID);
-    //Serial.println("a");
     
     pCharacteristicIsCollapsed = pService->createCharacteristic(
         CHARACTERISTIC_ISCOLLAPSED_UUID,
-        BLECharacteristic::PROPERTY_WRITE
+        BLECharacteristic::PROPERTY_WRITE |
+        BLECharacteristic::PROPERTY_READ |
+        BLECharacteristic::PROPERTY_NOTIFY
     );
     pCharacteristicIsCollapsed->setValue("Initial value");
     pCharacteristicIsCollapsed->addDescriptor(new BLE2902());
-    //Serial.println("b");
 
     pService->start();
     
@@ -90,13 +96,17 @@ uint16_t readDistance(){
 }
 
 void setup(){
-    Serial.begin(9600);
+    Serial.begin(115200);
     Wire.begin();
     pinMode(MODULE_SELECT_PIN, OUTPUT);
-    Serial.println("setup");
 
     myservo.attach(PWM_PIN);
-    myservo.write(90);
+    myservo.write(DEGREE_NORMAL);
+
+    nowtime = 0;
+    changetime = 0;
+    timedelta = 0;
+
     iscollapsed = 0;
 
     bleSetup();
@@ -116,24 +126,32 @@ void loop(){
     digitalWrite(MODULE_SELECT_PIN, HIGH);
     delay(45);
 
-    if (distance < DISTANCE_APPROACHING){
-        if(iscollapsed == 0){
-            myservo.write(0);
-            delay(300);
+    nowtime = (uint32_t)millis();
+    timedelta = nowtime - changetime;
+
+    if(iscollapsed == 0){
+        if(timedelta > TIME_OF_NORMAL && distance > DISTANCE_APPROACHING){
+            myservo.write(DEGREE_COLLAPSE);
+            changetime = nowtime;
             iscollapsed = 1;
+            sendIsCollapsed(iscollapsed);
+            delay(300);
         }
         else{
-            myservo.write(90);
+            myservo.write(DEGREE_NORMAL);
         }
     }
-    else if(distance > DISTANCE_LEAVED){
-        if(iscollapsed == 1){
-            myservo.write(90);
-            delay(300);
+
+    else if(iscollapsed == 1){
+        if(timedelta > TIME_OF_COLLAPSE){
+            myservo.write(DEGREE_NORMAL);
+            changetime = nowtime;
             iscollapsed = 0;
+            sendIsCollapsed(iscollapsed);
+            delay(300);
         }
         else{
-            myservo.write(0);
-        } 
+            myservo.write(DEGREE_COLLAPSE);
+        }
     }
 }
