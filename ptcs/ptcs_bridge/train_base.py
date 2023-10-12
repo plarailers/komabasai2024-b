@@ -13,7 +13,10 @@ class TrainBase:
     async def disconnect(self) -> None:
         raise NotImplementedError()
 
-    async def send_speed(self, speed: int) -> None:
+    async def send_speed(self, speed: float) -> None:
+        raise NotImplementedError()
+
+    async def send_motor_input(self, motor_input: int) -> None:
         raise NotImplementedError()
 
     async def start_notify_position_id(self, callback: NotifyPositionIdCallback) -> None:

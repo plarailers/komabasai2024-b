@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from ptcs_bridge.bridge import Bridge
 from ptcs_bridge.bridge2 import Bridge2
 from ptcs_bridge.train_base import TrainBase
+from ptcs_bridge.train_client import TrainClient
 from ptcs_bridge.train_simulator import TrainSimulator
 from ptcs_bridge.wire_pole_client import WirePoleClient
 from ptcs_control.control import Control
@@ -100,7 +101,12 @@ def create_app_without_bridge() -> FastAPI:
                 train_client = bridge.trains.get(train_id)
                 if train_client is None:
                     continue
-                await train_client.send_speed(train_control.speed_command)
+                match train_client:
+                    case TrainSimulator():
+                        await train_client.send_speed(train_control.speed_command)
+                    case TrainClient():
+                        motor_input = train_control.calc_input(train_control.speed_command)
+                        await train_client.send_motor_input(motor_input)
 
     loop_task = asyncio.create_task(loop())
     app.state.loop_task = loop_task

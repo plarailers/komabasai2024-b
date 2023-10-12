@@ -71,8 +71,7 @@ class TrainSimulator(TrainBase):
         self._task = None
         logger.info("%s disconnected", self)
 
-    async def send_speed(self, speed: int) -> None:
-        assert 0 <= speed <= 255
+    async def send_speed(self, speed: float) -> None:
         self._target_speed_cm_s = speed * self.INPUT_TO_CENTIMETERS_PER_SECOND
         logger.info("%s send speed %s", self, speed)
 
