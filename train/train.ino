@@ -6,6 +6,7 @@
 #include <BLEUtils.h>
 #include <BLE2902.h>
 #include <driver/adc.h>
+#include <esp_int_wdt.h>
 #include "MFRC522Uart.h"
 
 /*
@@ -58,6 +59,8 @@ volatile unsigned long preLeftStepTime = 0, nowLeftStepTime;
 unsigned long rightChattaringTime = 10;
 unsigned long leftChattaringTime = 10;
 byte rotation = 1; //CharacteristicRotationには1を代入してnotifyする
+volatile int rightCount = 0;  // 進行方向右パルス検出回数
+volatile int leftCount = 0;   // 進行方向左パルス検出回数
 
 /* 電源電圧読み取り パラーメータ */
 const int VMONITOR_PIN    = 34;
@@ -225,25 +228,21 @@ void rfidSetup() {
 /*---------- RFID(MFRC522) 関数 ここまで ----------------*/
 
 /*--------- ロータリエンコーダ 関数 ここから ---------------*/
-void IRAM_ATTR notifyRotationRight() {
-  /// @brief 進行方向右側のロータリエンコーダの割り込み処理
+/// @brief 進行方向右側のロータリエンコーダの割り込み処理
+void IRAM_ATTR countRotationRight() {
   nowRightStepTime = millis();
   if(nowRightStepTime - preRightStepTime > rightChattaringTime){
-      pCharacteristicRotation->setValue((uint8_t*)&rotation, 1); //rotationはbyte型なので1バイト
-      pCharacteristicRotation->notify();
-      // Serial.println("Rotation Notified");
-      preRightStepTime = nowRightStepTime;
+    rightCount++;
+    preRightStepTime = nowRightStepTime;
   }
 }
 
-void IRAM_ATTR notifyRotationLeft() {
-  /// @brief 進行方向左側のロータリエンコーダの割り込み処理
+/// @brief 進行方向左側のロータリエンコーダの割り込み処理
+void IRAM_ATTR countRotationLeft() {
   nowLeftStepTime = millis();
   if(nowLeftStepTime - preLeftStepTime > leftChattaringTime){
-      pCharacteristicRotation->setValue((uint8_t*)&rotation, 1); //rotationはbyte型なので1バイト
-      pCharacteristicRotation->notify();
-      // Serial.println("Rotation Notified");
-      preLeftStepTime = nowLeftStepTime;
+    leftCount++;
+    preLeftStepTime = nowLeftStepTime;
   }
 }
 
@@ -252,9 +251,26 @@ void rotaryEncoderSetup() {
   pinMode(ENCODER_1B_PIN, INPUT);
   pinMode(ENCODER_2A_PIN, INPUT);
   pinMode(ENCODER_2B_PIN, INPUT);
-  attachInterrupt(ENCODER_1A_PIN, notifyRotationRight, CHANGE);
-  attachInterrupt(ENCODER_2A_PIN, notifyRotationLeft, CHANGE);
+  attachInterrupt(ENCODER_1A_PIN, countRotationRight, CHANGE);
+  attachInterrupt(ENCODER_2A_PIN, countRotationLeft, CHANGE);
   Serial.println("ロータリエンコーダ Setup done");
+}
+
+void rotaryEncoderLoop() {
+  while (leftCount > 0) {  // 進行方向左側のパルス検出した数だけnotify
+    notifyRotation();
+    leftCount--;
+  }
+  while (rightCount > 0) {  // 進行方向右側のパルス検出した数だけnotify
+    notifyRotation();
+    rightCount--;
+  }
+}
+
+void notifyRotation() {
+  pCharacteristicRotation->setValue((uint8_t*)&rotation, 1); //rotationはbyte型なので1バイト
+  pCharacteristicRotation->notify();
+  // Serial.println("Rotation Notified");
 }
 /*---------- ロータリエンコーダ 関数 ここまで ------------*/
 
@@ -333,4 +349,6 @@ void loop(){
   /* RFIDの読み取り */
   getPositionId();
 
+  /* ロータリエンコーダがパルス検出していればnotify */
+  rotaryEncoderLoop();
 }
