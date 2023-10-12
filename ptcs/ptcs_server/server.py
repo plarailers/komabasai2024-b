@@ -14,6 +14,7 @@ from ptcs_bridge.bridge import Bridge
 from ptcs_bridge.bridge2 import Bridge2
 from ptcs_bridge.train_base import TrainBase
 from ptcs_bridge.train_simulator import TrainSimulator
+from ptcs_bridge.wire_pole_client import WirePoleClient
 from ptcs_control.control import Control
 from ptcs_control.mft2023 import create_control
 
@@ -66,6 +67,7 @@ def create_app_without_bridge() -> FastAPI:
     bridge.add_train(TrainSimulator("t2"))
     bridge.add_train(TrainSimulator("t3"))
     bridge.add_train(TrainSimulator("t4"))
+    bridge.add_obstacle(WirePoleClient("obstacle_0", "24:62:AB:E3:67:9A"))
 
     async def loop():
         await bridge.connect_all()
@@ -78,6 +80,15 @@ def create_app_without_bridge() -> FastAPI:
 
         for train in bridge.trains.values():
             await train.start_notify_rotation(handle_notify_rotation)
+
+        def handle_notify_collapse(obstacle_client: WirePoleClient, is_collapsed: bool):
+            obstacle_control = control.obstacles.get(obstacle_client.id)
+            if obstacle_control is None:
+                return
+            obstacle_control.is_detected = is_collapsed
+
+        for obstacle in bridge.obstacles.values():
+            await obstacle.start_notify_collapse(handle_notify_collapse)
 
         while True:
             # control 内部の時計を現実世界の時間において進める
