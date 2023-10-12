@@ -33,14 +33,27 @@ class ServerArgs(BaseModel):
     debug: bool = False
 
 
+def set_server_args(args: ServerArgs) -> None:
+    """
+    環境変数を通じてサーバーへの引数を渡す。
+    """
+    os.environ["PTCS_SERVER_ARGS"] = args.model_dump_json()
+
+
+def get_server_args() -> ServerArgs:
+    """
+    環境変数を通じてサーバーへの引数を受け取る。
+    """
+    raw_args = os.environ.get("PTCS_SERVER_ARGS")
+    args = ServerArgs.model_validate_json(raw_args) if raw_args else ServerArgs()
+    return args
+
+
 def create_app() -> FastAPI:
     logger = logging.getLogger("uvicorn")
 
-    raw_args = os.environ.get("PTCS_SERVER_ARGS")
-    logger.info("raw server args: %s", raw_args)
-
-    args = ServerArgs.parse_raw(raw_args) if raw_args else ServerArgs()
-    logger.info("parsed server args: %s", args)
+    args = get_server_args()
+    logger.info("server args: %s", args)
 
     if args.bridge:
         return create_app_with_bridge()
@@ -223,9 +236,7 @@ def serve(*, port: int = DEFAULT_PORT, bridge: bool = False, debug: bool = False
     `debug` を `True` にすると、ソースコードに変更があったときにリロードされる。
     """
 
-    args = ServerArgs(port=port, bridge=bridge, debug=debug)
-
-    os.environ["PTCS_SERVER_ARGS"] = args.json()
+    set_server_args(ServerArgs(port=port, bridge=bridge, debug=debug))
 
     if debug:
         uvicorn.run(
