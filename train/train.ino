@@ -6,6 +6,7 @@
 #include <BLEUtils.h>
 #include <BLE2902.h>
 #include <driver/adc.h>
+#include <esp_int_wdt.h>
 #include "MFRC522Uart.h"
 
 /*
@@ -24,12 +25,14 @@ static const char SERVICE_UUID[] = "63cb613b-6562-4aa5-b602-030f103834a4";
 static const char CHARACTERISTIC_MOTORINPUT_UUID[] = "88c9d9ae-bd53-4ab3-9f42-b3547575a743";
 static const char CHARACTERISTIC_POSITIONID_UUID[] = "8bcd68d5-78ca-c1c3-d1ba-96d527ce8968";
 static const char CHARACTERISTIC_ROTATION_UUID[] = "aab17457-2755-8b50-caa1-432ff553d533";
+static const char CHARACTERISTIC_VOLTAGE_UUID[] = "7ecc0ed2-5ef9-c9e6-5d16-582f86035ecf";
 
 BLEServer *pServer = NULL;
 BLEService *pService = NULL;
 BLECharacteristic *pCharacteristicMotorInput = NULL;
 BLECharacteristic *pCharacteristicPositionId = NULL;
 BLECharacteristic *pCharacteristicRotation = NULL;
+BLECharacteristic *pCharacteristicVoltage = NULL;
 BLEAdvertising *pAdvertising = NULL;
 
 /* PWM(ledc) パラメータ */ 
@@ -56,6 +59,8 @@ volatile unsigned long preLeftStepTime = 0, nowLeftStepTime;
 unsigned long rightChattaringTime = 10;
 unsigned long leftChattaringTime = 10;
 byte rotation = 1; //CharacteristicRotationには1を代入してnotifyする
+volatile int rightCount = 0;  // 進行方向右パルス検出回数
+volatile int leftCount = 0;   // 進行方向左パルス検出回数
 
 /* 電源電圧読み取り パラーメータ */
 const int VMONITOR_PIN    = 34;
@@ -77,14 +82,16 @@ std::string getTrainName() {
   //////// TODO: ここのchipIdを正しく設定してください ////////
   uint64_t chipId = ESP.getEfuseMac();
   switch (chipId) {
-    case 0x702e93bd9e7c:
-      return "E5";
-    case 0x9867e3ab6224:
-      return "E6";
-    case 0xdceacf1f9c9c:
-      return "Dr.";
-    case 0x2068d11f9c9c:
-      return "JT";
+    case 0xf07ae21b5ae0:
+      return "T0";
+    case 0x40158455B594:
+      return "T1";
+    case 0x1C7BE21B5AE0:
+      return "T2";
+    case 0x308466C29D1C:
+      return "T3";
+    case 0x3CC6F5AB4C24:
+      return "T4";
     default:
       return "unknown";
   }
@@ -127,8 +134,10 @@ void bleSetup() {
 
   Serial.println("Starting BLE");
 
-  Serial.print("Chip ID: ");
-  Serial.println(ESP.getEfuseMac());
+  uint64_t chipid;
+	chipid=ESP.getEfuseMac();//The chip ID is essentially its MAC address(length: 6 bytes).
+  Serial.print("ChipId: ");
+  Serial.println(chipid, HEX);
 
   BLEDevice::init("ESPlarail (" + getTrainName() + ")");
 
@@ -161,6 +170,13 @@ void bleSetup() {
   );
   pCharacteristicRotation->setValue("Initial value");
   pCharacteristicRotation->addDescriptor(new BLE2902());
+
+  pCharacteristicVoltage = pService->createCharacteristic(
+      CHARACTERISTIC_VOLTAGE_UUID,
+      BLECharacteristic::PROPERTY_NOTIFY
+  );
+  pCharacteristicVoltage->setValue("Initial value");
+  pCharacteristicVoltage->addDescriptor(new BLE2902());
 
   pService->start();
 
@@ -212,25 +228,21 @@ void rfidSetup() {
 /*---------- RFID(MFRC522) 関数 ここまで ----------------*/
 
 /*--------- ロータリエンコーダ 関数 ここから ---------------*/
-void IRAM_ATTR notifyRotationRight() {
-  /// @brief 進行方向右側のロータリエンコーダの割り込み処理
+/// @brief 進行方向右側のロータリエンコーダの割り込み処理
+void IRAM_ATTR countRotationRight() {
   nowRightStepTime = millis();
   if(nowRightStepTime - preRightStepTime > rightChattaringTime){
-      pCharacteristicRotation->setValue((uint8_t*)&rotation, 1); //rotationはbyte型なので1バイト
-      pCharacteristicRotation->notify();
-      // Serial.println("Rotation Notified");
-      preRightStepTime = nowRightStepTime;
+    rightCount++;
+    preRightStepTime = nowRightStepTime;
   }
 }
 
-void IRAM_ATTR notifyRotationLeft() {
-  /// @brief 進行方向左側のロータリエンコーダの割り込み処理
+/// @brief 進行方向左側のロータリエンコーダの割り込み処理
+void IRAM_ATTR countRotationLeft() {
   nowLeftStepTime = millis();
   if(nowLeftStepTime - preLeftStepTime > leftChattaringTime){
-      pCharacteristicRotation->setValue((uint8_t*)&rotation, 1); //rotationはbyte型なので1バイト
-      pCharacteristicRotation->notify();
-      // Serial.println("Rotation Notified");
-      preLeftStepTime = nowLeftStepTime;
+    leftCount++;
+    preLeftStepTime = nowLeftStepTime;
   }
 }
 
@@ -239,9 +251,26 @@ void rotaryEncoderSetup() {
   pinMode(ENCODER_1B_PIN, INPUT);
   pinMode(ENCODER_2A_PIN, INPUT);
   pinMode(ENCODER_2B_PIN, INPUT);
-  attachInterrupt(ENCODER_1A_PIN, notifyRotationRight, CHANGE);
-  attachInterrupt(ENCODER_2A_PIN, notifyRotationLeft, CHANGE);
+  attachInterrupt(ENCODER_1A_PIN, countRotationRight, CHANGE);
+  attachInterrupt(ENCODER_2A_PIN, countRotationLeft, CHANGE);
   Serial.println("ロータリエンコーダ Setup done");
+}
+
+void rotaryEncoderLoop() {
+  while (leftCount > 0) {  // 進行方向左側のパルス検出した数だけnotify
+    notifyRotation();
+    leftCount--;
+  }
+  while (rightCount > 0) {  // 進行方向右側のパルス検出した数だけnotify
+    notifyRotation();
+    rightCount--;
+  }
+}
+
+void notifyRotation() {
+  pCharacteristicRotation->setValue((uint8_t*)&rotation, 1); //rotationはbyte型なので1バイト
+  pCharacteristicRotation->notify();
+  // Serial.println("Rotation Notified");
 }
 /*---------- ロータリエンコーダ 関数 ここまで ------------*/
 
@@ -251,7 +280,9 @@ void checkVoltage() {
   nowVoltageCheckTime = millis();
   if (nowVoltageCheckTime -  preVoltageCheckTime > 1000) {
     uint32_t vin = analogReadMilliVolts(VMONITOR_PIN) * (178.0f/ 68.0f);
-    Serial.printf("Vin = %d mV\n", vin);
+    pCharacteristicVoltage->setValue((uint8_t*)&vin, 4);
+    pCharacteristicVoltage->notify();
+    Serial.printf("Vin = %d mV Notified\n", vin);
     preVoltageCheckTime = nowVoltageCheckTime;
   }
 }
@@ -318,4 +349,6 @@ void loop(){
   /* RFIDの読み取り */
   getPositionId();
 
+  /* ロータリエンコーダがパルス検出していればnotify */
+  rotaryEncoderLoop();
 }
