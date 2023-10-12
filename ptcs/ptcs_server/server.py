@@ -22,6 +22,7 @@ from ptcs_control.mft2023 import create_control
 from .api import api_router
 from .bridges import BridgeManager, BridgeTarget
 from .button import Button
+from .mft2023 import create_bridge
 from .points import PointSwitcher, PointSwitcherManager
 
 DEFAULT_PORT = 5000
@@ -75,16 +76,23 @@ def create_app_without_bridge() -> FastAPI:
     # `/` 以下で静的ファイルを配信する
     app.mount("/", StaticFiles(directory="./ptcs_ui/dist", html=True), name="static")
 
-    bridge = Bridge2()
-    bridge.add_train(TrainSimulator("t0"))
-    bridge.add_train(TrainSimulator("t1"))
-    bridge.add_train(TrainSimulator("t2"))
-    bridge.add_train(TrainSimulator("t3"))
-    bridge.add_train(TrainSimulator("t4"))
-    bridge.add_obstacle(WirePoleClient("obstacle_0", "24:62:AB:E3:67:9A"))
+    bridge = create_bridge()
+    app.state.bridge = bridge
 
     async def loop():
         await bridge.connect_all()
+
+        async def send_motor_input():
+            for train_id, train_control in control.trains.items():
+                train_client = bridge.trains.get(train_id)
+                if train_client is None:
+                    continue
+                match train_client:
+                    case TrainSimulator():
+                        await train_client.send_speed(train_control.speed_command)
+                    case TrainClient():
+                        motor_input = train_control.calc_input(train_control.speed_command)
+                        await train_client.send_motor_input(motor_input)
 
         def handle_notify_rotation(train_client: TrainBase, _rotation: int):
             train_control = control.trains.get(train_client.id)
@@ -104,22 +112,17 @@ def create_app_without_bridge() -> FastAPI:
         for obstacle in bridge.obstacles.values():
             await obstacle.start_notify_collapse(handle_notify_collapse)
 
+        count = 0
         while True:
             # control 内部の時計を現実世界の時間において進める
             await asyncio.sleep(0.1)
             control.tick()
             control.update()
 
-            for train_id, train_control in control.trains.items():
-                train_client = bridge.trains.get(train_id)
-                if train_client is None:
-                    continue
-                match train_client:
-                    case TrainSimulator():
-                        await train_client.send_speed(train_control.speed_command)
-                    case TrainClient():
-                        motor_input = train_control.calc_input(train_control.speed_command)
-                        await train_client.send_motor_input(motor_input)
+            if count % 5 == 0:
+                await send_motor_input()
+
+            count += 1
 
     loop_task = asyncio.create_task(loop())
     app.state.loop_task = loop_task
