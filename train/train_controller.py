@@ -4,7 +4,6 @@ import platform
 
 from bleak import BleakClient, BleakScanner
 
-####### TODO: アドレスを正しく設定してください #######
 if platform.system() == "Windows":
     ADDRESS_T0 = 'e0:5a:1b:e2:7a:f2'
     ADDRESS_T1 = '94:b5:55:84:15:42'
@@ -24,7 +23,7 @@ else:
     raise Exception(f"{platform.system()} not supported")
 
 ####### TODO: 車両のアドレスを指定してください #######
-address = ADDRESS_T2
+address = ADDRESS_T4
 #################################################
 
 SERVICE_UUID = "63cb613b-6562-4aa5-b602-030f103834a4"
@@ -44,41 +43,44 @@ async def main():
     for d in devices:
         print("  - ", d)
 
-    async with BleakClient(address) as client:
-        print("Connected to", client)
-        print("Services:")
-        for service in client.services:
-            print("  - ", service)
-        service = client.services.get_service(SERVICE_UUID)
-        print("Characteristics:")
-        for characteristic in service.characteristics:
-            print("  - ", characteristic)
-        characteristicSpeed = service.get_characteristic(CHARACTERISTIC_SPEED_UUID)
-        characteristicPositionId = service.get_characteristic(CHARACTERISTIC_POSITIONID_UUID)
-        characteristicRotation = service.get_characteristic(CHARACTERISTIC_ROTATION_UUID)
-        characteristicVoltage = service.get_characteristic(CHARACTERISTIC_VOLTAGE_UUID)
-        print(characteristicSpeed, characteristicPositionId, characteristicRotation, characteristicVoltage)
+    while True:
+        try:
+            async with BleakClient(address) as client:
+                print("Connected to", client)
+                print("Services:")
+                for service in client.services:
+                    print("  - ", service)
+                service = client.services.get_service(SERVICE_UUID)
+                print("Characteristics:")
+                for characteristic in service.characteristics:
+                    print("  - ", characteristic)
+                characteristicSpeed = service.get_characteristic(CHARACTERISTIC_SPEED_UUID)
+                characteristicPositionId = service.get_characteristic(CHARACTERISTIC_POSITIONID_UUID)
+                characteristicRotation = service.get_characteristic(CHARACTERISTIC_ROTATION_UUID)
+                characteristicVoltage = service.get_characteristic(CHARACTERISTIC_VOLTAGE_UUID)
+                print(characteristicSpeed, characteristicPositionId, characteristicRotation, characteristicVoltage)
 
-        await client.start_notify(characteristicPositionId, positionIdNotification_callback)
-        await client.start_notify(characteristicRotation, rotationNotification_callback)
-        await client.start_notify(characteristicVoltage, voltageNotification_callback)
+                await client.start_notify(characteristicPositionId, positionIdNotification_callback)
+                await client.start_notify(characteristicRotation, rotationNotification_callback)
+                await client.start_notify(characteristicVoltage, voltageNotification_callback)
 
-        if address == ADDRESS_T0:
-            i = 220
-        elif address == ADDRESS_T1:
-            i = 200
-        elif address == ADDRESS_T2:
-            i = 210
-        elif address == ADDRESS_T3:
-            i = 220
-        elif address == ADDRESS_T4:
-            i = 210
+                if address == ADDRESS_T0:
+                    i = 230
+                elif address == ADDRESS_T1:
+                    i = 200
+                elif address == ADDRESS_T2:
+                    i = 210
+                elif address == ADDRESS_T3:
+                    i = 220
+                elif address == ADDRESS_T4:
+                    i = 230
 
-        while(i<256):
-            await client.write_gatt_char(characteristicSpeed, f"{i}".encode())
-            print("motorInput:", i)
-            await asyncio.sleep(0.3)
-
+                while True:
+                    await client.write_gatt_char(characteristicSpeed, f"{i}".encode())
+                    print("motorInput:", i)
+                    await asyncio.sleep(0.3)
+        except:
+            print("disconnected")
         
 
 async def positionIdNotification_callback(sender, data):

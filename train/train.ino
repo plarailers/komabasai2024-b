@@ -195,6 +195,8 @@ void pwmSetup() {
   ledcAttachPin(PWM_FORWARD_PIN, FORWARD_PWM_CH);  // 正転側をPWMする
   pinMode(PWM_REVERSE_PIN, OUTPUT);
   digitalWrite(PWM_REVERSE_PIN, LOW);  // 逆転側はLOW固定
+
+  ledcWrite(FORWARD_PWM_CH, 0); //起動時に0にする
   Serial.println("PWM Setup done");
 }
 /*------------ PWM(ledc) 関数 ここまで -------------------*/
