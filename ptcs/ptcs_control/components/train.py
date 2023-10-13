@@ -274,6 +274,9 @@ class Train(BaseComponent):
         # 指定された列車の前方にある停止位置のうち、最も近いもの`forward_object`を取得
 
         for object, object_position in object_position_pairs:
+            if object == self:
+                continue
+
             match object_position:
                 case UndirectedPosition():
                     if not (object_position.section == self.head_position.section):
