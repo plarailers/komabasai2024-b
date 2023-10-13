@@ -98,5 +98,5 @@ class TrainClient(TrainBase):
             logger.info("%s notify voltage %s mV", self, voltage)
             callback(self, voltage)
 
-        characteristic_voltage = self._get_characteristic_voltage()
-        await self._client.start_notify(characteristic_voltage, wrapped_callback)
+        characteristic = self._get_characteristic_voltage()
+        await self._client.start_notify(characteristic, wrapped_callback)
