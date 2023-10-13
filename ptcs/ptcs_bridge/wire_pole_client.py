@@ -34,6 +34,10 @@ class WirePoleClient:
         await self._client.disconnect()
         logger.info("%s disconnected", self)
 
+    @property
+    def is_connected(self) -> bool:
+        return self._client.is_connected
+
     async def start_notify_collapse(self, callback: NotifyCollapseCallback) -> None:
         def wrapped_callback(_characteristic: BleakGATTCharacteristic, data: bytearray):
             assert len(data) == 1

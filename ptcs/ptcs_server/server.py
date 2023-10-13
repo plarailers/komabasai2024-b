@@ -160,7 +160,8 @@ def create_app_without_bridge() -> FastAPI:
                 case TrainSimulator():
                     await train.send_speed(0.0)
                 case TrainClient():
-                    await train.send_motor_input(0)
+                    if train.is_connected:
+                        await train.send_motor_input(0)
 
         await bridge.disconnect_all()
 

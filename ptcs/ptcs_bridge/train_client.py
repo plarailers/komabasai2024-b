@@ -41,6 +41,10 @@ class TrainClient(TrainBase):
         await self._client.disconnect()
         logger.info("%s disconnected", self)
 
+    @property
+    def is_connected(self) -> bool:
+        return self._client.is_connected
+
     def _get_service_train(self) -> BleakGATTService:
         service = self._client.services.get_service(SERVICE_TRAIN_UUID)
         assert service is not None
