@@ -38,6 +38,7 @@ class Train(BaseComponent):
     stop_distance: float = field(default=0.0)  # 停止目標までの距離[cm]
     departure_time: int | None = field(default=None)  # 発車予定時刻
     voltage_mV: int = field(default=0)  # 電池電圧[mV]
+    manual_speed: float | None = field(default=None)  # マスコンからの指令速度
 
     # commands
     speed_command: float = field(default=0.0)  # 速度指令値

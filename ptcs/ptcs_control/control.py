@@ -316,17 +316,21 @@ class Control:
             else:
                 speed_command = stop_speed
 
+            # [マスコン]
+            if train.manual_speed is not None:
+                speed_command = min(speed_command, train.manual_speed)
+
             train.speed_command = speed_command
 
-            print(
-                train.id,
-                ", ATP StopDistance: ",
-                distance,
-                ", ATO StopDistance: ",
-                stop_distance,
-                ", speed: ",
-                speed_command,
-            )
+            # print(
+            #     train.id,
+            #     ", ATP StopDistance: ",
+            #     distance,
+            #     ", ATO StopDistance: ",
+            #     stop_distance,
+            #     ", speed: ",
+            #     speed_command,
+            # )
 
     def _calc_stop(self) -> None:
         """

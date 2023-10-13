@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from ptcs_bridge.bridge import Bridge
-from ptcs_bridge.bridge2 import Bridge2
+from ptcs_bridge.master_controller_client import MasterControllerClient
 from ptcs_bridge.train_base import TrainBase
 from ptcs_bridge.train_client import TrainClient
 from ptcs_bridge.train_simulator import TrainSimulator
@@ -128,6 +128,15 @@ def create_app_without_bridge() -> FastAPI:
 
         for obstacle in bridge.obstacles.values():
             await obstacle.start_notify_collapse(handle_notify_collapse)
+
+        def handle_notify_speed(controller_client: MasterControllerClient, speed: int):
+            train_control = control.trains.get(controller_client.id)
+            if train_control is None:
+                return
+            train_control.manual_speed = speed / 255 * train_control.max_speed
+
+        for controller in bridge.controllers.values():
+            await controller.start_notify_speed(handle_notify_speed)
 
         count = 0
         while True:
