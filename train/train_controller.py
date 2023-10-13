@@ -8,12 +8,24 @@ from bleak import BleakClient, BleakScanner
 if platform.system() == "Windows":
     ADDRESS_T0 = 'e0:5a:1b:e2:7a:f2'
     ADDRESS_T1 = '94:b5:55:84:15:42'
+    ADDRESS_T2 = 'e0:5a:1b:e2:7b:1e'
+    ADDRESS_T3 = '1c:9d:c2:66:84:32'
+    ADDRESS_T4 = '24:4c:ab:f5:c6:3e'
+
 
 elif platform.system() == "Darwin":
     ADDRESS_T0 = "00B55AE6-34AA-23C2-8C7B-8C11E6998E12"
     ADDRESS_T1 = "F2158243-18BB-D34C-88BC-F8F193CAD15E"
+    ADDRESS_T2 = 'EB57E065-90A0-B6D0-98BA-81096FA5765E'
+    ADDRESS_T3 = '4AA3AAE5-A039-8484-013C-32AD94F50BE0'
+    ADDRESS_T4 = 'FC44FB3F-CF7D-084C-EA29-7AFD10C47A57'
+
 else:
     raise Exception(f"{platform.system()} not supported")
+
+####### TODO: 車両のアドレスを指定してください #######
+address = ADDRESS_T2
+#################################################
 
 SERVICE_UUID = "63cb613b-6562-4aa5-b602-030f103834a4"
 CHARACTERISTIC_SPEED_UUID = "88c9d9ae-bd53-4ab3-9f42-b3547575a743"
@@ -32,8 +44,7 @@ async def main():
     for d in devices:
         print("  - ", d)
 
-    ####### TODO: クライアントのアドレスを選択してください #######
-    async with BleakClient(ADDRESS_T0) as client:
+    async with BleakClient(address) as client:
         print("Connected to", client)
         print("Services:")
         for service in client.services:
@@ -52,12 +63,22 @@ async def main():
         await client.start_notify(characteristicRotation, rotationNotification_callback)
         await client.start_notify(characteristicVoltage, voltageNotification_callback)
 
-        i=150 #3V時171で回り始める
-        while(i<=255):
-            i = i+1
+        if address == ADDRESS_T0:
+            i = 220
+        elif address == ADDRESS_T1:
+            i = 200
+        elif address == ADDRESS_T2:
+            i = 210
+        elif address == ADDRESS_T3:
+            i = 220
+        elif address == ADDRESS_T4:
+            i = 210
+
+        while(i<256):
             await client.write_gatt_char(characteristicSpeed, f"{i}".encode())
             print("motorInput:", i)
             await asyncio.sleep(0.3)
+
         
 
 async def positionIdNotification_callback(sender, data):

@@ -2,7 +2,12 @@ import asyncio
 import logging
 import math
 
-from .train_base import NotifyPositionIdCallback, NotifyRotationCallback, TrainBase
+from .train_base import (
+    NotifyPositionIdCallback,
+    NotifyRotationCallback,
+    NotifyVoltageCallback,
+    TrainBase,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +85,9 @@ class TrainSimulator(TrainBase):
 
     async def start_notify_rotation(self, callback: NotifyRotationCallback) -> None:
         self._notify_rotation_callback = callback
+
+    async def start_notify_voltage(self, callback: NotifyVoltageCallback) -> None:
+        raise NotImplementedError()
 
 
 async def main():

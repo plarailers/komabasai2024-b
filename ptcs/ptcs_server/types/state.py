@@ -54,6 +54,7 @@ class TrainState(BaseModel):
     stop_distance: float
     departure_time: int | None
     speed_command: float
+    voltage_mV: int
 
     @staticmethod
     def from_control(train: Train) -> TrainState:
@@ -80,6 +81,7 @@ class TrainState(BaseModel):
             stop_distance=train.stop_distance,
             departure_time=train.departure_time,
             speed_command=train.speed_command,
+            voltage_mV=train.voltage_mV,
         )
 
 
