@@ -109,11 +109,11 @@ def create_control(logger: logging.Logger | None = None) -> Control:
 
     t0 = Train(
         id="t0",
-        min_input=230,
-        max_input=255,
+        min_input=200,
+        max_input=250,
         max_speed=40.0,
         length=14.0,
-        delta_per_motor_rotation=0.2435 * 0.9,
+        delta_per_motor_rotation=0.314,
         head_position=DirectedPosition(
             section=s3,
             target_junction=j1,
@@ -122,11 +122,11 @@ def create_control(logger: logging.Logger | None = None) -> Control:
     )
     t1 = Train(
         id="t1",
-        min_input=200,
-        max_input=255,
+        min_input=150,
+        max_input=230,
         max_speed=40.0,
         length=14.0,
-        delta_per_motor_rotation=0.2435 * 0.9,
+        delta_per_motor_rotation=0.314,
         head_position=DirectedPosition(
             section=s3,
             target_junction=j1,
@@ -139,7 +139,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         max_input=130,
         max_speed=40.0,
         length=14.0,
-        delta_per_motor_rotation=0.2435 * 0.9,
+        delta_per_motor_rotation=0.314,
         head_position=DirectedPosition(
             section=s3,
             target_junction=j1,
@@ -158,7 +158,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         max_input=130,
         max_speed=40.0,
         length=14.0,
-        delta_per_motor_rotation=0.2435 * 0.9,
+        delta_per_motor_rotation=0.314,
         head_position=DirectedPosition(
             section=s3,
             target_junction=j1,
@@ -178,7 +178,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         max_input=130,
         max_speed=40.0,
         length=70.0,
-        delta_per_motor_rotation=0.1919 * 1.1 * 0.9,
+        delta_per_motor_rotation=0.314,
         head_position=DirectedPosition(
             section=s1,
             target_junction=j0,
@@ -216,8 +216,8 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         ),
     )
 
-    control.add_stop(stop_0)
-    control.add_stop(stop_1)
+    # control.add_stop(stop_0)
+    # control.add_stop(stop_1)
 
     station_0 = Station(id="station_0", stops=[stop_0])
     station_1 = Station(id="station_1", stops=[stop_1])
