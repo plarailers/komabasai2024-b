@@ -40,7 +40,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
 
     s0 = Section(
         id="s0",
-        length=WATARI_RAIL_A + 7.03 + STRAIGHT_RAIL + CURVE_RAIL + STRAIGHT_RAIL + WATARI_RAIL_A,
+        length=WATARI_RAIL_A + 7.03 + STRAIGHT_RAIL + CURVE_RAIL * 2 + STRAIGHT_RAIL + WATARI_RAIL_A,
     )
     s1 = Section(
         id="s1",
@@ -109,8 +109,8 @@ def create_control(logger: logging.Logger | None = None) -> Control:
 
     t0 = Train(
         id="t0",
-        min_input=70,
-        max_input=130,
+        min_input=230,
+        max_input=255,
         max_speed=40.0,
         length=14.0,
         delta_per_motor_rotation=0.2435 * 0.9,
@@ -122,8 +122,8 @@ def create_control(logger: logging.Logger | None = None) -> Control:
     )
     t1 = Train(
         id="t1",
-        min_input=70,
-        max_input=130,
+        min_input=200,
+        max_input=255,
         max_speed=40.0,
         length=14.0,
         delta_per_motor_rotation=0.2435 * 0.9,
@@ -227,33 +227,47 @@ def create_control(logger: logging.Logger | None = None) -> Control:
 
     position_173 = SensorPosition(
         id="position_173",
-        section=s0,
-        target_junction=j1,
-        mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 2.5,
+        section=s1,
+        target_junction=j0,
+        mileage=WATARI_RAIL_B
+        + STRAIGHT_RAIL * 4
+        + CURVE_RAIL * 3
+        + STRAIGHT_RAIL * 4
+        + CURVE_RAIL
+        + STRAIGHT_RAIL * 2
+        + 3.67
+        + CURVE_RAIL * 1.5,
     )
     position_138 = SensorPosition(
         id="position_138",
-        section=s0,
+        section=s3,
         target_junction=j1,
-        mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 9.5 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
+        mileage=WATARI_RAIL_A
+        + STRAIGHT_RAIL * 2
+        + OUTER_CURVE_RAIL * 2
+        + STRAIGHT_RAIL
+        + STRAIGHT_1_2_RAIL
+        + OUTER_CURVE_RAIL * 2
+        + STRAIGHT_RAIL * 3
+        + OUTER_CURVE_RAIL * 1.5,
     )
     position_80 = SensorPosition(
         id="position_80",
         section=s0,
-        target_junction=j1,
-        mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 13.5 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
+        target_junction=j3,
+        mileage=WATARI_RAIL_A + 7.03 + STRAIGHT_RAIL + CURVE_RAIL * 1.5,
     )
     position_255 = SensorPosition(
         id="position_255",
         section=s2,
         target_junction=j2,
-        mileage=WATARI_RAIL_A * 1 + STRAIGHT_RAIL * 5.5 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
+        mileage=WATARI_RAIL_B + 4.70 + OUTER_CURVE_RAIL * 0.5,
     )
 
-    # control.add_sensor_position(position_173)
-    # control.add_sensor_position(position_138)
-    # control.add_sensor_position(position_80)
-    # control.add_sensor_position(position_255)
+    control.add_sensor_position(position_173)
+    control.add_sensor_position(position_138)
+    control.add_sensor_position(position_80)
+    control.add_sensor_position(position_255)
 
     obstacle_0 = Obstacle(
         id="obstacle_0",

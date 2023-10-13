@@ -54,7 +54,7 @@ class TrainSimulator(TrainBase):
 
             if self._notify_rotation_callback is not None:
                 for _ in range(rotation):
-                    logger.info("%s notify rotation %s", self, 1)
+                    # logger.info("%s notify rotation %s", self, 1)
                     self._notify_rotation_callback(self, 1)
 
     async def connect(self) -> None:

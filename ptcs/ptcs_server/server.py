@@ -94,6 +94,13 @@ def create_app_without_bridge() -> FastAPI:
                         motor_input = train_control.calc_input(train_control.speed_command)
                         await train_client.send_motor_input(motor_input)
 
+        def handle_notify_position_id(train_client: TrainBase, position_id: int):
+            train_control = control.trains.get(train_client.id)
+            position = control.sensor_positions.get(f"position_{position_id}")
+            if train_control is None or position is None:
+                return
+            train_control.fix_position(position)
+
         def handle_notify_rotation(train_client: TrainBase, _rotation: int):
             train_control = control.trains.get(train_client.id)
             if train_control is None:
@@ -101,6 +108,9 @@ def create_app_without_bridge() -> FastAPI:
             train_control.move_forward_mr(1)
 
         for train in bridge.trains.values():
+            match train:
+                case TrainClient():
+                    await train.start_notify_position_id(handle_notify_position_id)
             await train.start_notify_rotation(handle_notify_rotation)
 
         def handle_notify_collapse(obstacle_client: WirePoleClient, is_collapsed: bool):
@@ -148,11 +158,11 @@ def create_app_with_bridge() -> FastAPI:
     control = app.state.control
 
     # TODO: ソースコードの変更なしに COM ポートを指定できるようにする
-    ENABLE_TRAINS = True
+    ENABLE_TRAINS = False
     ENABLE_POINTS = True
-    ENABLE_BUTTON = True
+    ENABLE_BUTTON = False
     TRAIN_PORTS = {"t0": "COM5", "t1": "COM3"}
-    POINTS_PORT = "COM9"
+    POINTS_PORT = "COM8"
     BUTTON_PORT = "COM6"
 
     # 列車からの信号
