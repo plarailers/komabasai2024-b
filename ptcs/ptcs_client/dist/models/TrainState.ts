@@ -18,4 +18,5 @@ export type TrainState = {
     stop_distance: number;
     departure_time: (number | null);
     speed_command: number;
+    voltage_mV: number;
 };
