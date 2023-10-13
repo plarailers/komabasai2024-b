@@ -17,6 +17,7 @@ export const Information: React.FC = () => {
           <th></th>
           <th>train</th>
           <th>speed</th>
+          <th>voltage</th>
         </tr>
       </thead>
       <tbody>
@@ -30,6 +31,7 @@ export const Information: React.FC = () => {
                 </td>
                 <td>{id}</td>
                 <td>{train.speed_command.toFixed(2)}</td>
+                <td>{train.voltage_mV}</td>
               </tr>
             ))}
       </tbody>
