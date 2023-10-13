@@ -5,12 +5,18 @@ from bleak import BleakClient
 from bleak.backends.characteristic import BleakGATTCharacteristic
 from bleak.backends.service import BleakGATTService
 
-from .train_base import NotifyPositionIdCallback, NotifyRotationCallback, TrainBase
+from .train_base import (
+    NotifyPositionIdCallback,
+    NotifyRotationCallback,
+    NotifyVoltageCallback,
+    TrainBase,
+)
 
 SERVICE_UUID = UUID("63cb613b-6562-4aa5-b602-030f103834a4")
 CHARACTERISTIC_MOTOR_INPUT_UUID = UUID("88c9d9ae-bd53-4ab3-9f42-b3547575a743")
 CHARACTERISTIC_POSITION_ID_UUID = UUID("8bcd68d5-78ca-c1c3-d1ba-96d527ce8968")
 CHARACTERISTIC_ROTATION_UUID = UUID("aab17457-2755-8b50-caa1-432ff553d533")
+CHARACTERISTIC_VOLTAGE_UUID = UUID("7ecc0ed2-5ef9-c9e6-5d16-582f86035ecf")
 
 
 logger = logging.getLogger(__name__)
@@ -55,6 +61,9 @@ class TrainClient(TrainBase):
     def _get_characteristic_rotation(self) -> BleakGATTCharacteristic:
         return self._get_characteristic(CHARACTERISTIC_ROTATION_UUID)
 
+    def _get_characteristic_voltage(self) -> BleakGATTCharacteristic:
+        return self._get_characteristic(CHARACTERISTIC_VOLTAGE_UUID)
+
     async def send_speed(self, speed: int) -> None:
         assert 0 <= speed <= 255
         characteristic_speed = self._get_characteristic_motor_input()
@@ -80,3 +89,13 @@ class TrainClient(TrainBase):
 
         characteristic_rotation = self._get_characteristic_rotation()
         await self._client.start_notify(characteristic_rotation, wrapped_callback)
+
+    async def start_notify_voltage(self, callback: NotifyVoltageCallback) -> None:
+        def wrapped_callback(_characteristic: BleakGATTCharacteristic, data: bytearray):
+            assert len(data) == 4
+            voltage = int.from_bytes(data, byteorder="little")
+            logger.info("%s notify voltage %s mV", self, voltage)
+            callback(self, voltage)
+
+        characteristic_voltage = self._get_characteristic_voltage()
+        await self._client.start_notify(characteristic_voltage, wrapped_callback)

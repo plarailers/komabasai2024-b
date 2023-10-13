@@ -76,8 +76,15 @@ def create_app_without_bridge() -> FastAPI:
                 return
             train_control.move_forward_mr(1)
 
+        def handle_notify_voltage(train_client: TrainBase, _voltage_mV: int):
+            train_control = control.trains.get(train_client.id)
+            if train_control is None:
+                return
+            train_control.voltage_mV = _voltage_mV
+
         for train in bridge.trains.values():
             await train.start_notify_rotation(handle_notify_rotation)
+            # await train.start_notify_voltage(handle_notify_voltage)
 
         while True:
             # control 内部の時計を現実世界の時間において進める
