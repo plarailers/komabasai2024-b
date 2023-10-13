@@ -59,7 +59,7 @@ class TrainSimulator(TrainBase):
 
             if self._notify_rotation_callback is not None:
                 for _ in range(rotation):
-                    logger.info("%s notify rotation %s", self, 1)
+                    # logger.info("%s notify rotation %s", self, 1)
                     self._notify_rotation_callback(self, 1)
 
     async def connect(self) -> None:
@@ -76,8 +76,7 @@ class TrainSimulator(TrainBase):
         self._task = None
         logger.info("%s disconnected", self)
 
-    async def send_speed(self, speed: int) -> None:
-        assert 0 <= speed <= 255
+    async def send_speed(self, speed: float) -> None:
         self._target_speed_cm_s = speed * self.INPUT_TO_CENTIMETERS_PER_SECOND
         logger.info("%s send speed %s", self, speed)
 

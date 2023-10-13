@@ -13,6 +13,7 @@ from .constants import (
     OUTER_CURVE_RAIL,
     STRAIGHT_1_2_RAIL,
     STRAIGHT_1_4_RAIL,
+    STRAIGHT_1_6_RAIL,
     STRAIGHT_RAIL,
     WATARI_RAIL_A,
     WATARI_RAIL_B,
@@ -39,7 +40,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
 
     s0 = Section(
         id="s0",
-        length=WATARI_RAIL_A + 7.03 + STRAIGHT_RAIL + CURVE_RAIL + STRAIGHT_RAIL + WATARI_RAIL_A,
+        length=WATARI_RAIL_A + 7.03 + STRAIGHT_RAIL + CURVE_RAIL * 2 + STRAIGHT_RAIL + WATARI_RAIL_A,
     )
     s1 = Section(
         id="s1",
@@ -108,11 +109,11 @@ def create_control(logger: logging.Logger | None = None) -> Control:
 
     t0 = Train(
         id="t0",
-        min_input=70,
-        max_input=130,
+        min_input=200,
+        max_input=250,
         max_speed=40.0,
         length=14.0,
-        delta_per_motor_rotation=0.2435 * 0.9,
+        delta_per_motor_rotation=0.314,
         head_position=DirectedPosition(
             section=s3,
             target_junction=j1,
@@ -121,11 +122,11 @@ def create_control(logger: logging.Logger | None = None) -> Control:
     )
     t1 = Train(
         id="t1",
-        min_input=70,
-        max_input=130,
+        min_input=150,
+        max_input=230,
         max_speed=40.0,
         length=14.0,
-        delta_per_motor_rotation=0.2435 * 0.9,
+        delta_per_motor_rotation=0.314,
         head_position=DirectedPosition(
             section=s3,
             target_junction=j1,
@@ -138,7 +139,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         max_input=130,
         max_speed=40.0,
         length=14.0,
-        delta_per_motor_rotation=0.2435 * 0.9,
+        delta_per_motor_rotation=0.314,
         head_position=DirectedPosition(
             section=s3,
             target_junction=j1,
@@ -157,7 +158,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         max_input=130,
         max_speed=40.0,
         length=14.0,
-        delta_per_motor_rotation=0.2435 * 0.9,
+        delta_per_motor_rotation=0.314,
         head_position=DirectedPosition(
             section=s3,
             target_junction=j1,
@@ -177,7 +178,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         max_input=130,
         max_speed=40.0,
         length=70.0,
-        delta_per_motor_rotation=0.1919 * 1.1 * 0.9,
+        delta_per_motor_rotation=0.314,
         head_position=DirectedPosition(
             section=s1,
             target_junction=j0,
@@ -194,93 +195,87 @@ def create_control(logger: logging.Logger | None = None) -> Control:
     stop_0 = Stop(
         id="stop_0",
         position=DirectedPosition(
-            section=s0,
+            section=s3,
             target_junction=j1,
-            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 4.5,
+            mileage=WATARI_RAIL_A + STRAIGHT_RAIL - STRAIGHT_1_6_RAIL,
         ),
     )
     stop_1 = Stop(
         id="stop_1",
         position=DirectedPosition(
-            section=s0,
-            target_junction=j1,
-            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 10.0 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
-        ),
-    )
-    stop_2 = Stop(
-        id="stop_2",
-        position=DirectedPosition(
-            section=s1,
-            target_junction=j1,
-            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 1.5,
-        ),
-    )
-    stop_3 = Stop(
-        id="stop_3",
-        position=DirectedPosition(
-            section=s1,
-            target_junction=j3,
-            mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 1.5,
-        ),
-    )
-    stop_4 = Stop(
-        id="stop_4",
-        position=DirectedPosition(
             section=s3,
-            target_junction=j0,
-            mileage=WATARI_RAIL_A * 1 + STRAIGHT_RAIL * 1.5,
+            target_junction=j1,
+            mileage=WATARI_RAIL_A
+            + STRAIGHT_RAIL * 2
+            + OUTER_CURVE_RAIL * 2
+            + STRAIGHT_RAIL
+            + STRAIGHT_1_2_RAIL
+            + OUTER_CURVE_RAIL * 2
+            + STRAIGHT_RAIL * 2
+            - STRAIGHT_1_6_RAIL,
         ),
     )
 
     # control.add_stop(stop_0)
     # control.add_stop(stop_1)
-    # control.add_stop(stop_2)
-    # control.add_stop(stop_3)
-    # control.add_stop(stop_4)
 
-    station_0 = Station(id="station_0", stops=[stop_0, stop_1])
-    station_1 = Station(id="station_1", stops=[stop_2, stop_3, stop_4])
+    station_0 = Station(id="station_0", stops=[stop_0])
+    station_1 = Station(id="station_1", stops=[stop_1])
 
-    # control.add_station(station_0)
-    # control.add_station(station_1)
+    control.add_station(station_0)
+    control.add_station(station_1)
 
     position_173 = SensorPosition(
         id="position_173",
-        section=s0,
-        target_junction=j1,
-        mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 2.5,
+        section=s1,
+        target_junction=j0,
+        mileage=WATARI_RAIL_B
+        + STRAIGHT_RAIL * 4
+        + CURVE_RAIL * 3
+        + STRAIGHT_RAIL * 4
+        + CURVE_RAIL
+        + STRAIGHT_RAIL * 2
+        + 3.67
+        + CURVE_RAIL * 1.5,
     )
     position_138 = SensorPosition(
         id="position_138",
-        section=s0,
+        section=s3,
         target_junction=j1,
-        mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 9.5 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
+        mileage=WATARI_RAIL_A
+        + STRAIGHT_RAIL * 2
+        + OUTER_CURVE_RAIL * 2
+        + STRAIGHT_RAIL
+        + STRAIGHT_1_2_RAIL
+        + OUTER_CURVE_RAIL * 2
+        + STRAIGHT_RAIL * 3
+        + OUTER_CURVE_RAIL * 1.5,
     )
     position_80 = SensorPosition(
         id="position_80",
         section=s0,
-        target_junction=j1,
-        mileage=WATARI_RAIL_B * 1 + STRAIGHT_RAIL * 13.5 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
+        target_junction=j3,
+        mileage=WATARI_RAIL_A + 7.03 + STRAIGHT_RAIL + CURVE_RAIL * 1.5,
     )
     position_255 = SensorPosition(
         id="position_255",
         section=s2,
         target_junction=j2,
-        mileage=WATARI_RAIL_A * 1 + STRAIGHT_RAIL * 5.5 + CURVE_RAIL * 8 + STRAIGHT_1_4_RAIL * 1,
+        mileage=WATARI_RAIL_B + 4.70 + OUTER_CURVE_RAIL * 0.5,
     )
 
-    # control.add_sensor_position(position_173)
-    # control.add_sensor_position(position_138)
-    # control.add_sensor_position(position_80)
-    # control.add_sensor_position(position_255)
+    control.add_sensor_position(position_173)
+    control.add_sensor_position(position_138)
+    control.add_sensor_position(position_80)
+    control.add_sensor_position(position_255)
 
     obstacle_0 = Obstacle(
         id="obstacle_0",
         position=UndirectedPosition(
             section=s3,
-            mileage=WATARI_RAIL_A + STRAIGHT_RAIL,
+            mileage=WATARI_RAIL_A + STRAIGHT_RAIL * 1.5,
         ),
-        is_detected=True,
+        is_detected=False,
     )
 
     control.add_obstacle(obstacle_0)

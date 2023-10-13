@@ -10,9 +10,9 @@ VarSpeedServo servo[NUM_SERVO];
 const int SERVO_SPEED = 100;
 
 // サーボを直進にする際の角度。適宜いじってください。
-const int SERVO_ANGLE_STRAIGHT[NUM_SERVO] = {25, 25, 25, 25};
+const int SERVO_ANGLE_STRAIGHT[NUM_SERVO] = {25, 25, 50, 70};
 // サーボを曲げる際の角度。適宜いじってください。
-const int SERVO_ANGLE_CURVE[NUM_SERVO] = {75, 75, 75, 75};
+const int SERVO_ANGLE_CURVE[NUM_SERVO] = {75, 75, 70, 50};
 // サーボをアタッチするピンの指定。適宜いじってください。
 const int SERVO_ATTACH_PIN[NUM_SERVO] = {3, 5, 9, 10};
 const byte STRAIGHT = 0;
@@ -54,4 +54,17 @@ void loop() {
         byte servo_state = Serial.read();
         servo_change(servo_id, servo_state);
     }
+    // if (Serial.available() > 0) { 
+    //     // シリアルで受け取った信号をもとにサーボを動かす
+    //     Serial.print("ID: ");
+    //     byte servo_id = Serial.parseInt();
+    //     Serial.print(servo_id);
+    //     Serial.println();
+    //     Serial.print("state: ");
+    //     byte servo_state = Serial.parseInt();
+    //     Serial.print(servo_state);
+    //     Serial.println();
+    //     // servo_change(servo_id, servo_state);
+    //     servo[servo_id].write(servo_state, SERVO_SPEED, true);
+    // }
 }

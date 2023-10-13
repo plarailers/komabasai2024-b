@@ -13,13 +13,16 @@ from pydantic import BaseModel
 from ptcs_bridge.bridge import Bridge
 from ptcs_bridge.bridge2 import Bridge2
 from ptcs_bridge.train_base import TrainBase
+from ptcs_bridge.train_client import TrainClient
 from ptcs_bridge.train_simulator import TrainSimulator
+from ptcs_bridge.wire_pole_client import WirePoleClient
 from ptcs_control.control import Control
 from ptcs_control.mft2023 import create_control
 
 from .api import api_router
 from .bridges import BridgeManager, BridgeTarget
 from .button import Button
+from .mft2023 import create_bridge
 from .points import PointSwitcher, PointSwitcherManager
 
 DEFAULT_PORT = 5000
@@ -31,14 +34,27 @@ class ServerArgs(BaseModel):
     debug: bool = False
 
 
+def set_server_args(args: ServerArgs) -> None:
+    """
+    環境変数を通じてサーバーへの引数を渡す。
+    """
+    os.environ["PTCS_SERVER_ARGS"] = args.model_dump_json()
+
+
+def get_server_args() -> ServerArgs:
+    """
+    環境変数を通じてサーバーへの引数を受け取る。
+    """
+    raw_args = os.environ.get("PTCS_SERVER_ARGS")
+    args = ServerArgs.model_validate_json(raw_args) if raw_args else ServerArgs()
+    return args
+
+
 def create_app() -> FastAPI:
     logger = logging.getLogger("uvicorn")
 
-    raw_args = os.environ.get("PTCS_SERVER_ARGS")
-    logger.info("raw server args: %s", raw_args)
-
-    args = ServerArgs.parse_raw(raw_args) if raw_args else ServerArgs()
-    logger.info("parsed server args: %s", args)
+    args = get_server_args()
+    logger.info("server args: %s", args)
 
     if args.bridge:
         return create_app_with_bridge()
@@ -60,15 +76,30 @@ def create_app_without_bridge() -> FastAPI:
     # `/` 以下で静的ファイルを配信する
     app.mount("/", StaticFiles(directory="./ptcs_ui/dist", html=True), name="static")
 
-    bridge = Bridge2()
-    bridge.add_train(TrainSimulator("t0"))
-    bridge.add_train(TrainSimulator("t1"))
-    bridge.add_train(TrainSimulator("t2"))
-    bridge.add_train(TrainSimulator("t3"))
-    bridge.add_train(TrainSimulator("t4"))
+    bridge = create_bridge()
+    app.state.bridge = bridge
 
     async def loop():
         await bridge.connect_all()
+
+        async def send_motor_input():
+            for train_id, train_control in control.trains.items():
+                train_client = bridge.trains.get(train_id)
+                if train_client is None:
+                    continue
+                match train_client:
+                    case TrainSimulator():
+                        await train_client.send_speed(train_control.speed_command)
+                    case TrainClient():
+                        motor_input = train_control.calc_input(train_control.speed_command)
+                        await train_client.send_motor_input(motor_input)
+
+        def handle_notify_position_id(train_client: TrainBase, position_id: int):
+            train_control = control.trains.get(train_client.id)
+            position = control.sensor_positions.get(f"position_{position_id}")
+            if train_control is None or position is None:
+                return
+            train_control.fix_position(position)
 
         def handle_notify_rotation(train_client: TrainBase, _rotation: int):
             train_control = control.trains.get(train_client.id)
@@ -83,20 +114,32 @@ def create_app_without_bridge() -> FastAPI:
             train_control.voltage_mV = _voltage_mV
 
         for train in bridge.trains.values():
+            match train:
+                case TrainClient():
+                    await train.start_notify_position_id(handle_notify_position_id)
+                    await train.start_notify_voltage(handle_notify_voltage)
             await train.start_notify_rotation(handle_notify_rotation)
-            # await train.start_notify_voltage(handle_notify_voltage)
 
+        def handle_notify_collapse(obstacle_client: WirePoleClient, is_collapsed: bool):
+            obstacle_control = control.obstacles.get(obstacle_client.id)
+            if obstacle_control is None:
+                return
+            obstacle_control.is_detected = is_collapsed
+
+        for obstacle in bridge.obstacles.values():
+            await obstacle.start_notify_collapse(handle_notify_collapse)
+
+        count = 0
         while True:
             # control 内部の時計を現実世界の時間において進める
             await asyncio.sleep(0.1)
             control.tick()
             control.update()
 
-            for train_id, train_control in control.trains.items():
-                train_client = bridge.trains.get(train_id)
-                if train_client is None:
-                    continue
-                await train_client.send_speed(train_control.speed_command)
+            if count % 5 == 0:
+                await send_motor_input()
+
+            count += 1
 
     loop_task = asyncio.create_task(loop())
     app.state.loop_task = loop_task
@@ -104,7 +147,11 @@ def create_app_without_bridge() -> FastAPI:
     @app.on_event("shutdown")
     async def on_shutdown():
         for train in bridge.trains.values():
-            await train.send_speed(0)
+            match train:
+                case TrainSimulator():
+                    await train.send_speed(0.0)
+                case TrainClient():
+                    await train.send_motor_input(0)
 
         await bridge.disconnect_all()
 
@@ -118,11 +165,11 @@ def create_app_with_bridge() -> FastAPI:
     control = app.state.control
 
     # TODO: ソースコードの変更なしに COM ポートを指定できるようにする
-    ENABLE_TRAINS = True
+    ENABLE_TRAINS = False
     ENABLE_POINTS = True
-    ENABLE_BUTTON = True
+    ENABLE_BUTTON = False
     TRAIN_PORTS = {"t0": "COM5", "t1": "COM3"}
-    POINTS_PORT = "COM9"
+    POINTS_PORT = "COM8"
     BUTTON_PORT = "COM6"
 
     # 列車からの信号
@@ -213,9 +260,7 @@ def serve(*, port: int = DEFAULT_PORT, bridge: bool = False, debug: bool = False
     `debug` を `True` にすると、ソースコードに変更があったときにリロードされる。
     """
 
-    args = ServerArgs(port=port, bridge=bridge, debug=debug)
-
-    os.environ["PTCS_SERVER_ARGS"] = args.json()
+    set_server_args(ServerArgs(port=port, bridge=bridge, debug=debug))
 
     if debug:
         uvicorn.run(
