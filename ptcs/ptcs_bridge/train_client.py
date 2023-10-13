@@ -72,7 +72,7 @@ class TrainClient(TrainBase):
         assert isinstance(motor_input, int)
         assert 0 <= motor_input <= 255
         characteristic = self._get_characteristic_motor_input()
-        await self._client.write_gatt_char(characteristic, f"{motor_input}".encode())
+        await self._client.write_gatt_char(characteristic, f"{motor_input}".encode(), response=False)
         logger.info("%s send motor input %s", self, motor_input)
 
     async def start_notify_position_id(self, callback: NotifyPositionIdCallback) -> None:
