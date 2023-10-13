@@ -38,6 +38,6 @@ def create_bridge() -> Bridge2:
     # bridge.add_train(TrainClient("t3", ADDRESS_T3))
     # bridge.add_train(TrainSimulator("t4"))
     bridge.add_train(TrainClient("t4", ADDRESS_T4))
-    # bridge.add_obstacle(WirePoleClient("obstacle_0", ADDRESS_WIRE_POLE))
+    bridge.add_obstacle(WirePoleClient("obstacle_0", ADDRESS_WIRE_POLE))
     bridge.add_controller(MasterControllerClient("t0", ADDRESS_MASTER_CONTROLLER))
     return bridge

@@ -263,11 +263,37 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         target_junction=j2,
         mileage=WATARI_RAIL_B + 4.70 + OUTER_CURVE_RAIL,
     )
+    position_53 = SensorPosition(
+        id="position_53",
+        section=s3,
+        target_junction=j1,
+        mileage=WATARI_RAIL_A
+        + STRAIGHT_RAIL * 2
+        + OUTER_CURVE_RAIL * 2
+        + STRAIGHT_RAIL
+        + STRAIGHT_1_2_RAIL
+        + OUTER_CURVE_RAIL,
+    )
+    position_99 = SensorPosition(
+        id="position_99",
+        section=s1,
+        target_junction=j0,
+        mileage=WATARI_RAIL_B + STRAIGHT_RAIL * 3 + CURVE_RAIL * 3 + STRAIGHT_RAIL * 4 + CURVE_RAIL,
+    )
+    position_84 = SensorPosition(
+        id="position_84",
+        section=s1,
+        target_junction=j0,
+        mileage=WATARI_RAIL_B + STRAIGHT_RAIL * 3 + CURVE_RAIL,
+    )
 
     control.add_sensor_position(position_173)
     control.add_sensor_position(position_138)
     control.add_sensor_position(position_80)
     control.add_sensor_position(position_255)
+    control.add_sensor_position(position_53)
+    control.add_sensor_position(position_99)
+    control.add_sensor_position(position_84)
 
     obstacle_0 = Obstacle(
         id="obstacle_0",
