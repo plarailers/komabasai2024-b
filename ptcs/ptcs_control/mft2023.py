@@ -45,7 +45,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
     s1 = Section(
         id="s1",
         length=WATARI_RAIL_B
-        + STRAIGHT_RAIL * 4
+        + STRAIGHT_RAIL * 3
         + CURVE_RAIL * 3
         + STRAIGHT_RAIL * 4
         + CURVE_RAIL
@@ -74,7 +74,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
     )
     s4 = Section(
         id="s4",
-        length=WATARI_RAIL_C + WATARI_RAIL_C,
+        length=WATARI_RAIL_C + 4.05 + WATARI_RAIL_C,
     )
     s5 = Section(
         id="s5",
@@ -113,7 +113,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         max_input=250,
         max_speed=40.0,
         length=14.0,
-        delta_per_motor_rotation=0.314,
+        delta_per_motor_rotation=0.4553,
         head_position=DirectedPosition(
             section=s3,
             target_junction=j1,
@@ -123,10 +123,10 @@ def create_control(logger: logging.Logger | None = None) -> Control:
     t1 = Train(
         id="t1",
         min_input=150,
-        max_input=230,
+        max_input=210,
         max_speed=40.0,
         length=14.0,
-        delta_per_motor_rotation=0.314,
+        delta_per_motor_rotation=0.4021,
         head_position=DirectedPosition(
             section=s3,
             target_junction=j1,
@@ -135,11 +135,11 @@ def create_control(logger: logging.Logger | None = None) -> Control:
     )
     t2 = Train(
         id="t2",
-        min_input=70,
-        max_input=130,
+        min_input=150,
+        max_input=230,
         max_speed=40.0,
         length=14.0,
-        delta_per_motor_rotation=0.314,
+        delta_per_motor_rotation=0.4048,
         head_position=DirectedPosition(
             section=s3,
             target_junction=j1,
@@ -154,8 +154,8 @@ def create_control(logger: logging.Logger | None = None) -> Control:
     )
     t3 = Train(
         id="t3",
-        min_input=70,
-        max_input=130,
+        min_input=200,
+        max_input=250,
         max_speed=40.0,
         length=14.0,
         delta_per_motor_rotation=0.314,
@@ -174,11 +174,11 @@ def create_control(logger: logging.Logger | None = None) -> Control:
     )
     t4 = Train(
         id="t4",
-        min_input=90,
-        max_input=130,
+        min_input=180,
+        max_input=230,
         max_speed=40.0,
         length=70.0,
-        delta_per_motor_rotation=0.314,
+        delta_per_motor_rotation=0.6378,
         head_position=DirectedPosition(
             section=s1,
             target_junction=j0,
@@ -189,7 +189,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
     control.add_train(t0)
     control.add_train(t1)
     control.add_train(t2)
-    control.add_train(t3)
+    # control.add_train(t3)
     control.add_train(t4)
 
     stop_0 = Stop(
@@ -216,8 +216,8 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         ),
     )
 
-    # control.add_stop(stop_0)
-    # control.add_stop(stop_1)
+    control.add_stop(stop_0)
+    control.add_stop(stop_1)
 
     station_0 = Station(id="station_0", stops=[stop_0])
     station_1 = Station(id="station_1", stops=[stop_1])
@@ -230,13 +230,13 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         section=s1,
         target_junction=j0,
         mileage=WATARI_RAIL_B
-        + STRAIGHT_RAIL * 4
+        + STRAIGHT_RAIL * 3
         + CURVE_RAIL * 3
         + STRAIGHT_RAIL * 4
         + CURVE_RAIL
         + STRAIGHT_RAIL * 2
         + 3.67
-        + CURVE_RAIL * 1.5,
+        + CURVE_RAIL * 2,
     )
     position_138 = SensorPosition(
         id="position_138",
@@ -249,19 +249,19 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         + STRAIGHT_1_2_RAIL
         + OUTER_CURVE_RAIL * 2
         + STRAIGHT_RAIL * 3
-        + OUTER_CURVE_RAIL * 1.5,
+        + OUTER_CURVE_RAIL * 2,
     )
     position_80 = SensorPosition(
         id="position_80",
         section=s0,
         target_junction=j3,
-        mileage=WATARI_RAIL_A + 7.03 + STRAIGHT_RAIL + CURVE_RAIL * 1.5,
+        mileage=WATARI_RAIL_A + 7.03 + STRAIGHT_RAIL + CURVE_RAIL * 2,
     )
     position_255 = SensorPosition(
         id="position_255",
         section=s2,
         target_junction=j2,
-        mileage=WATARI_RAIL_B + 4.70 + OUTER_CURVE_RAIL * 0.5,
+        mileage=WATARI_RAIL_B + 4.70 + OUTER_CURVE_RAIL,
     )
 
     control.add_sensor_position(position_173)

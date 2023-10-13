@@ -201,7 +201,7 @@ class Control:
         BREAK_ACCLT: float = 10  # ブレーキ減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
         NORMAL_ACCLT: float = 5  # 常用加減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
         MAX_SPEED: float = 40  # 最高速度[cm/s]  NOTE:将来的には車両のパラメータとしてとして定義
-        MERGIN: float = 15  # 停止余裕距離[cm]
+        MERGIN: float = 20  # 停止余裕距離[cm]
 
         objects: list[tuple[Train, DirectedPosition] | tuple[Obstacle, UndirectedPosition]] = [
             *((train, train.head_position) for train in self.trains.values()),
