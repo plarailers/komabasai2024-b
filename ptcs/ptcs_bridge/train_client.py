@@ -84,6 +84,7 @@ class TrainClient(TrainBase):
 
         characteristic = self._get_characteristic_position_id()
         await self._client.start_notify(characteristic, wrapped_callback)
+        logger.info("%s start notify position id", self)
 
     async def start_notify_rotation(self, callback: NotifyRotationCallback) -> None:
         def wrapped_callback(_characteristic: BleakGATTCharacteristic, data: bytearray):
@@ -94,6 +95,7 @@ class TrainClient(TrainBase):
 
         characteristic = self._get_characteristic_rotation()
         await self._client.start_notify(characteristic, wrapped_callback)
+        logger.info("%s start notify rotation", self)
 
     async def start_notify_voltage(self, callback: NotifyVoltageCallback) -> None:
         def wrapped_callback(_characteristic: BleakGATTCharacteristic, data: bytearray):
@@ -104,3 +106,4 @@ class TrainClient(TrainBase):
 
         characteristic = self._get_characteristic_voltage()
         await self._client.start_notify(characteristic, wrapped_callback)
+        logger.info("%s start notify voltage", self)

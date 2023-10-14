@@ -113,7 +113,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         max_input=250,
         max_speed=40.0,
         length=14.0,
-        delta_per_motor_rotation=0.4553,
+        delta_per_motor_rotation=0.4553 * 0.9 * 0.9,
         head_position=DirectedPosition(
             section=s3,
             target_junction=j1,
@@ -154,11 +154,11 @@ def create_control(logger: logging.Logger | None = None) -> Control:
     )
     t3 = Train(
         id="t3",
-        min_input=200,
-        max_input=250,
+        min_input=190,
+        max_input=220,
         max_speed=40.0,
         length=14.0,
-        delta_per_motor_rotation=0.314,
+        delta_per_motor_rotation=0.4208,
         head_position=DirectedPosition(
             section=s3,
             target_junction=j1,
@@ -177,8 +177,8 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         min_input=180,
         max_input=230,
         max_speed=40.0,
-        length=70.0,
-        delta_per_motor_rotation=0.6378,
+        length=40.0,
+        delta_per_motor_rotation=0.4241,
         head_position=DirectedPosition(
             section=s1,
             target_junction=j0,
@@ -186,10 +186,10 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         ),
     )
 
-    control.add_train(t0)
-    control.add_train(t1)
+    # control.add_train(t0)
+    # control.add_train(t1)
     control.add_train(t2)
-    # control.add_train(t3)
+    control.add_train(t3)
     control.add_train(t4)
 
     stop_0 = Stop(

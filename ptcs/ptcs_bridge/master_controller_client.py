@@ -51,3 +51,4 @@ class MasterControllerClient:
         assert characteristic is not None
 
         await self._client.start_notify(characteristic, wrapped_callback)
+        logger.info("%s start notify speed", self)
