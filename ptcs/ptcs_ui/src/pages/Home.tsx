@@ -93,20 +93,20 @@ const ui: RailwayUI = {
   },
   trains: {
     t0: {
-      fill: DEFAULT_THEME.colors.yellow[4],
-      stroke: DEFAULT_THEME.colors.yellow[9],
+      fill: DEFAULT_THEME.colors.blue[4],
+      stroke: DEFAULT_THEME.colors.blue[9],
     },
     t1: {
-      fill: DEFAULT_THEME.colors.green[5],
-      stroke: DEFAULT_THEME.colors.green[9],
+      fill: DEFAULT_THEME.colors.orange[5],
+      stroke: DEFAULT_THEME.colors.orange[9],
     },
     t2: {
-      fill: DEFAULT_THEME.colors.cyan[4],
-      stroke: DEFAULT_THEME.colors.cyan[9],
+      fill: DEFAULT_THEME.colors.indigo[6],
+      stroke: DEFAULT_THEME.colors.indigo[9],
     },
     t3: {
-      fill: DEFAULT_THEME.colors.indigo[5],
-      stroke: DEFAULT_THEME.colors.indigo[9],
+      fill: DEFAULT_THEME.colors.lime[5],
+      stroke: DEFAULT_THEME.colors.lime[9],
     },
     t4: {
       fill: DEFAULT_THEME.colors.red[5],
