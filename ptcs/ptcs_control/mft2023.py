@@ -139,7 +139,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         max_input=230,
         max_speed=40.0,
         length=14.0,
-        delta_per_motor_rotation=0.4048,
+        delta_per_motor_rotation=0.5048,
         head_position=DirectedPosition(
             section=s3,
             target_junction=j1,
@@ -178,7 +178,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         max_input=230,
         max_speed=40.0,
         length=40.0,
-        delta_per_motor_rotation=0.4241,
+        delta_per_motor_rotation=0.4241 * 2.2,
         head_position=DirectedPosition(
             section=s1,
             target_junction=j0,
@@ -187,10 +187,10 @@ def create_control(logger: logging.Logger | None = None) -> Control:
     )
 
     # control.add_train(t0)
-    # control.add_train(t1)
+    control.add_train(t1)
     control.add_train(t2)
     control.add_train(t3)
-    control.add_train(t4)
+    # control.add_train(t4)
 
     stop_0 = Stop(
         id="stop_0",
@@ -299,7 +299,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         id="obstacle_0",
         position=UndirectedPosition(
             section=s3,
-            mileage=WATARI_RAIL_A + STRAIGHT_RAIL * 1.5,
+            mileage=WATARI_RAIL_A + STRAIGHT_RAIL * 2,
         ),
         is_detected=False,
     )
