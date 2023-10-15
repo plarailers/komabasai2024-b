@@ -148,6 +148,11 @@ class Control:
                         junction.connected_sections[JunctionConnection.DIVERGING] == nearest_train.head_position.section
                     ):
                         junction.manual_direction = PointDirection.CURVE
+                    else:
+                        # TODO: 会場で書いたコードなので後でちゃんと書く。
+                        if junction.id == "j3" and nearest_train.head_position.target_junction.id == "j2":
+                            junction.manual_direction = PointDirection.CURVE
+                            print(nearest_train.id, junction.id)
 
                 case "j0":
                     if not self.obstacles["obstacle_0"].is_detected:

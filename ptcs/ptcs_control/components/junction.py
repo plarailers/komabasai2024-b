@@ -129,4 +129,31 @@ class Junction(BaseComponent):
                     nearest_train = train
                     nearest_distance = distance
 
+            # 一応次の区間も見る。
+            # TODO: 会場で書いたコードなので後でちゃんと書く。
+            next_section_and_target_junction = train.head_position.section.get_next_section_and_target_junction_strict(
+                train.head_position.target_junction
+            )
+            if next_section_and_target_junction:
+                next_section, next_target_junction = next_section_and_target_junction
+                if next_target_junction == self:
+                    if (
+                        train.head_position.target_junction
+                        == train.head_position.section.connected_junctions[SectionConnection.A]
+                    ):
+                        distance = train.head_position.mileage + next_section.length
+                    elif (
+                        train.head_position.target_junction
+                        == train.head_position.section.connected_junctions[SectionConnection.B]
+                    ):
+                        distance = (
+                            train.head_position.section.length - train.head_position.mileage
+                        ) + next_section.length
+                    else:
+                        raise
+
+                    if distance < nearest_distance:
+                        nearest_train = train
+                        nearest_distance = distance
+
         return nearest_train
