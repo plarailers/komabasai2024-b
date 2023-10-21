@@ -6,5 +6,14 @@
             "source.organizeImports": true
         }
     },
-    "mypy-type-checker.args": ["--config-file=pyproject.toml"], // workaround
+    // "mypy-type-checker.args": ["--config-file=pyproject.toml"], // workaround
+    "mypy-type-checker.path": ["${workspaceFolder}\\.venv\\Scripts\\mypy.exe"],
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+    },
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+    }
 }

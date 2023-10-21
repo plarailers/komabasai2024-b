@@ -148,6 +148,11 @@ class Control:
                         junction.connected_sections[JunctionConnection.DIVERGING] == nearest_train.head_position.section
                     ):
                         junction.manual_direction = PointDirection.CURVE
+                    else:
+                        # TODO: 会場で書いたコードなので後でちゃんと書く。
+                        if junction.id == "j3" and nearest_train.head_position.target_junction.id == "j2":
+                            junction.manual_direction = PointDirection.CURVE
+                            print(nearest_train.id, junction.id)
 
                 case "j0":
                     if not self.obstacles["obstacle_0"].is_detected:
@@ -201,9 +206,10 @@ class Control:
         BREAK_ACCLT: float = 10  # ブレーキ減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
         NORMAL_ACCLT: float = 5  # 常用加減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
         MAX_SPEED: float = 40  # 最高速度[cm/s]  NOTE:将来的には車両のパラメータとしてとして定義
-        MERGIN: float = 10  # 停止余裕距離[cm]
+        MERGIN: float = 25  # 停止余裕距離[cm]
 
         objects: list[tuple[Train, DirectedPosition] | tuple[Obstacle, UndirectedPosition]] = [
+            *((train, train.head_position) for train in self.trains.values()),
             *((train, train.compute_tail_position()) for train in self.trains.values()),
             *((obstacle, obstacle.position) for obstacle in self.obstacles.values() if obstacle.is_detected),
         ]
@@ -316,17 +322,21 @@ class Control:
             else:
                 speed_command = stop_speed
 
+            # [マスコン]
+            if train.manual_speed is not None:
+                speed_command = min(speed_command, train.manual_speed)
+
             train.speed_command = speed_command
 
-            print(
-                train.id,
-                ", ATP StopDistance: ",
-                distance,
-                ", ATO StopDistance: ",
-                stop_distance,
-                ", speed: ",
-                speed_command,
-            )
+            # print(
+            #     train.id,
+            #     ", ATP StopDistance: ",
+            #     distance,
+            #     ", ATO StopDistance: ",
+            #     stop_distance,
+            #     ", speed: ",
+            #     speed_command,
+            # )
 
     def _calc_stop(self) -> None:
         """

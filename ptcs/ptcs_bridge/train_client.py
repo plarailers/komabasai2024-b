@@ -41,6 +41,10 @@ class TrainClient(TrainBase):
         await self._client.disconnect()
         logger.info("%s disconnected", self)
 
+    @property
+    def is_connected(self) -> bool:
+        return self._client.is_connected
+
     def _get_service_train(self) -> BleakGATTService:
         service = self._client.services.get_service(SERVICE_TRAIN_UUID)
         assert service is not None
@@ -68,7 +72,7 @@ class TrainClient(TrainBase):
         assert isinstance(motor_input, int)
         assert 0 <= motor_input <= 255
         characteristic = self._get_characteristic_motor_input()
-        await self._client.write_gatt_char(characteristic, f"{motor_input}".encode())
+        await self._client.write_gatt_char(characteristic, f"{motor_input}".encode(), response=False)
         logger.info("%s send motor input %s", self, motor_input)
 
     async def start_notify_position_id(self, callback: NotifyPositionIdCallback) -> None:
@@ -80,6 +84,7 @@ class TrainClient(TrainBase):
 
         characteristic = self._get_characteristic_position_id()
         await self._client.start_notify(characteristic, wrapped_callback)
+        logger.info("%s start notify position id", self)
 
     async def start_notify_rotation(self, callback: NotifyRotationCallback) -> None:
         def wrapped_callback(_characteristic: BleakGATTCharacteristic, data: bytearray):
@@ -90,6 +95,7 @@ class TrainClient(TrainBase):
 
         characteristic = self._get_characteristic_rotation()
         await self._client.start_notify(characteristic, wrapped_callback)
+        logger.info("%s start notify rotation", self)
 
     async def start_notify_voltage(self, callback: NotifyVoltageCallback) -> None:
         def wrapped_callback(_characteristic: BleakGATTCharacteristic, data: bytearray):
@@ -100,3 +106,4 @@ class TrainClient(TrainBase):
 
         characteristic = self._get_characteristic_voltage()
         await self._client.start_notify(characteristic, wrapped_callback)
+        logger.info("%s start notify voltage", self)
