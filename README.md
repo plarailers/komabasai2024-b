@@ -27,5 +27,5 @@
 ## インストール
 
 ```sh
-git clone https://github.com/plarailers/mft2023.git
+git clone https://github.com/plarailers/komabasai2023.git
 ```
