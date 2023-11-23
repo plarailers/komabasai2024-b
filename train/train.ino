@@ -227,9 +227,10 @@ void getPositionId() {
   // Select one of the cards
   if ( ! mfrc522.PICC_ReadCardSerial()) return;
   
-  pCharacteristicPositionId->setValue(mfrc522.uid.uidByte, 10); //UIDをpositionIDとする
+  pCharacteristicPositionId->setValue(mfrc522.uid.uidByte, mfrc522.uid.size); //UIDをpositionIDとする
   pCharacteristicPositionId->notify();
-  String positionID = byteArrayToHexString(mfrc522.uid.uidByte, 10); 
+  String positionID = byteArrayToHexString(mfrc522.uid.uidByte, mfrc522.uid.size); 
+  Serial.printf("uid size: %d\n", mfrc522.uid.size);
   Serial.printf("positionID: %s Notified\n", positionID.c_str());
 
   mfrc522.PICC_HaltA(); // 卡片進入停止模式
