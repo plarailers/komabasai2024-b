@@ -197,7 +197,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         position=DirectedPosition(
             section=s3,
             target_junction=j1,
-            mileage=WATARI_RAIL_A + STRAIGHT_RAIL - STRAIGHT_1_6_RAIL,
+            mileage=WATARI_RAIL_A + STRAIGHT_RAIL * 0.5,
         ),
     )
     stop_1 = Stop(
@@ -211,8 +211,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
             + STRAIGHT_RAIL
             + STRAIGHT_1_2_RAIL
             + OUTER_CURVE_RAIL * 2
-            + STRAIGHT_RAIL * 2
-            - STRAIGHT_1_6_RAIL,
+            + STRAIGHT_RAIL * 1.5,
         ),
     )
 
