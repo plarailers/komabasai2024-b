@@ -197,7 +197,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         position=DirectedPosition(
             section=s3,
             target_junction=j1,
-            mileage=WATARI_RAIL_A + STRAIGHT_RAIL - STRAIGHT_1_6_RAIL,
+            mileage=WATARI_RAIL_A + STRAIGHT_RAIL * 0.5,
         ),
     )
     stop_1 = Stop(
@@ -211,8 +211,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
             + STRAIGHT_RAIL
             + STRAIGHT_1_2_RAIL
             + OUTER_CURVE_RAIL * 2
-            + STRAIGHT_RAIL * 2
-            - STRAIGHT_1_6_RAIL,
+            + STRAIGHT_RAIL * 1.5,
         ),
     )
 
@@ -225,8 +224,117 @@ def create_control(logger: logging.Logger | None = None) -> Control:
     control.add_station(station_0)
     control.add_station(station_1)
 
-    position_173 = SensorPosition(
-        id="position_173",
+    p1 = SensorPosition(
+        id="position_0433ca30af6180",
+        section=s3,
+        target_junction=j1,
+        mileage=WATARI_RAIL_A + STRAIGHT_RAIL * 0.5,
+    )
+    p2 = SensorPosition(
+        id="position_047c6731af6180",
+        section=s3,
+        target_junction=j1,
+        mileage=WATARI_RAIL_A + STRAIGHT_RAIL * 2 + OUTER_CURVE_RAIL * 0.5,
+    )
+    p3 = SensorPosition(
+        id="position_04117931af6180",
+        section=s3,
+        target_junction=j1,
+        mileage=WATARI_RAIL_A + STRAIGHT_RAIL * 2 + OUTER_CURVE_RAIL * 2 + STRAIGHT_1_2_RAIL + STRAIGHT_RAIL * 0.5,
+    )
+    p4 = SensorPosition(
+        id="position_0497d230af6180",
+        section=s3,
+        target_junction=j1,
+        mileage=WATARI_RAIL_A
+        + STRAIGHT_RAIL * 2
+        + OUTER_CURVE_RAIL * 2
+        + STRAIGHT_RAIL
+        + STRAIGHT_1_2_RAIL
+        + OUTER_CURVE_RAIL * 1.5,
+    )
+    p5 = SensorPosition(
+        id="position_04d7932baf6180",
+        section=s3,
+        target_junction=j1,
+        mileage=WATARI_RAIL_A
+        + STRAIGHT_RAIL * 2
+        + OUTER_CURVE_RAIL * 2
+        + STRAIGHT_RAIL
+        + STRAIGHT_1_2_RAIL
+        + OUTER_CURVE_RAIL * 2
+        + STRAIGHT_RAIL * 1.5,
+    )
+    p6 = SensorPosition(
+        id="position_040e6f2daf6180",
+        section=s3,
+        target_junction=j1,
+        mileage=WATARI_RAIL_A
+        + STRAIGHT_RAIL * 2
+        + OUTER_CURVE_RAIL * 2
+        + STRAIGHT_RAIL
+        + STRAIGHT_1_2_RAIL
+        + OUTER_CURVE_RAIL * 2
+        + STRAIGHT_RAIL * 3
+        + OUTER_CURVE_RAIL * 0.5,
+    )
+    p7 = SensorPosition(
+        id="position_04059229af6180",
+        section=s3,
+        target_junction=j1,
+        mileage=WATARI_RAIL_A
+        + STRAIGHT_RAIL * 2
+        + OUTER_CURVE_RAIL * 2
+        + STRAIGHT_RAIL
+        + STRAIGHT_1_2_RAIL
+        + OUTER_CURVE_RAIL * 2
+        + STRAIGHT_RAIL * 3
+        + OUTER_CURVE_RAIL * 1.5,
+    )
+    p8 = SensorPosition(
+        id="position_04f1ac2baf6180",
+        section=s2,
+        target_junction=j2,
+        mileage=WATARI_RAIL_B + 4.70 + OUTER_CURVE_RAIL * 0.5,
+    )
+    p9 = SensorPosition(
+        id="position_0451002baf6180",
+        section=s2,
+        target_junction=j2,
+        mileage=WATARI_RAIL_B + 4.70 + OUTER_CURVE_RAIL * 1.5,
+    )
+    p10 = SensorPosition(
+        id="position_040a992aaf6181",
+        section=s1,
+        target_junction=j0,
+        mileage=WATARI_RAIL_B + STRAIGHT_RAIL * 0.5,
+    )
+    p11 = SensorPosition(
+        id="position_0494a12baf6180",
+        section=s1,
+        target_junction=j0,
+        mileage=WATARI_RAIL_B + STRAIGHT_RAIL * 3 + CURVE_RAIL * 0.5,
+    )
+    p12 = SensorPosition(
+        id="position_04299928af6180",
+        section=s1,
+        target_junction=j0,
+        mileage=WATARI_RAIL_B + STRAIGHT_RAIL * 3 + CURVE_RAIL * 2.5,
+    )
+    p13 = SensorPosition(
+        id="position_047d8129af6180",
+        section=s1,
+        target_junction=j0,
+        mileage=WATARI_RAIL_B + STRAIGHT_RAIL * 3 + CURVE_RAIL * 3 + STRAIGHT_RAIL * 3,
+    )
+    p14 = SensorPosition(
+        id="position_042d962baf6180",
+        section=s1,
+        target_junction=j0,
+        mileage=WATARI_RAIL_B + STRAIGHT_RAIL * 3 + CURVE_RAIL * 3 + STRAIGHT_RAIL * 4 + CURVE_RAIL * 0.5,
+    )
+    p15 = SensorPosition(
+        id="position_0455b128af6180",
         section=s1,
         target_junction=j0,
         mileage=WATARI_RAIL_B
@@ -236,64 +344,59 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         + CURVE_RAIL
         + STRAIGHT_RAIL * 2
         + 3.67
-        + CURVE_RAIL * 2,
+        + CURVE_RAIL * 0.5,
     )
-    position_138 = SensorPosition(
-        id="position_138",
-        section=s3,
-        target_junction=j1,
-        mileage=WATARI_RAIL_A
-        + STRAIGHT_RAIL * 2
-        + OUTER_CURVE_RAIL * 2
-        + STRAIGHT_RAIL
-        + STRAIGHT_1_2_RAIL
-        + OUTER_CURVE_RAIL * 2
+    p16 = SensorPosition(
+        id="position_04369a28af6180",
+        section=s1,
+        target_junction=j0,
+        mileage=WATARI_RAIL_B
         + STRAIGHT_RAIL * 3
-        + OUTER_CURVE_RAIL * 2,
+        + CURVE_RAIL * 3
+        + STRAIGHT_RAIL * 4
+        + CURVE_RAIL
+        + STRAIGHT_RAIL * 2
+        + 3.67
+        + CURVE_RAIL * 1.5,
     )
-    position_80 = SensorPosition(
-        id="position_80",
+    p17 = SensorPosition(
+        id="position_04a96f28af6180",
         section=s0,
         target_junction=j3,
-        mileage=WATARI_RAIL_A + 7.03 + STRAIGHT_RAIL + CURVE_RAIL * 2,
+        mileage=WATARI_RAIL_A + 7.03 + STRAIGHT_RAIL * 0.5,
     )
-    position_255 = SensorPosition(
-        id="position_255",
-        section=s2,
-        target_junction=j2,
-        mileage=WATARI_RAIL_B + 4.70 + OUTER_CURVE_RAIL,
+    p18 = SensorPosition(
+        id="position_044be628af6180",
+        section=s0,
+        target_junction=j3,
+        mileage=WATARI_RAIL_A + 7.03 + STRAIGHT_RAIL + CURVE_RAIL * 1.5,
     )
-    position_53 = SensorPosition(
-        id="position_53",
-        section=s3,
-        target_junction=j1,
-        mileage=WATARI_RAIL_A
-        + STRAIGHT_RAIL * 2
-        + OUTER_CURVE_RAIL * 2
-        + STRAIGHT_RAIL
-        + STRAIGHT_1_2_RAIL
-        + OUTER_CURVE_RAIL,
-    )
-    position_99 = SensorPosition(
-        id="position_99",
-        section=s1,
-        target_junction=j0,
-        mileage=WATARI_RAIL_B + STRAIGHT_RAIL * 3 + CURVE_RAIL * 3 + STRAIGHT_RAIL * 4 + CURVE_RAIL,
-    )
-    position_84 = SensorPosition(
-        id="position_84",
-        section=s1,
-        target_junction=j0,
-        mileage=WATARI_RAIL_B + STRAIGHT_RAIL * 3 + CURVE_RAIL,
+    p19 = SensorPosition(
+        id="position_0489e22caf6180",
+        section=s0,
+        target_junction=j3,
+        mileage=WATARI_RAIL_A + 7.03 + STRAIGHT_RAIL + CURVE_RAIL * 2 + STRAIGHT_RAIL * 0.5,
     )
 
-    control.add_sensor_position(position_173)
-    control.add_sensor_position(position_138)
-    control.add_sensor_position(position_80)
-    control.add_sensor_position(position_255)
-    control.add_sensor_position(position_53)
-    control.add_sensor_position(position_99)
-    control.add_sensor_position(position_84)
+    control.add_sensor_position(p1)
+    control.add_sensor_position(p2)
+    control.add_sensor_position(p3)
+    control.add_sensor_position(p4)
+    control.add_sensor_position(p5)
+    control.add_sensor_position(p6)
+    control.add_sensor_position(p7)
+    control.add_sensor_position(p8)
+    control.add_sensor_position(p9)
+    control.add_sensor_position(p10)
+    control.add_sensor_position(p11)
+    control.add_sensor_position(p12)
+    control.add_sensor_position(p13)
+    control.add_sensor_position(p14)
+    control.add_sensor_position(p15)
+    control.add_sensor_position(p16)
+    control.add_sensor_position(p17)
+    control.add_sensor_position(p18)
+    control.add_sensor_position(p19)
 
     obstacle_0 = Obstacle(
         id="obstacle_0",

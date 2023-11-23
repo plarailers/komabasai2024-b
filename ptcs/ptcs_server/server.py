@@ -94,7 +94,7 @@ def create_app() -> FastAPI:
                     continue
                 await point_client.send_direction(junction_control.current_direction)
 
-        def handle_notify_position_id(train_client: TrainBase, position_id: int):
+        def handle_notify_position_id(train_client: TrainBase, position_id: str):
             train_control = control.trains.get(train_client.id)
             position = control.sensor_positions.get(f"position_{position_id}")
             if train_control is None or position is None:

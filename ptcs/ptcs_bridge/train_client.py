@@ -77,8 +77,8 @@ class TrainClient(TrainBase):
 
     async def start_notify_position_id(self, callback: NotifyPositionIdCallback) -> None:
         def wrapped_callback(_characteristic: BleakGATTCharacteristic, data: bytearray):
-            assert len(data) == 1
-            position_id = data[0]
+            assert len(data) in [4, 7, 10]
+            position_id = data.hex()
             logger.info("%s notify position id %s", self, position_id)
             callback(self, position_id)
 
