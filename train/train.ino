@@ -227,11 +227,10 @@ void getPositionId() {
   // Select one of the cards
   if ( ! mfrc522.PICC_ReadCardSerial()) return;
   
-  String positionID = byteArrayToHexString(mfrc522.uid.uidByte, 10); //UIDの最初の1バイトをpositionIDとする
-  Serial.println(positionID);
-  pCharacteristicPositionId->setValue((uint8_t*)&positionID, 10);
+  pCharacteristicPositionId->setValue(mfrc522.uid.uidByte, 10); //UIDをpositionIDとする
   pCharacteristicPositionId->notify();
-  Serial.printf("positionID: %s Notified\n", positionID);
+  String positionID = byteArrayToHexString(mfrc522.uid.uidByte, 10); 
+  Serial.printf("positionID: %s Notified\n", positionID.c_str());
 
   mfrc522.PICC_HaltA(); // 卡片進入停止模式
 }
@@ -361,7 +360,7 @@ void loop(){
   int enc1B = digitalRead(ENCODER_1B_PIN);
   int enc2A = digitalRead(ENCODER_2A_PIN);
   int enc2B = digitalRead(ENCODER_2B_PIN);
-  Serial.printf("encoder = [%d, %d, %d, %d]\n", enc1A, enc1B, enc2A, enc2B);
+  // Serial.printf("encoder = [%d, %d, %d, %d]\n", enc1A, enc1B, enc2A, enc2B);
 
   /* RFIDの読み取り */
   getPositionId();

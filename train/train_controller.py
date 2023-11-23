@@ -23,7 +23,7 @@ else:
     raise Exception(f"{platform.system()} not supported")
 
 ####### TODO: 車両のアドレスを指定してください #######
-address = ADDRESS_T4
+address = ADDRESS_T0
 #################################################
 
 SERVICE_UUID = "63cb613b-6562-4aa5-b602-030f103834a4"
@@ -86,7 +86,7 @@ async def main():
 async def positionIdNotification_callback(sender, data):
     # positionId Notifyを受け取ったとき，positionIDを表示．mileageはリセット
     global mileage_cm_
-    positionID = int.from_bytes(data, byteorder='big')
+    positionID = hex(int.from_bytes(data, byteorder='big'))
     print(f"positionID: {positionID}")
     mileage_cm_ = 0
 
@@ -103,7 +103,7 @@ async def rotationNotification_callback(sender, data):
 async def voltageNotification_callback(sender, data):
     # voltage Notifyを受け取ったとき，voltageを表示．
     voltage = int.from_bytes(data, byteorder='little')
-    print(f"Vin: {voltage} mV")
+    # print(f"Vin: {voltage} mV")
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
