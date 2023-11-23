@@ -10,9 +10,9 @@ Servo servo;
 // サーボを回転させる速さ。1~255。
 const int SERVO_SPEED = 100;
 // サーボを直進にする際の角度。適宜いじってください。
-const int SERVO_ANGLE_STRAIGHT = 25;
+const int SERVO_ANGLE_STRAIGHT = 50; //POINT0:50, POINT1:
 // サーボを曲げる際の角度。適宜いじってください。
-const int SERVO_ANGLE_CURVE = 75;
+const int SERVO_ANGLE_CURVE = 69; //POINT0:69, POINT1:
 // サーボをアタッチするピンの指定。適宜いじってください。
 const int SERVO_ATTACH_PIN = 26;
 String STRAIGHT = "STRAIGHT";
@@ -43,7 +43,7 @@ std::string getPointName() {
   switch (chipId) {
     case 0x843699bf713c:
       return "POINT0";
-    case 0x40158455B594:
+    case 0xF0D9CB1F9C9C:
       return "POINT1";
     default:
       return "unknown";

@@ -6,17 +6,17 @@ from bleak import BleakClient, BleakScanner
 
 if platform.system() == "Windows":
     ADDRESS_POINT0 = '3C:71:BF:99:36:84'
-    ADDRESS_POINT1 = '94:b5:55:84:15:42'
+    ADDRESS_POINT1 = '9c:9c:1f:cb:d9:f2'
 
 elif platform.system() == "Darwin":
     ADDRESS_POINT0 = "9FA4916E-AD02-6C9C-686A-1B97D9E3427A"
-    ADDRESS_POINT1 = "F2158243-18BB-D34C-88BC-F8F193CAD15E"
+    ADDRESS_POINT1 = "90386433-4331-50CF-1637-EFFA587DD6DB"
 
 else:
     raise Exception(f"{platform.system()} not supported")
 
 ####### TODO: 車両のアドレスを指定してください #######
-address = ADDRESS_POINT0
+address = ADDRESS_POINT1
 #################################################
 
 SERVICE_UUID = "2a4023a6-6079-efea-b79f-7c882319b83b"
@@ -46,12 +46,12 @@ async def main():
                     direction = "STRAIGHT"
                     await client.write_gatt_char(characteristicDirection, f"{direction}".encode())
                     print("Direction: ", direction)
-                    await asyncio.sleep(2)
+                    await asyncio.sleep(1)
 
                     direction = "CURVE"
                     await client.write_gatt_char(characteristicDirection, f"{direction}".encode())
                     print("Direction: ", direction)
-                    await asyncio.sleep(2)
+                    await asyncio.sleep(1)
         except Exception as e:
             print("disconnected", e)
 
