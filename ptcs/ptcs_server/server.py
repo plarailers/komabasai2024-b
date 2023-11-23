@@ -100,6 +100,13 @@ def create_app_without_bridge() -> FastAPI:
                         motor_input = train_control.calc_input(train_control.speed_command)
                         await train_client.send_motor_input(motor_input)
 
+        async def send_direction():
+            for junction_id, junction_control in control.junctions.items():
+                point_client = bridge.points.get(junction_id)
+                if point_client is None:
+                    continue
+                await point_client.send_direction(junction_control.current_direction)
+
         def handle_notify_position_id(train_client: TrainBase, position_id: int):
             train_control = control.trains.get(train_client.id)
             position = control.sensor_positions.get(f"position_{position_id}")
@@ -147,6 +154,7 @@ def create_app_without_bridge() -> FastAPI:
         while True:
             await asyncio.sleep(0.5)
             await send_motor_input()
+            await send_direction()
 
     bridge_loop_task = asyncio.create_task(bridge_loop())
     app.state.bridge_loop_task = bridge_loop_task
