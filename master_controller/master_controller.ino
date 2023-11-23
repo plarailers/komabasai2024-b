@@ -76,6 +76,8 @@ int velocity = 0;
 int acceleration = 0;
 int lasttime = 0;
 int velocitydisplay = 0;
+const int INPUT_MIN = 210;
+const int INPUT_MAX = 3080;
 
 void sendVelocity(){
 
@@ -179,10 +181,12 @@ void loop() {
     int val = analogReadMilliVolts(27);
     Serial.println(val);
 
-    acceleration = ((val-128)*14/(3127-128))-8; //可変抵抗の読み取り値を-8～+5の加速度に変換
-    Serial.println(acceleration);
+    velocity = int(255.0/(INPUT_MAX - INPUT_MIN) * (val - INPUT_MIN));
 
-    velocity = velocity + acceleration; //指定された加速度から速度を計算
+    // acceleration = ((val-128)*14/(3127-128))-8; //可変抵抗の読み取り値を-8～+5の加速度に変換
+    // Serial.println(acceleration);
+
+    // velocity = velocity + acceleration; //指定された加速度から速度を計算
   
       if (velocity <= 0){
         velocity = 0; //速度の計算値が0以下の時は0を指定
