@@ -1,70 +1,128 @@
-#include <VarSpeedServo.h>
+#include <BLEDevice.h>
+#include <BLEServer.h>
+#include <BLEUtils.h>
+#include <BLE2902.h>
+#include <ESP32Servo.h>
 
-// サーボの数。
-const int NUM_SERVO = 4;
 
-// 各サーボを入れる配列。
-VarSpeedServo servo[NUM_SERVO];
-
+/* サーボ パラメータ */
+Servo servo;
 // サーボを回転させる速さ。1~255。
 const int SERVO_SPEED = 100;
-
 // サーボを直進にする際の角度。適宜いじってください。
-const int SERVO_ANGLE_STRAIGHT[NUM_SERVO] = {25, 25, 50, 70};
+const int SERVO_ANGLE_STRAIGHT = 25;
 // サーボを曲げる際の角度。適宜いじってください。
-const int SERVO_ANGLE_CURVE[NUM_SERVO] = {75, 75, 70, 50};
+const int SERVO_ANGLE_CURVE = 75;
 // サーボをアタッチするピンの指定。適宜いじってください。
-const int SERVO_ATTACH_PIN[NUM_SERVO] = {3, 5, 9, 10};
-const byte STRAIGHT = 0;
-const byte CURVE = 1;
-// 各サーボの状態を格納。初期値は適宜いじってください。
-byte servo_status[NUM_SERVO] = {STRAIGHT, STRAIGHT, STRAIGHT, STRAIGHT};
+const int SERVO_ATTACH_PIN = 26;
+String STRAIGHT = "STRAIGHT";
+String CURVE = "CURVE";
 
-void servo_change(byte servo_id, byte servo_state) {
-    //servoの向きを切り替える関数。
-    if (servo_state == STRAIGHT) {
-        servo[servo_id].write(SERVO_ANGLE_STRAIGHT[servo_id], SERVO_SPEED, true);
-        servo_status[servo_id] = STRAIGHT;
+/* サーボ 関数 */
+void setServo(String direction) {
+    if (direction == STRAIGHT) {
+        servo.write(SERVO_ANGLE_STRAIGHT);
     }
     else {
-        servo[servo_id].write(SERVO_ANGLE_CURVE[servo_id], SERVO_SPEED, true);
-        servo_status[servo_id] = CURVE;
+        servo.write(SERVO_ANGLE_CURVE);
     }
 }
 
+/* BLE パラメータ */
+static const char SERVICE_UUID[] = "2a4023a6-6079-efea-b79f-7c882319b83b";
+static const char CHARACTERISTIC_DIRECTION_UUID[] = "737237f4-300e-ca58-1e2f-40ff59fc71f7";
+BLEServer *pServer = NULL;
+BLEService *pService = NULL;
+BLECharacteristic *pCharacteristicDirection = NULL;
+BLEAdvertising *pAdvertising = NULL;
+
+/* BLE 関数 */
+std::string getPointName() {
+  //////// TODO: ここのchipIdを正しく設定してください ////////
+  uint64_t chipId = ESP.getEfuseMac();
+  switch (chipId) {
+    case 0x843699bf713c:
+      return "POINT0";
+    case 0x40158455B594:
+      return "POINT1";
+    default:
+      return "unknown";
+  }
+}
+
+class MyServerCallbacks : public BLEServerCallbacks {
+  /// @brief BLEサーバーとの接続．開始時，終了時に直進にする．
+  /// @param pServer 
+  void onConnect(BLEServer* pServer) {
+    Serial.println("BLE Connected");
+  }
+
+  void onDisconnect(BLEServer *pServer) {
+    Serial.println("BLE Disconnected");
+    pServer->startAdvertising();
+  }
+};
+
+class CharacteristicDirectionCallbacks : public BLECharacteristicCallbacks {
+  /// @brief ポイントの向きが書き込まれたらポイントの向きを変更する
+  /// @param pCharacteristicDirection
+  void onWrite(BLECharacteristic *pCharacteristicDirection) {
+    std::string value = pCharacteristicDirection->getValue();
+    String direction = value.c_str();
+    setServo(direction);
+  }
+};
+
+void bleSetup() {
+  /// @brief BLEのセットアップ．
+  /// 1. サーバー，サービスを設定
+  /// 2. キャラクタリスティックを作る．
+  /// 3. BLE通信を開始
+
+  Serial.println("Starting BLE");
+
+  uint64_t chipid;
+	chipid=ESP.getEfuseMac();//The chip ID is essentially its MAC address(length: 6 bytes).
+  Serial.print("ChipId: ");
+  Serial.println(chipid, HEX);
+
+  BLEDevice::init("ESPoint (" + getPointName() + ")");
+
+  Serial.print("Address: ");
+  Serial.println(BLEDevice::getAddress().toString().c_str());
+
+  pServer = BLEDevice::createServer();
+  pServer->setCallbacks(new MyServerCallbacks());
+
+  pService = pServer->createService(SERVICE_UUID);
+
+  pCharacteristicDirection = pService->createCharacteristic(
+      CHARACTERISTIC_DIRECTION_UUID,
+      BLECharacteristic::PROPERTY_WRITE
+  );
+  pCharacteristicDirection->setCallbacks(new CharacteristicDirectionCallbacks());
+  pCharacteristicDirection->setValue("Initial value");
+  pCharacteristicDirection->addDescriptor(new BLE2902());
+
+  pService->start();
+
+  pAdvertising = BLEDevice::getAdvertising();
+  pAdvertising->addServiceUUID(SERVICE_UUID);
+  pAdvertising->start();
+  Serial.println("Advertising started");
+}
+
+
 void setup() {
-    Serial.begin(9600);
-    for (int servo_id = 0; servo_id < NUM_SERVO; servo_id++) {
-        // attachする。
-        servo[servo_id].attach(SERVO_ATTACH_PIN[servo_id]);
-        // サーボの向きの初期化。
-        if (servo_status[servo_id] == STRAIGHT) {
-            servo[servo_id].write(SERVO_ANGLE_STRAIGHT[servo_id], SERVO_SPEED, true);
-        }
-        else {
-            servo[servo_id].write(SERVO_ANGLE_CURVE[servo_id], SERVO_SPEED, true);
-        }
-    }
+    Serial.begin(115200);
+    while (!Serial);
+    // attachする。
+    servo.attach(SERVO_ATTACH_PIN);
+    // サーボの向きの初期化。
+    setServo(STRAIGHT);
+    /* BLE セットアップ */
+    bleSetup();
 }
 
 void loop() {
-    while (Serial.available() >= 2) { 
-        // シリアルで受け取った信号をもとにサーボを動かす
-        byte servo_id = Serial.read();
-        byte servo_state = Serial.read();
-        servo_change(servo_id, servo_state);
-    }
-    // if (Serial.available() > 0) { 
-    //     // シリアルで受け取った信号をもとにサーボを動かす
-    //     Serial.print("ID: ");
-    //     byte servo_id = Serial.parseInt();
-    //     Serial.print(servo_id);
-    //     Serial.println();
-    //     Serial.print("state: ");
-    //     byte servo_state = Serial.parseInt();
-    //     Serial.print(servo_state);
-    //     Serial.println();
-    //     // servo_change(servo_id, servo_state);
-    //     servo[servo_id].write(servo_state, SERVO_SPEED, true);
-    // }
 }
