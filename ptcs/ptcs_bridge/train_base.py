@@ -1,6 +1,6 @@
 from typing import Callable
 
-NotifyPositionIdCallback = Callable[["TrainBase", int], None]
+NotifyPositionIdCallback = Callable[["TrainBase", str], None]
 NotifyRotationCallback = Callable[["TrainBase", int], None]
 NotifyVoltageCallback = Callable[["TrainBase", int], None]
 
