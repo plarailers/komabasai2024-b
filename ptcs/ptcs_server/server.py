@@ -75,7 +75,17 @@ def create_app_without_bridge() -> FastAPI:
     bridge = create_bridge()
     app.state.bridge = bridge
 
-    async def loop():
+    async def control_loop():
+        while True:
+            # control 内部の時計を現実世界の時間において進める
+            await asyncio.sleep(0.1)
+            control.tick()
+            control.update()
+
+    control_loop_task = asyncio.create_task(control_loop())
+    app.state.control_loop_task = control_loop_task
+
+    async def bridge_loop():
         await bridge.connect_all()
 
         async def send_motor_input():
@@ -134,20 +144,12 @@ def create_app_without_bridge() -> FastAPI:
         for controller in bridge.controllers.values():
             await controller.start_notify_speed(handle_notify_speed)
 
-        count = 0
         while True:
-            # control 内部の時計を現実世界の時間において進める
-            await asyncio.sleep(0.1)
-            control.tick()
-            control.update()
+            await asyncio.sleep(0.5)
+            await send_motor_input()
 
-            if count % 5 == 0:
-                await send_motor_input()
-
-            count += 1
-
-    loop_task = asyncio.create_task(loop())
-    app.state.loop_task = loop_task
+    bridge_loop_task = asyncio.create_task(bridge_loop())
+    app.state.bridge_loop_task = bridge_loop_task
 
     @app.on_event("shutdown")
     async def on_shutdown():
