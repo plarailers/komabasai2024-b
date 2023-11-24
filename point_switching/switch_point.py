@@ -5,7 +5,7 @@ import platform
 from bleak import BleakClient, BleakScanner
 
 if platform.system() == "Windows":
-    ADDRESS_POINT0 = '3C:71:BF:99:36:84'
+    ADDRESS_POINT0 = '3c:71:bf:99:36:86'
     ADDRESS_POINT1 = '9c:9c:1f:cb:d9:f2'
 
 elif platform.system() == "Darwin":
