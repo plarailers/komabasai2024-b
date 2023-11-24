@@ -109,8 +109,8 @@ def create_control(logger: logging.Logger | None = None) -> Control:
 
     t0 = Train(
         id="t0",
-        min_input=200,
-        max_input=250,
+        min_input=150,
+        max_input=210,
         max_speed=40.0,
         length=14.0,
         delta_per_motor_rotation=0.4553,
