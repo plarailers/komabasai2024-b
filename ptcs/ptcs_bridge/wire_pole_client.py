@@ -52,3 +52,9 @@ class WirePoleClient:
 
         await self._client.start_notify(characteristic, wrapped_callback)
         logger.info("%s start notify collapse", self)
+
+        # 倒れたり起き上がったりした瞬間にしか notify が来ないので、
+        # 起動時にこちらから状態を読み取る
+        data = await self._client.read_gatt_char(characteristic)
+        wrapped_callback(characteristic, data)
+        logger.info("%s read collapse %s", self, data)
