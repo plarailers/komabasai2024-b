@@ -325,10 +325,12 @@ class Control:
                 speed_command = stop_speed
 
             # [マスコン]
-            if train.manual_speed is not None:
-                speed_command = min(speed_command, train.manual_speed)
-
-            train.speed_command = speed_command
+            # 自動操縦ならATPとATO、
+            # 手動操縦なら手動速度とATPのみに従う
+            if train.manual_speed is None:
+                train.speed_command = speed_command
+            else:
+                train.speed_command = min(train.manual_speed, speedlimit)
 
             # print(
             #     train.id,
