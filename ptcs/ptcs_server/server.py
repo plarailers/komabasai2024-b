@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from ptcs_bridge.master_controller_client import MasterControllerClient
+from ptcs_bridge.point_client import PointClient
 from ptcs_bridge.train_base import TrainBase
 from ptcs_bridge.train_client import TrainClient
 from ptcs_bridge.train_simulator import TrainSimulator
@@ -72,27 +73,8 @@ def create_app() -> FastAPI:
     control_loop_task = asyncio.create_task(control_loop())
     app.state.control_loop_task = control_loop_task
 
-    async def bridge_loop():
-        await bridge.connect_all()
-
-        async def send_motor_input():
-            for train_id, train_control in control.trains.items():
-                train_client = bridge.trains.get(train_id)
-                if train_client is None:
-                    continue
-                match train_client:
-                    case TrainSimulator():
-                        await train_client.send_speed(train_control.speed_command)
-                    case TrainClient():
-                        motor_input = train_control.calc_input(train_control.speed_command)
-                        await train_client.send_motor_input(motor_input)
-
-        async def send_direction():
-            for junction_id, junction_control in control.junctions.items():
-                point_client = bridge.points.get(junction_id)
-                if point_client is None:
-                    continue
-                await point_client.send_direction(junction_control.current_direction)
+    async def train_loop(train_client: TrainBase):
+        await train_client.connect()
 
         def handle_notify_position_id(train_client: TrainBase, position_id: str):
             train_control = control.trains.get(train_client.id)
@@ -113,12 +95,47 @@ def create_app() -> FastAPI:
                 return
             train_control.voltage_mV = _voltage_mV
 
-        for train in bridge.trains.values():
-            match train:
+        await train_client.start_notify_rotation(handle_notify_rotation)
+        match train_client:
+            case TrainClient():
+                await train_client.start_notify_position_id(handle_notify_position_id)
+                await train_client.start_notify_voltage(handle_notify_voltage)
+
+        train_control = control.trains.get(train_client.id)
+        if train_control is None:
+            return
+
+        while True:
+            await asyncio.sleep(0.2)
+            match train_client:
+                case TrainSimulator():
+                    await train_client.send_speed(train_control.speed_command)
                 case TrainClient():
-                    await train.start_notify_position_id(handle_notify_position_id)
-                    await train.start_notify_voltage(handle_notify_voltage)
-            await train.start_notify_rotation(handle_notify_rotation)
+                    motor_input = train_control.calc_input(train_control.speed_command)
+                    await train_client.send_motor_input(motor_input)
+
+    app.state.train_loop_tasks = {}
+    for train_id, train_client in bridge.trains.items():
+        train_loop_task = asyncio.create_task(train_loop(train_client))
+        app.state.train_loop_tasks[train_id] = train_loop_task
+
+    async def point_loop(point_client: PointClient):
+        await point_client.connect()
+
+        junction_control = control.junctions.get(point_client.id)
+        if junction_control is None:
+            return
+
+        while True:
+            await asyncio.sleep(0.2)
+            await point_client.send_direction(junction_control.current_direction)
+
+    app.state.point_loop_tasks = {}
+    for point_id, point_client in bridge.points.items():
+        app.state.point_loop_tasks[point_id] = asyncio.create_task(point_loop(point_client))
+
+    async def obstacle_loop(obstacle_client: WirePoleClient):
+        await obstacle_client.connect()
 
         def handle_notify_collapse(obstacle_client: WirePoleClient, is_collapsed: bool):
             obstacle_control = control.obstacles.get(obstacle_client.id)
@@ -126,8 +143,14 @@ def create_app() -> FastAPI:
                 return
             obstacle_control.is_detected = is_collapsed
 
-        for obstacle in bridge.obstacles.values():
-            await obstacle.start_notify_collapse(handle_notify_collapse)
+        await obstacle_client.start_notify_collapse(handle_notify_collapse)
+
+    app.state.obstacle_loop_tasks = {}
+    for obstacle_id, obstacle_client in bridge.obstacles.items():
+        app.state.obstacle_loop_tasks[obstacle_id] = asyncio.create_task(obstacle_loop(obstacle_client))
+
+    async def controller_loop(controller_client: MasterControllerClient):
+        await controller_client.connect()
 
         def handle_notify_speed(controller_client: MasterControllerClient, speed: int):
             train_control = control.trains.get(controller_client.id)
@@ -135,16 +158,11 @@ def create_app() -> FastAPI:
                 return
             train_control.manual_speed = speed / 255 * train_control.max_speed
 
-        for controller in bridge.controllers.values():
-            await controller.start_notify_speed(handle_notify_speed)
+        await controller_client.start_notify_speed(handle_notify_speed)
 
-        while True:
-            await asyncio.sleep(0.5)
-            await send_motor_input()
-            await send_direction()
-
-    bridge_loop_task = asyncio.create_task(bridge_loop())
-    app.state.bridge_loop_task = bridge_loop_task
+    app.state.controller_loop_tasks = {}
+    for controller_id, controller_client in bridge.controllers.items():
+        app.state.controller_loop_tasks[controller_id] = asyncio.create_task(controller_loop(controller_client))
 
     @app.on_event("shutdown")
     async def on_shutdown():

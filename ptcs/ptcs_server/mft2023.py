@@ -23,8 +23,8 @@ elif platform.system() == "Darwin":
     ADDRESS_T2 = "EB57E065-90A0-B6D0-98BA-81096FA5765E"
     ADDRESS_T3 = "4AA3AAE5-A039-8484-013C-32AD94F50BE0"
     ADDRESS_T4 = "FC44FB3F-CF7D-084C-EA29-7AFD10C47A57"
-    ADDRESS_WIRE_POLE = ""
-    ADDRESS_MASTER_CONTROLLER = ""
+    ADDRESS_WIRE_POLE = "C6ED8F77-16C1-F870-C731-15AA663F0E29"
+    ADDRESS_MASTER_CONTROLLER = "E538DF32-E46A-3177-8196-3B9A8D4861A9"
     ADDRESS_POINT0 = "9FA4916E-AD02-6C9C-686A-1B97D9E3427A"
     ADDRESS_POINT1 = "90386433-4331-50CF-1637-EFFA587DD6DB"
 else:
@@ -33,18 +33,18 @@ else:
 
 def create_bridge() -> Bridge2:
     bridge = Bridge2()
-    bridge.add_train(TrainSimulator("t0"))
-    # bridge.add_train(TrainClient("t0", ADDRESS_T0))
+    # bridge.add_train(TrainSimulator("t0"))
+    bridge.add_train(TrainClient("t0", ADDRESS_T0))
     # bridge.add_train(TrainSimulator("t1"))
     bridge.add_train(TrainClient("t1", ADDRESS_T1))
-    # bridge.add_train(TrainSimulator("t2"))
-    bridge.add_train(TrainClient("t2", ADDRESS_T2))
+    bridge.add_train(TrainSimulator("t2"))
+    # bridge.add_train(TrainClient("t2", ADDRESS_T2))
     # bridge.add_train(TrainSimulator("t3"))
     bridge.add_train(TrainClient("t3", ADDRESS_T3))
-    bridge.add_train(TrainSimulator("t4"))
-    # bridge.add_train(TrainClient("t4", ADDRESS_T4))
+    # bridge.add_train(TrainSimulator("t4"))
+    bridge.add_train(TrainClient("t4", ADDRESS_T4))
     bridge.add_obstacle(WirePoleClient("obstacle_0", ADDRESS_WIRE_POLE))
-    bridge.add_controller(MasterControllerClient("t3", ADDRESS_MASTER_CONTROLLER))
+    bridge.add_controller(MasterControllerClient("t4", ADDRESS_MASTER_CONTROLLER))
     bridge.add_point(PointClient("j0", ADDRESS_POINT1))
     bridge.add_point(PointClient("j2", ADDRESS_POINT0))
     return bridge

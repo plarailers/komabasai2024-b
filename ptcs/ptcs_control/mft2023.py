@@ -109,24 +109,24 @@ def create_control(logger: logging.Logger | None = None) -> Control:
 
     t0 = Train(
         id="t0",
-        min_input=200,
-        max_input=250,
+        min_input=190,
+        max_input=240,
         max_speed=40.0,
         length=14.0,
-        delta_per_motor_rotation=0.4553 * 0.9 * 0.9,
+        delta_per_motor_rotation=0.4553,
         head_position=DirectedPosition(
             section=s3,
             target_junction=j1,
-            mileage=WATARI_RAIL_A + STRAIGHT_RAIL * 0.5,
+            mileage=WATARI_RAIL_A + STRAIGHT_RAIL,
         ),
     )
     t1 = Train(
         id="t1",
         min_input=150,
-        max_input=210,
+        max_input=190,
         max_speed=40.0,
         length=14.0,
-        delta_per_motor_rotation=0.4021,
+        delta_per_motor_rotation=0.4321,
         head_position=DirectedPosition(
             section=s3,
             target_junction=j1,
@@ -135,7 +135,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
     )
     t2 = Train(
         id="t2",
-        min_input=150,
+        min_input=180,
         max_input=230,
         max_speed=40.0,
         length=14.0,
@@ -154,11 +154,11 @@ def create_control(logger: logging.Logger | None = None) -> Control:
     )
     t3 = Train(
         id="t3",
-        min_input=190,
+        min_input=180,
         max_input=220,
         max_speed=40.0,
         length=14.0,
-        delta_per_motor_rotation=0.4208,
+        delta_per_motor_rotation=0.4508,
         head_position=DirectedPosition(
             section=s3,
             target_junction=j1,
@@ -178,7 +178,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         max_input=230,
         max_speed=40.0,
         length=40.0,
-        delta_per_motor_rotation=0.4241 * 2.2,
+        delta_per_motor_rotation=0.4241,
         head_position=DirectedPosition(
             section=s1,
             target_junction=j0,
@@ -186,18 +186,18 @@ def create_control(logger: logging.Logger | None = None) -> Control:
         ),
     )
 
-    # control.add_train(t0)
+    control.add_train(t0)
     control.add_train(t1)
-    control.add_train(t2)
+    # control.add_train(t2)
     control.add_train(t3)
-    # control.add_train(t4)
+    control.add_train(t4)
 
     stop_0 = Stop(
         id="stop_0",
         position=DirectedPosition(
             section=s3,
             target_junction=j1,
-            mileage=WATARI_RAIL_A + STRAIGHT_RAIL * 0.5,
+            mileage=WATARI_RAIL_A + STRAIGHT_RAIL * 0.8,
         ),
     )
     stop_1 = Stop(
@@ -211,7 +211,7 @@ def create_control(logger: logging.Logger | None = None) -> Control:
             + STRAIGHT_RAIL
             + STRAIGHT_1_2_RAIL
             + OUTER_CURVE_RAIL * 2
-            + STRAIGHT_RAIL * 1.5,
+            + STRAIGHT_RAIL * 1.8,
         ),
     )
 
