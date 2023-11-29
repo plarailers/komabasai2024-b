@@ -121,8 +121,7 @@ class Control:
         状態に変化が起こった後、すべてを再計算する。
         """
         self._calc_direction()
-        # self._calc_stop()
-        self._calc_stop2()
+        self._calc_stop()
         self._calc_speed()
 
     def _calc_direction(self) -> None:
@@ -346,51 +345,7 @@ class Control:
         """
         列車の現在あるべき停止目標を割り出し、列車の状態として格納する。
         この情報は列車の速度を計算するのに使われる。
-
-        実際の挙動は「列車より手前にある停止目標を計算し、ちょっと待ってから格納する」であり、
-        これは以下の仮定をおいた上でうまく動作する。
-          - 列車は停止目標付近で停止する（= IPS 信号がしばらく送られなくなる）。
-          - 停止したときに停止目標の位置を過ぎている。
         """
-
-        STOPPAGE_TIME: int = 50  # 列車の停止時間[フレーム] NOTE: 将来的にはパラメータとして定義
-
-        for train in self.trains.values():
-            # 列車より手前にある停止目標を取得する
-            forward_stop, forward_stop_distance = train.find_forward_stop() or (None, 0)
-
-            # 停止目標がないままのとき（None → None）
-            # 停止目標を見つけたとき（None → not None）
-            if train.stop is None:
-                train.stop = forward_stop
-                if forward_stop:
-                    train.stop_distance = forward_stop_distance
-                else:
-                    train.stop_distance = 0
-
-            # 停止目標を過ぎたとき（異なる）
-            # 停止目標を見失ったとき（not None → None）
-            # NOTE: セクションがblockされると停止目標を見失う場合がある。
-            # このときは駅に着いたと勘違いして止まってしまう現象が起きるが、
-            # 駅到着により見失う場合との区別が難しいので、無視する。
-            elif train.stop != forward_stop:
-                # 最初は発車時刻を設定
-                if train.departure_time is None:
-                    train.departure_time = self.current_time + STOPPAGE_TIME
-                    train.stop_distance = 0
-
-                # 発車時刻になっていれば、次の停止目標に切り替える
-                elif self.current_time >= train.departure_time:
-                    train.departure_time = None
-                    train.stop = forward_stop
-                    train.stop_distance = forward_stop_distance
-
-            # 停止目標が変わらないとき
-            else:
-                train.stop_distance = forward_stop_distance
-
-    def _calc_stop2(self) -> None:
-        """ """
 
         STOPPAGE_TIME: int = 50  # 列車の停止時間[フレーム] NOTE: 将来的にはパラメータとして定義
         STOPPAGE_MERGIN: float = STRAIGHT_RAIL / 2  # 停止区間距離[cm]
