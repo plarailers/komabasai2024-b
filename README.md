@@ -1,6 +1,6 @@
-# 第74回駒場祭
+# 第97回五月祭
 
-開催日：2023年11月24日（金）～26日（日）
+開催日：2024年5月18日（土）～19日（日）
 
 ## 内容
 
@@ -27,5 +27,5 @@
 ## インストール
 
 ```sh
-git clone https://github.com/plarailers/komabasai2023.git
+git clone https://github.com/plarailers/gogatsusai2024.git
 ```
