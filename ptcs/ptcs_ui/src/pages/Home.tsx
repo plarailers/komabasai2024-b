@@ -56,7 +56,7 @@ export const Home: React.FC = () => {
                   <Information />
                 </Grid.Col>
               </Grid>
-              <Debugger />
+              {/* <Debugger /> */}
               <Code block>{JSON.stringify(railwayState, null, 4)}</Code>
             </Stack>
           </Container>
