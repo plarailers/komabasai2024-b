@@ -87,7 +87,7 @@ def extract_v2(path: str, diagram_name: str):
     junctions = {}
     sections = {}
 
-    for id, cell_element in cells.items():
+    for id, cell_element in sorted(cells.items()):
         if cell_element.attrib.get("vertex") == "1":
             # 円の場合
             if "ellipse" in cell_element.attrib["style"].split(";"):
@@ -119,7 +119,7 @@ def extract_v2(path: str, diagram_name: str):
                 position = {"x": (x + width // 2), "y": (y + height // 2)}
                 platforms[id] = {"position": position}
 
-    for id, cell_element in cells.items():
+    for id, cell_element in sorted(cells.items()):
         if cell_element.attrib.get("edge") == "1":
             points = []
 
