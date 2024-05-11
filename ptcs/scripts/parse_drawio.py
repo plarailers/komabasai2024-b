@@ -4,7 +4,7 @@
 #   poetry run python scripts/parse_drawio.py extract docs/gogatsusai2024.drawio v1
 #
 # 使い方 v2:
-#   poetry run python scripts/parse_drawio.py extract-v2 docs/gogatsusai2024.drawio v2
+#   poetry run python scripts/parse_drawio.py extract-v2 docs/gogatsusai2024.drawio v2 > data/gogatsusai2024/railway_ui.json
 
 
 import json
@@ -108,7 +108,16 @@ def extract_v2(path: str, diagram_name: str):
 
             # 長方形の場合
             else:
-                platforms[id] = {}
+                geometry_element = cell_element.find("mxGeometry")
+                assert geometry_element is not None
+
+                x = round(float(geometry_element.attrib["x"]))
+                y = round(float(geometry_element.attrib["y"]))
+                width = round(float(geometry_element.attrib["width"]))
+                height = round(float(geometry_element.attrib["height"]))
+
+                position = {"x": (x + width // 2), "y": (y + height // 2)}
+                platforms[id] = {"position": position}
 
     for id, cell_element in cells.items():
         if cell_element.attrib.get("edge") == "1":
