@@ -171,6 +171,16 @@ def generate_python(json_path: str, output_path: str):
 
     code = ""
 
+    code += "# このファイルは自動生成されたものです。\n"
+    code += "# 詳しくは scripts/parse_drawio.py を見てください。\n"
+    code += "\n"
+    code += "from .components.junction import Junction, JunctionConnection\n"
+    code += "from .components.section import Section, SectionConnection\n"
+    code += "from .control import Control\n"
+    code += "\n"
+    code += "\n"
+    code += "def configure(control: Control) -> None:\n"
+
     for junction_id, _junction in data["junctions"].items():
         code += f'    {junction_id} = Junction(id="{junction_id}")\n'
     code += "\n"
@@ -216,7 +226,7 @@ def generate_python(json_path: str, output_path: str):
     for section_id, section_connection, junction_id, junction_connection in sorted(connections):
         code += f"    control.connect({section_id}, {section_connection}, {junction_id}, {junction_connection})\n"
 
-    with open(output_path, "w") as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write(code)
 
 

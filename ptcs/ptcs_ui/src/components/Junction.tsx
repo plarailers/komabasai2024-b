@@ -33,6 +33,9 @@ export const Junction: React.FC<JunctionProps> = ({ id, position }) => {
     JunctionConnection.DIVERGING,
   ]) {
     const sectionId = junctionState.connected_section_ids[joint];
+    if (!sectionId) {
+      continue; // DIVERGING が無い場合もある
+    }
     const sectionState = railwayState.sections[sectionId];
     if (id === sectionState.connected_junction_ids[SectionConnection.A]) {
       const points = railwayUI.sections[sectionId].points;

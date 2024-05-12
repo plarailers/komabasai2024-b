@@ -70,9 +70,9 @@ class Junction(BaseComponent):
 
     def verify(self) -> None:
         super().verify()
-        assert self.connected_sections.get(JunctionConnection.THROUGH) is not None
-        assert self.connected_sections.get(JunctionConnection.DIVERGING) is not None
-        assert self.connected_sections.get(JunctionConnection.CONVERGING) is not None
+        assert self.connected_sections.get(JunctionConnection.THROUGH) is not None, f"{self}"
+        # assert self.connected_sections.get(JunctionConnection.DIVERGING) is not None  # DIVERGING が無い場合もある
+        assert self.connected_sections.get(JunctionConnection.CONVERGING) is not None, f"{self}"
 
     def set_direction(self, direction: PointDirection) -> None:
         """
