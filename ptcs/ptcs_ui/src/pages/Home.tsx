@@ -39,7 +39,7 @@ export const Home: React.FC = () => {
           <Container>
             <Stack>
               <Grid>
-                <Grid.Col span={8}>
+                <Grid.Col span={12}>
                   <Railway>
                     <text
                       x={10}
@@ -52,12 +52,15 @@ export const Home: React.FC = () => {
                     </text>
                   </Railway>
                 </Grid.Col>
+              </Grid>
+              <Grid>
+                <Grid.Col span={8}></Grid.Col>
                 <Grid.Col span={4}>
                   <Information />
                 </Grid.Col>
               </Grid>
               {/* <Debugger /> */}
-              <Code block>{JSON.stringify(railwayState, null, 4)}</Code>
+              {/* <Code block>{JSON.stringify(railwayState, null, 4)}</Code> */}
             </Stack>
           </Container>
         </Layout>

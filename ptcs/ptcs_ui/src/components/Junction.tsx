@@ -25,6 +25,10 @@ export const Junction: React.FC<JunctionProps> = ({ id, position }) => {
 
   const junctionState = railwayState.junctions![id];
 
+  if (!junctionState.connected_section_ids[JunctionConnection.DIVERGING]) {
+    return null;
+  }
+
   const directions: Record<string, { x: number; y: number }> = {};
 
   for (const joint of [
@@ -33,9 +37,6 @@ export const Junction: React.FC<JunctionProps> = ({ id, position }) => {
     JunctionConnection.DIVERGING,
   ]) {
     const sectionId = junctionState.connected_section_ids[joint];
-    if (!sectionId) {
-      continue; // DIVERGING が無い場合もある
-    }
     const sectionState = railwayState.sections[sectionId];
     if (id === sectionState.connected_junction_ids[SectionConnection.A]) {
       const points = railwayUI.sections[sectionId].points;
@@ -64,7 +65,7 @@ export const Junction: React.FC<JunctionProps> = ({ id, position }) => {
     }
   }
 
-  const radius = 6;
+  const radius = 12;
 
   return (
     <g transform={`translate(${position.x}, ${position.y})`}>
@@ -94,7 +95,7 @@ export const Junction: React.FC<JunctionProps> = ({ id, position }) => {
           .join(" ")}
         fill="none"
         stroke={theme.colors.blue[7]}
-        strokeWidth={4}
+        strokeWidth={8}
       />
     </g>
   );
