@@ -27,6 +27,7 @@ class Section(BaseComponent):
     # config
     length: float
     connected_junctions: dict[SectionConnection, Junction] = field(default_factory=dict)
+    block_id: str | None = field(default=None)
 
     # state
     _is_blocked: bool = field(default=False)  # 区間上に障害物が発生していて使えない状態になっているかどうか

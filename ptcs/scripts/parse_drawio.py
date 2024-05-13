@@ -6,6 +6,10 @@
 # 使い方 v2:
 #   poetry run python scripts/parse_drawio.py extract-v2 docs/gogatsusai2024.drawio v2 data/gogatsusai2024/railway_ui.json
 #
+# 使い方 v3:
+#   poetry run python scripts/parse_drawio.py extract-v2 docs/gogatsusai2024_v3.drawio v3 data/gogatsusai2024/railway_ui_v3.json
+#   poetry run python scripts/parse_drawio.py generate-python data/gogatsusai2024/railway_ui_v3.json ptcs_control/gogatsusai2024.py
+#
 # 注意:
 #   - PowerShell のリダイレクトを使うと BOM が付いてしまうので Python 側でファイルの書き込みを行うこと。
 
@@ -76,23 +80,23 @@ def extract_v2(drawio_path: str, diagram_name: str, output_path: str):
     diagram_element = root_element.find(f"diagram[@name={diagram_name!r}]")
     assert diagram_element is not None
 
-    cells: dict[str, ET.Element] = {}
+    cells: dict[str, tuple[ET.Element | None, ET.Element]] = {}
 
     for object_element in diagram_element.findall("mxGraphModel/root/object"):
         object_id = object_element.attrib["id"]
         cell_element = object_element.find("mxCell")
         assert cell_element is not None
-        cells[object_id] = cell_element
+        cells[object_id] = (object_element, cell_element)
 
     for cell_element in diagram_element.findall("mxGraphModel/root/mxCell"):
         cell_id = cell_element.attrib["id"]
-        cells[cell_id] = cell_element
+        cells[cell_id] = (None, cell_element)
 
     platforms = {}
     junctions = {}
     sections = {}
 
-    for id, cell_element in sorted(cells.items()):
+    for id, (object_element, cell_element) in sorted(cells.items()):
         if cell_element.attrib.get("vertex") == "1":
             # 円の場合
             if "ellipse" in cell_element.attrib["style"].split(";"):
@@ -124,7 +128,7 @@ def extract_v2(drawio_path: str, diagram_name: str, output_path: str):
                 position = {"x": (x + width // 2), "y": (y + height // 2)}
                 platforms[id] = {"position": position}
 
-    for id, cell_element in sorted(cells.items()):
+    for id, (object_element, cell_element) in sorted(cells.items()):
         if cell_element.attrib.get("edge") == "1":
             points = []
 
@@ -134,26 +138,23 @@ def extract_v2(drawio_path: str, diagram_name: str, output_path: str):
             target_element_id = cell_element.attrib.get("target")
             assert target_element_id is not None, f"辺 {id} に target が設定されていません。"
 
-            points.append(
-                {
-                    "x": junctions[source_element_id]["position"]["x"],
-                    "y": junctions[source_element_id]["position"]["y"],
-                }
-            )
+            block_id = object_element.attrib.get("blockId") if object_element else None
+            assert block_id is not None, f"辺 {id} に blockId が設定されていません。"
+
+            x = junctions[source_element_id]["position"]["x"]
+            y = junctions[source_element_id]["position"]["y"]
+            points.append({"x": x, "y": y})
 
             for point_element in cell_element.findall("mxGeometry/Array/mxPoint"):
                 x = round(float(point_element.attrib["x"]))
                 y = round(float(point_element.attrib["y"]))
                 points.append({"x": x, "y": y})
 
-            points.append(
-                {
-                    "x": junctions[target_element_id]["position"]["x"],
-                    "y": junctions[target_element_id]["position"]["y"],
-                }
-            )
+            x = junctions[target_element_id]["position"]["x"]
+            y = junctions[target_element_id]["position"]["y"]
+            points.append({"x": x, "y": y})
 
-            sections[id] = {"from": source_element_id, "to": target_element_id, "points": points}
+            sections[id] = {"from": source_element_id, "to": target_element_id, "points": points, "block_id": block_id}
 
     result = {"platforms": platforms, "junctions": junctions, "sections": sections}
 
@@ -189,8 +190,8 @@ def generate_python(json_path: str, output_path: str):
         code += f"    control.add_junction({junction_id})\n"
     code += "\n"
 
-    for section_id, _section in data["sections"].items():
-        code += f'    {section_id} = Section(id="{section_id}", length=100.0)\n'
+    for section_id, section in data["sections"].items():
+        code += f'    {section_id} = Section(id="{section_id}", length=100.0, block_id="{section["block_id"]}")\n'
     code += "\n"
 
     for section_id, _section in data["sections"].items():
