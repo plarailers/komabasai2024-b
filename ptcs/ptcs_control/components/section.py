@@ -76,7 +76,7 @@ class Section(BaseComponent):
 
         if target_junction.connected_sections[JunctionConnection.THROUGH] == self:
             next_section = target_junction.connected_sections[JunctionConnection.CONVERGING]
-        elif target_junction.connected_sections[JunctionConnection.DIVERGING] == self:
+        elif target_junction.connected_sections.get(JunctionConnection.DIVERGING) == self:  # DIVERGING が無い場合がある
             next_section = target_junction.connected_sections[JunctionConnection.CONVERGING]
         elif target_junction.connected_sections[JunctionConnection.CONVERGING] == self:
             if target_junction.current_direction == PointDirection.STRAIGHT:
@@ -104,7 +104,7 @@ class Section(BaseComponent):
                 return None
             else:
                 raise
-        elif target_junction.connected_sections[JunctionConnection.DIVERGING] == self:
+        elif target_junction.connected_sections.get(JunctionConnection.DIVERGING) == self:  # DIVERGING が無い場合がある
             if target_junction.current_direction == PointDirection.STRAIGHT:
                 return None
             elif target_junction.current_direction == PointDirection.CURVE:

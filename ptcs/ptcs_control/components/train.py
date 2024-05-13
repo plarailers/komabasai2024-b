@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 from collections.abc import Iterable
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import TYPE_CHECKING, TypeVar
 
 from .base import BaseComponent
@@ -17,6 +18,14 @@ if TYPE_CHECKING:
 
 
 T = TypeVar("T")
+
+
+class TrainType(str, Enum):
+    """列車の種別"""
+
+    LimitedExpress = "LimitedExpress"  # 特急
+    Local = "Local"  # 各駅停車
+    CommuterSemiExpress = "CommuterSemiExpress"  # 通勤準急
 
 
 @dataclass
@@ -34,6 +43,11 @@ class Train(BaseComponent):
 
     # state
     head_position: DirectedPosition  # 列車先頭の位置と方向
+
+    # config with default
+    type: TrainType | None = None  # 列車の種別
+
+    # state with default
     stop: Stop | None = field(default=None)  # 列車の停止目標
     stop_distance: float = field(default=0.0)  # 停止目標までの距離[cm]
     departure_time: int | None = field(default=None)  # 発車予定時刻
