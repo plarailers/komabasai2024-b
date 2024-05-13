@@ -3,7 +3,6 @@ ptcs_control の状態を、JSON に変換可能なオブジェクト (pydantic.
 二度手間なので、そのうち無くしたい。
 """
 
-
 from __future__ import annotations
 
 from pydantic import BaseModel
@@ -11,7 +10,7 @@ from pydantic import BaseModel
 from ptcs_control.components.junction import JunctionConnection, PointDirection
 from ptcs_control.components.section import SectionConnection
 from ptcs_control.components.train import Train
-from ptcs_control.control import Control
+from ptcs_control.control.base import BaseControl
 
 
 class RailwayState(BaseModel):
@@ -124,7 +123,7 @@ class DirectedPosition(BaseModel):
 RailwayState.model_rebuild()
 
 
-def get_state_from_control(control: Control) -> RailwayState:
+def get_state_from_control(control: BaseControl) -> RailwayState:
     return RailwayState(
         current_time=control.current_time,
         junctions={

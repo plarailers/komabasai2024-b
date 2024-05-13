@@ -19,14 +19,15 @@ from .constants import (
     WATARI_RAIL_B,
     WATARI_RAIL_C,
 )
-from .control import Control, create_empty_logger
+from .control.base import create_empty_logger
+from .control.moving_block import MovingBlockControl
 
 
-def create_control(logger: logging.Logger | None = None) -> Control:
+def create_control(logger: logging.Logger | None = None) -> MovingBlockControl:
     if logger is None:
         logger = create_empty_logger()
 
-    control = Control(logger=logger)
+    control = MovingBlockControl(logger=logger)
 
     j00 = Junction(id="j00")
     j01 = Junction(id="j01")

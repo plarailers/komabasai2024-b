@@ -177,10 +177,10 @@ def generate_python(json_path: str, output_path: str):
     code += "\n"
     code += "from .components.junction import Junction, JunctionConnection\n"
     code += "from .components.section import Section, SectionConnection\n"
-    code += "from .control import Control\n"
+    code += "from .control.base import BaseControl\n"
     code += "\n"
     code += "\n"
-    code += "def configure(control: Control) -> None:\n"
+    code += "def configure(control: BaseControl) -> None:\n"
 
     for junction_id, _junction in data["junctions"].items():
         code += f'    {junction_id} = Junction(id="{junction_id}")\n'

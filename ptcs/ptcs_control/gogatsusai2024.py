@@ -3,10 +3,10 @@
 
 from .components.junction import Junction, JunctionConnection
 from .components.section import Section, SectionConnection
-from .control import Control
+from .control.base import BaseControl
 
 
-def configure(control: Control) -> None:
+def configure(control: BaseControl) -> None:
     c16 = Junction(id="c16")
     c17 = Junction(id="c17")
     c18 = Junction(id="c18")

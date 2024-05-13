@@ -5,13 +5,13 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..control import Control
+    from ..control import BaseControl
 
 
 @dataclass
 class BaseComponent(ABC):
     id: str
-    _control: Control | None = field(default=None, init=False)
+    _control: BaseControl | None = field(default=None, init=False)
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}({self.id})"
@@ -20,6 +20,6 @@ class BaseComponent(ABC):
         assert self._control is not None
 
     @property
-    def control(self) -> Control:
+    def control(self) -> BaseControl:
         assert self._control is not None
         return self._control
