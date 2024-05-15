@@ -1,5 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
+from collections import deque
 from dataclasses import dataclass, field
 
 from ..components.junction import Junction, JunctionConnection
@@ -9,6 +10,7 @@ from ..components.sensor_position import SensorPosition
 from ..components.station import Station
 from ..components.stop import Stop
 from ..components.train import Train
+from .events import Event
 
 
 def create_empty_logger() -> logging.Logger:
@@ -35,6 +37,8 @@ class BaseControl(ABC):
     stations: dict[str, Station] = field(default_factory=dict)
     sensor_positions: dict[str, SensorPosition] = field(default_factory=dict)
     obstacles: dict[str, Obstacle] = field(default_factory=dict)
+
+    event_queue: deque[Event] = field(default_factory=lambda: deque())
 
     logger: logging.Logger = field(default_factory=create_empty_logger)
 
@@ -121,4 +125,4 @@ class BaseControl(ABC):
         状態に変化が起こった後、すべてを再計算する。
         継承先のクラスで実装すること。
         """
-        pass
+        self.event_queue.clear()

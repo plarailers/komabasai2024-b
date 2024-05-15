@@ -4,9 +4,10 @@ from ..components.junction import JunctionConnection, PointDirection
 from ..components.obstacle import Obstacle
 from ..components.position import DirectedPosition, UndirectedPosition
 from ..components.section import SectionConnection
-from ..components.train import Train
+from ..components.train import Train, TrainType
 from ..constants import STRAIGHT_RAIL
 from .base import BaseControl
+from .events import TrainSectionChanged
 
 
 class FixedBlockControl(BaseControl):
@@ -18,14 +19,22 @@ class FixedBlockControl(BaseControl):
         """
         状態に変化が起こった後、すべてを再計算する。
         """
+
         self._calc_direction()
         self._calc_stop()
         self._calc_speed()
+        self.event_queue.clear()
 
     def _calc_direction(self) -> None:
         """
         ポイントをどちら向きにするかを計算する。
         """
+
+        while len(self.event_queue) > 0:
+            event = self.event_queue.popleft()
+            match event:
+                case TrainSectionChanged(train, previous_section, current_section):  # 列車のセクションが変わったとき
+                    self.logger.info(f"{train} {previous_section} -> {current_section}")
 
         # 合流点に向かっている列車が1つ以上ある場合、
         # 最も近い列車のいるほうにポイントを切り替える。

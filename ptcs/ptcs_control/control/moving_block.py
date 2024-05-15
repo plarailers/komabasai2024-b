@@ -18,9 +18,11 @@ class MovingBlockControl(BaseControl):
         """
         状態に変化が起こった後、すべてを再計算する。
         """
+
         self._calc_direction()
         self._calc_stop()
         self._calc_speed()
+        self.event_queue.clear()
 
     def _calc_direction(self) -> None:
         """

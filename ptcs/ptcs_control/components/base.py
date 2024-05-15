@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..control import BaseControl
+    from ..control.base import BaseControl
 
 
 @dataclass
