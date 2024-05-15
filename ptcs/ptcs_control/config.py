@@ -35,8 +35,8 @@ def configure(control: FixedBlockControl) -> None:
         length=14.0,
         delta_per_motor_rotation=0.4553,
         head_position=DirectedPosition(
-            section=control.sections["S00"],
-            target_junction=control.sections["S00"].connected_junctions[SectionConnection.B],
+            section=control.sections["S01"],
+            target_junction=control.sections["S01"].connected_junctions[SectionConnection.B],
             mileage=1.0,
         ),
     )
@@ -49,50 +49,50 @@ def configure(control: FixedBlockControl) -> None:
         length=14.0,
         delta_per_motor_rotation=0.4321,
         head_position=DirectedPosition(
-            section=control.sections["S01"],
-            target_junction=control.sections["S01"].connected_junctions[SectionConnection.B],
+            section=control.sections["S31"],
+            target_junction=control.sections["S31"].connected_junctions[SectionConnection.B],
             mileage=1.0,
         ),
     )
     t2 = Train(
         id="t2",
-        type=TrainType.LimitedExpress,
+        type=TrainType.CommuterSemiExpress,
         min_input=180,
         max_input=230,
         max_speed=40.0,
         length=14.0,
         delta_per_motor_rotation=0.5048,
         head_position=DirectedPosition(
-            section=control.sections["S12"],
-            target_junction=control.sections["S12"].connected_junctions[SectionConnection.B],
+            section=control.sections["S22"],
+            target_junction=control.sections["S22"].connected_junctions[SectionConnection.B],
             mileage=1.0,
         ),
     )
     t3 = Train(
         id="t3",
-        type=TrainType.LimitedExpress,
+        type=TrainType.CommuterSemiExpress,
         min_input=180,
         max_input=220,
         max_speed=40.0,
         length=14.0,
         delta_per_motor_rotation=0.4508,
         head_position=DirectedPosition(
-            section=control.sections["S13"],
-            target_junction=control.sections["S13"].connected_junctions[SectionConnection.B],
+            section=control.sections["S50"],
+            target_junction=control.sections["S50"].connected_junctions[SectionConnection.B],
             mileage=1.0,
         ),
     )
     t4 = Train(
         id="t4",
-        type=TrainType.LimitedExpress,
+        type=TrainType.Local,
         min_input=180,
         max_input=230,
         max_speed=40.0,
         length=40.0,
         delta_per_motor_rotation=0.4241,
         head_position=DirectedPosition(
-            section=control.sections["S14"],
-            target_junction=control.sections["S14"].connected_junctions[SectionConnection.B],
+            section=control.sections["S08"],
+            target_junction=control.sections["S08"].connected_junctions[SectionConnection.B],
             mileage=1.0,
         ),
     )

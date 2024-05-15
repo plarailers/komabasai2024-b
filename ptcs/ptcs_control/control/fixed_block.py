@@ -30,18 +30,12 @@ class FixedBlockControl(BaseControl):
         ポイントをどちら向きにするかを計算する。
         """
 
-        while len(self.event_queue) > 0:
-            event = self.event_queue.popleft()
-            match event:
-                case TrainSectionChanged(train, previous_section, current_section):  # 列車のセクションが変わったとき
-                    self.logger.info(f"{train} {previous_section} -> {current_section}")
-
         # 合流点に向かっている列車が1つ以上ある場合、
         # 最も近い列車のいるほうにポイントを切り替える。
         #
         # 分岐点は決め打ちで、
-        # obstacle_0 が出ていないときは、t0-t3 を内側、t4 を外側に運ぶ。
-        # obstacle_0 が出ているときは、すべて外側に運ぶ。
+        # 急行線上の分岐点では特急を急行線に、
+        # 緩行線上の分岐点では各駅停車を緩行線に保つ。
         for junction in self.junctions.values():
             nearest_train = junction.find_nearest_train()
 
@@ -49,7 +43,7 @@ class FixedBlockControl(BaseControl):
                 continue
 
             match junction.id:
-                case "j1" | "j3":
+                case "j01" | "j03" | "j05" | "j07" | "j09" | "j11" | "j13" | "j15":  # 合流点
                     if junction.connected_sections[JunctionConnection.THROUGH] == nearest_train.head_position.section:
                         junction.manual_direction = PointDirection.STRAIGHT
                     elif (
@@ -57,53 +51,56 @@ class FixedBlockControl(BaseControl):
                     ):
                         junction.manual_direction = PointDirection.CURVE
                     else:
-                        # TODO: 会場で書いたコードなので後でちゃんと書く。
-                        if junction.id == "j3" and nearest_train.head_position.target_junction.id == "j2":
-                            junction.manual_direction = PointDirection.CURVE
-                            print(nearest_train.id, junction.id)
+                        pass  # まだ遠くにいる
 
-                case "j0":
-                    if not self.obstacles["obstacle_0"].is_detected:
-                        match nearest_train.id:
-                            case "t0" | "t1" | "t2" | "t3":
-                                junction.manual_direction = PointDirection.CURVE
-                            case "t4":
-                                junction.manual_direction = PointDirection.STRAIGHT
-                    else:
-                        junction.manual_direction = PointDirection.STRAIGHT
+                case "j02" | "j04" | "j08" | "j14":  # 急行線上の分岐点
+                    match nearest_train.type:
+                        case TrainType.LimitedExpress:
+                            junction.manual_direction = PointDirection.STRAIGHT  # 急行線に保つ
+                        case TrainType.Local:
+                            pass  # 考えなくて良い
+                        case TrainType.CommuterSemiExpress:
+                            if junction.id == "j04":
+                                junction.manual_direction = PointDirection.CURVE  # 駅に寄るため専用区間に移動
+                            else:
+                                junction.manual_direction = PointDirection.STRAIGHT  # 極力急行線に移動
 
-                case "j2":
-                    if not self.obstacles["obstacle_0"].is_detected:
-                        match nearest_train.id:
-                            case "t0" | "t1" | "t2" | "t3":
-                                junction.manual_direction = PointDirection.STRAIGHT
-                            case "t4":
-                                junction.manual_direction = PointDirection.CURVE
-                    else:
-                        junction.manual_direction = PointDirection.CURVE
+                case "j00" | "j06" | "j10" | "j12":  # 緩行線上の分岐点
+                    match nearest_train.type:
+                        case TrainType.LimitedExpress:
+                            pass  # 考えなくて良い
+                        case TrainType.Local:
+                            junction.manual_direction = PointDirection.STRAIGHT  # 緩行線に保つ
+                        case TrainType.CommuterSemiExpress:
+                            junction.manual_direction = PointDirection.CURVE  # 極力急行線に移動
 
-        # 障害物が発生した区間の手前の区間に列車がいるとき、
-        # 障害が発生した区間に列車が入らないように
-        # ポイントを切り替える。
-        for obstacle in self.obstacles.values():
-            if not obstacle.is_detected:
-                continue
+        # 列車のセクション変更イベントを拾って通勤準急の行き先を判断する。
+        while len(self.event_queue) > 0:
+            event = self.event_queue.popleft()
+            match event:
+                case TrainSectionChanged(t0, previous_section, current_section):  # 列車のセクションが変わったとき
+                    self.logger.info(f"{t0} {previous_section} -> {current_section}")
 
-            for train in self.trains.values():
-                next_section_and_target_junction = (
-                    train.head_position.section.get_next_section_and_target_junction_strict(
-                        train.head_position.target_junction
-                    )
-                )
-                if next_section_and_target_junction:
-                    next_section, next_target_junction = next_section_and_target_junction
-                    if obstacle.position.section == next_section:
-                        target_junction = train.head_position.target_junction
-                        if target_junction.connected_sections[JunctionConnection.THROUGH] == next_section:
-                            target_junction.manual_direction = PointDirection.CURVE
-                        elif target_junction.connected_sections[JunctionConnection.DIVERGING] == next_section:
-                            target_junction.manual_direction = PointDirection.STRAIGHT
+                    if t0.type == TrainType.Local:  # 各駅停車のとき
 
+                        # ダブルクロスの手前の閉塞区間に着いたなら、
+                        # プラットホームの反対側に迫っている列車を取得
+                        t1: Train | None = None
+                        match current_section.block_id:
+                            case "b00":  # 代々木上原 → 下北沢
+                                t1 = self.junctions["c18"].find_nearest_train()
+                            case "b12":  # 豪徳寺 → 経堂
+                                t1 = self.junctions["c24"].find_nearest_train()
+                            case "b30":  # 千歳船橋 ← 成城学園前
+                                t1 = self.junctions["j08"].find_nearest_train()
+                            case "b41":  # 豪徳寺 ← 経堂
+                                t1 = self.junctions["c41"].find_nearest_train()
+
+                        if t1 and t1.type == TrainType.CommuterSemiExpress:
+                            # TODO
+                            pass
+
+        # ポイントの向きを適用する。
         for junction in self.junctions.values():
             if junction.manual_direction:
                 if not junction.is_toggle_prohibited():
