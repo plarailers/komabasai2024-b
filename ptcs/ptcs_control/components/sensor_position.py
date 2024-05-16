@@ -17,6 +17,7 @@ class SensorPosition(BaseComponent):
     id: str
 
     # config
+    uid: str
     section: Section
     mileage: float
 

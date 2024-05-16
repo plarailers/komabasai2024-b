@@ -80,7 +80,7 @@ class TrainSimulator(TrainBase):
         self._target_speed_cm_s = speed * self.INPUT_TO_CENTIMETERS_PER_SECOND
         logger.info("%s send speed %s", self, speed)
 
-    async def start_notify_position_id(self, callback: NotifyPositionIdCallback) -> None:
+    async def start_notify_position_uid(self, callback: NotifyPositionIdCallback) -> None:
         raise NotImplementedError()
 
     async def start_notify_rotation(self, callback: NotifyRotationCallback) -> None:

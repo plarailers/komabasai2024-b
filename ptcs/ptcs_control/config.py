@@ -1,8 +1,10 @@
 import logging
 
 from . import gogatsusai2024
+from .components.junction import JunctionConnection
 from .components.position import DirectedPosition
 from .components.section import SectionConnection
+from .components.sensor_position import SensorPosition
 from .components.train import Train, TrainType
 from .control.base import create_empty_logger
 from .control.fixed_block import FixedBlockControl
@@ -102,3 +104,108 @@ def configure(control: FixedBlockControl) -> None:
     control.add_train(t2)
     control.add_train(t3)
     control.add_train(t4)
+
+    for sensor_position_id, uid, junction_id in [
+        ("P01", "0433ca30af6180", "c35"),
+        ("P02", "047c6731af6180", "c34"),
+        ("P03", "04117931af6180", "j08"),
+        ("P04", "0497d230af6180", "c36"),
+        ("P05", "04d7932baf6180", "c38"),
+        ("P06", "040e6f2daf6180", "c37"),
+        ("P07", "04059229af6180", "c40"),
+        ("P08", "04f1ac2baf6180", "c39"),
+        ("P09", "0451002baf6180", "c41"),
+        ("P10", "040a992aaf6181", "j12"),
+        ("P11", "0494a12baf6180", "c42"),
+        ("P12", "04299928af6180", "j15"),
+        ("P13", "047d8129af6180", "c44"),
+        ("P14", "042d962baf6180", "c43"),
+        ("P15", "0455b128af6180", "c46"),
+        ("P16", "04369a28af6180", "c45"),
+        ("P17", "04a96f28af6180", "c49"),
+        ("P18", "044be628af6180", "c48"),
+        ("P19", "0489e22caf6180", "c50"),
+        ("P20", "044f62e1", "c17"),
+        ("P21", "4402d7e2", "c16"),
+        ("P22", "14ea36e1", "c18"),
+        ("P23", "b4aa5ee1", "j00"),
+        ("P24", "64175ae1", "c19"),
+        ("P25", "943a69e1", "j03"),
+        ("P26", "34d041e1", "c22"),
+        ("P27", "b4345fe1", "c21"),
+        ("P28", "04b966e1", "c20"),
+        ("P29", "840b83e2", "c25"),
+        ("P30", "f47992e2", "c24"),
+        ("P31", "44c495e2", "c23"),
+        ("P32", "84e8e3e2", "j07"),
+        ("P33", "6448cee2", "c26"),
+        ("P34", "74be8ee1", "c28"),
+        ("P35", "14df82e2", "c27"),
+        ("P36", "94e4e3e2", "c30"),
+        ("P37", "44086de1", "c29"),
+        ("P38", "c4225be1", "c32"),
+        ("P39", "44086de1", "c31"),
+        ("P40", "b49a5ee1", "c33"),
+        # ("P41", "446dd7e2", ""),
+        # ("P42", "74765ce1", ""),
+        # ("P43", "84576be1", ""),
+        # ("P44", "24f992e2", ""),
+        # ("P45", "54c383e1", ""),
+        # ("P46", "d413dee2", ""),
+        # ("P47", "6467d7e2", ""),
+        # ("P48", "445dd9e2", ""),
+        # ("P49", "745935e1", ""),
+        # ("P50", "740876e1", ""),
+    ]:
+        junction = control.junctions[junction_id]
+
+        section_t = junction.connected_sections[JunctionConnection.THROUGH]
+        section_d = junction.connected_sections.get(JunctionConnection.DIVERGING)
+        section_c = junction.connected_sections[JunctionConnection.CONVERGING]
+
+        # 2 セクションの接続（ID が `c` から始まる）の場合
+        if section_d is None:
+            # THROUGH セクションか CONVERGING セクションの始点が自ジャンクションなら始点付近に置く
+            if section_t.connected_junctions[SectionConnection.A] == junction:
+                sensor_position = SensorPosition(
+                    id=sensor_position_id,
+                    uid=uid,
+                    section=section_t,
+                    mileage=0.0,
+                    target_junction=section_t.get_opposite_junction(junction),
+                )
+            elif section_c.connected_junctions[SectionConnection.A] == junction:
+                sensor_position = SensorPosition(
+                    id=sensor_position_id,
+                    uid=uid,
+                    section=section_c,
+                    mileage=0.0,
+                    target_junction=section_c.get_opposite_junction(junction),
+                )
+            else:
+                raise Exception()
+
+        # 3 セクションの接続（ID が `j` から始まる）の場合
+        else:
+            # CONVERGING セクションの始点が自ジャンクション（合流点）なら始点付近に置く
+            # CONVERGING セクションの終点が自ジャンクション（分岐点）なら終点付近に置く
+            if section_c.connected_junctions[SectionConnection.A] == junction:
+                sensor_position = SensorPosition(
+                    id=sensor_position_id,
+                    uid=uid,
+                    section=section_c,
+                    mileage=0.0,
+                    target_junction=section_c.get_opposite_junction(junction),
+                )
+            elif section_c.connected_junctions[SectionConnection.B] == junction:
+                sensor_position = SensorPosition(
+                    id=sensor_position_id,
+                    uid=uid,
+                    section=section_c,
+                    mileage=section_c.length,
+                    target_junction=junction,
+                )
+            else:
+                raise Exception()
+
+        control.add_sensor_position(sensor_position)

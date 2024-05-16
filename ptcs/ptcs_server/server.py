@@ -76,9 +76,9 @@ def create_app() -> FastAPI:
     async def train_loop(train_client: TrainBase):
         await train_client.connect()
 
-        def handle_notify_position_id(train_client: TrainBase, position_id: str):
+        def handle_notify_position_uid(train_client: TrainBase, position_uid: str):
             train_control = control.trains.get(train_client.id)
-            position = control.sensor_positions.get(f"position_{position_id}")
+            position = next(filter(lambda sp: sp.uid == position_uid, control.sensor_positions.values()), None)
             if train_control is None or position is None:
                 return
             train_control.fix_position(position)
@@ -98,7 +98,7 @@ def create_app() -> FastAPI:
         await train_client.start_notify_rotation(handle_notify_rotation)
         match train_client:
             case TrainClient():
-                await train_client.start_notify_position_id(handle_notify_position_id)
+                await train_client.start_notify_position_uid(handle_notify_position_uid)
                 await train_client.start_notify_voltage(handle_notify_voltage)
 
         train_control = control.trains.get(train_client.id)

@@ -14,7 +14,7 @@ from .train_base import (
 
 SERVICE_TRAIN_UUID = UUID("63cb613b-6562-4aa5-b602-030f103834a4")
 CHARACTERISTIC_MOTOR_INPUT_UUID = UUID("88c9d9ae-bd53-4ab3-9f42-b3547575a743")
-CHARACTERISTIC_POSITION_ID_UUID = UUID("8bcd68d5-78ca-c1c3-d1ba-96d527ce8968")
+CHARACTERISTIC_POSITION_UID_UUID = UUID("8bcd68d5-78ca-c1c3-d1ba-96d527ce8968")
 CHARACTERISTIC_ROTATION_UUID = UUID("aab17457-2755-8b50-caa1-432ff553d533")
 CHARACTERISTIC_VOLTAGE_UUID = UUID("7ecc0ed2-5ef9-c9e6-5d16-582f86035ecf")
 
@@ -59,8 +59,8 @@ class TrainClient(TrainBase):
     def _get_characteristic_motor_input(self) -> BleakGATTCharacteristic:
         return self._get_characteristic(CHARACTERISTIC_MOTOR_INPUT_UUID)
 
-    def _get_characteristic_position_id(self) -> BleakGATTCharacteristic:
-        return self._get_characteristic(CHARACTERISTIC_POSITION_ID_UUID)
+    def _get_characteristic_position_uid(self) -> BleakGATTCharacteristic:
+        return self._get_characteristic(CHARACTERISTIC_POSITION_UID_UUID)
 
     def _get_characteristic_rotation(self) -> BleakGATTCharacteristic:
         return self._get_characteristic(CHARACTERISTIC_ROTATION_UUID)
@@ -75,16 +75,16 @@ class TrainClient(TrainBase):
         await self._client.write_gatt_char(characteristic, f"{motor_input}".encode(), response=False)
         logger.info("%s send motor input %s", self, motor_input)
 
-    async def start_notify_position_id(self, callback: NotifyPositionIdCallback) -> None:
+    async def start_notify_position_uid(self, callback: NotifyPositionIdCallback) -> None:
         def wrapped_callback(_characteristic: BleakGATTCharacteristic, data: bytearray):
             assert len(data) in [4, 7, 10]
-            position_id = data.hex()
-            logger.info("%s notify position id %s", self, position_id)
-            callback(self, position_id)
+            position_uid = data.hex()
+            logger.info("%s notify position uid %s", self, position_uid)
+            callback(self, position_uid)
 
-        characteristic = self._get_characteristic_position_id()
+        characteristic = self._get_characteristic_position_uid()
         await self._client.start_notify(characteristic, wrapped_callback)
-        logger.info("%s start notify position id", self)
+        logger.info("%s start notify position uid", self)
 
     async def start_notify_rotation(self, callback: NotifyRotationCallback) -> None:
         def wrapped_callback(_characteristic: BleakGATTCharacteristic, data: bytearray):
