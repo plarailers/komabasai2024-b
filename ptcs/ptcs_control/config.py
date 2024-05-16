@@ -34,7 +34,7 @@ def configure(control: FixedBlockControl) -> None:
         min_input=190,
         max_input=240,
         max_speed=40.0,
-        length=14.0,
+        length=40.0,
         delta_per_motor_rotation=0.4553,
         head_position=DirectedPosition(
             section=control.sections["S01"],
@@ -48,7 +48,7 @@ def configure(control: FixedBlockControl) -> None:
         min_input=150,
         max_input=190,
         max_speed=40.0,
-        length=14.0,
+        length=40.0,
         delta_per_motor_rotation=0.4321,
         head_position=DirectedPosition(
             section=control.sections["S31"],
@@ -62,7 +62,7 @@ def configure(control: FixedBlockControl) -> None:
         min_input=180,
         max_input=230,
         max_speed=40.0,
-        length=14.0,
+        length=40.0,
         delta_per_motor_rotation=0.5048,
         head_position=DirectedPosition(
             section=control.sections["S22"],
@@ -76,7 +76,7 @@ def configure(control: FixedBlockControl) -> None:
         min_input=180,
         max_input=220,
         max_speed=40.0,
-        length=14.0,
+        length=40.0,
         delta_per_motor_rotation=0.4508,
         head_position=DirectedPosition(
             section=control.sections["S50"],
