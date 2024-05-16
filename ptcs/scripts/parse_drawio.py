@@ -191,7 +191,8 @@ def generate_python(json_path: str, output_path: str):
     code += "\n"
 
     for section_id, section in data["sections"].items():
-        code += f'    {section_id} = Section(id="{section_id}", length=100.0, block_id="{section["block_id"]}")\n'
+        length = compute_length(section["points"]) * 0.5
+        code += f'    {section_id} = Section(id="{section_id}", length={length}, block_id="{section["block_id"]}")\n'
     code += "\n"
 
     for section_id, _section in data["sections"].items():
@@ -229,6 +230,15 @@ def generate_python(json_path: str, output_path: str):
 
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(code)
+
+
+def compute_length(points):
+    length = 0.0
+    for i in range(len(points) - 1):
+        p0 = points[i]
+        p1 = points[i + 1]
+        length += math.dist((p0["x"], p0["y"]), (p1["x"], p1["y"]))
+    return length
 
 
 def get_angle(p0, p1):
