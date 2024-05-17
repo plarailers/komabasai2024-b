@@ -80,8 +80,6 @@ def create_bridge() -> Bridge2:
     bridge.add_point(PointClient("j4", ADDRESS_POINT2))
     bridge.add_point(PointClient("j6", ADDRESS_POINT3))
     bridge.add_point(PointClient("j8", ADDRESS_POINT4))
-    bridge.add_point(PointClient("j10", ADDRESS_POINT5))
-    bridge.add_point(PointClient("j12", ADDRESS_POINT6))
-    bridge.add_point(PointClient("j14", ADDRESS_POINT7))
+    bridge.add_point(PointClient("j10", ADDRESS_POINT7))
 
     return bridge
