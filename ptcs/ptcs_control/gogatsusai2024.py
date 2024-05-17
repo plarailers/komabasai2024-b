@@ -51,22 +51,22 @@ def configure(control: FixedBlockControl) -> None:
         length=40.0,
         delta_per_motor_rotation=0.4321,
         head_position=DirectedPosition(
-            section=control.sections["S31"],
-            target_junction=control.sections["S31"].connected_junctions[SectionConnection.B],
+            section=control.sections["S24"],
+            target_junction=control.sections["S24"].connected_junctions[SectionConnection.B],
             mileage=1.0,
         ),
     )
     t2 = Train(
         id="t2",
-        type=TrainType.CommuterSemiExpress,
+        type=TrainType.LimitedExpress,
         min_input=180,
         max_input=230,
         max_speed=40.0,
         length=40.0,
         delta_per_motor_rotation=0.5048,
         head_position=DirectedPosition(
-            section=control.sections["S22"],
-            target_junction=control.sections["S22"].connected_junctions[SectionConnection.B],
+            section=control.sections["S42"],
+            target_junction=control.sections["S42"].connected_junctions[SectionConnection.B],
             mileage=1.0,
         ),
     )
@@ -79,13 +79,41 @@ def configure(control: FixedBlockControl) -> None:
         length=40.0,
         delta_per_motor_rotation=0.4508,
         head_position=DirectedPosition(
-            section=control.sections["S50"],
-            target_junction=control.sections["S50"].connected_junctions[SectionConnection.B],
+            section=control.sections["S13"],
+            target_junction=control.sections["S13"].connected_junctions[SectionConnection.B],
             mileage=1.0,
         ),
     )
     t4 = Train(
         id="t4",
+        type=TrainType.CommuterSemiExpress,
+        min_input=180,
+        max_input=230,
+        max_speed=40.0,
+        length=40.0,
+        delta_per_motor_rotation=0.4241,
+        head_position=DirectedPosition(
+            section=control.sections["S31"],
+            target_junction=control.sections["S31"].connected_junctions[SectionConnection.B],
+            mileage=1.0,
+        ),
+    )
+    t5 = Train(
+        id="t5",
+        type=TrainType.CommuterSemiExpress,
+        min_input=180,
+        max_input=230,
+        max_speed=40.0,
+        length=40.0,
+        delta_per_motor_rotation=0.4241,
+        head_position=DirectedPosition(
+            section=control.sections["S52"],
+            target_junction=control.sections["S52"].connected_junctions[SectionConnection.B],
+            mileage=1.0,
+        ),
+    )
+    t6 = Train(
+        id="t6",
         type=TrainType.Local,
         min_input=180,
         max_input=230,
@@ -93,8 +121,50 @@ def configure(control: FixedBlockControl) -> None:
         length=40.0,
         delta_per_motor_rotation=0.4241,
         head_position=DirectedPosition(
-            section=control.sections["S08"],
-            target_junction=control.sections["S08"].connected_junctions[SectionConnection.B],
+            section=control.sections["S00"],
+            target_junction=control.sections["S00"].connected_junctions[SectionConnection.B],
+            mileage=1.0,
+        ),
+    )
+    t7 = Train(
+        id="t7",
+        type=TrainType.Local,
+        min_input=180,
+        max_input=230,
+        max_speed=40.0,
+        length=40.0,
+        delta_per_motor_rotation=0.4241,
+        head_position=DirectedPosition(
+            section=control.sections["S21"],
+            target_junction=control.sections["S21"].connected_junctions[SectionConnection.B],
+            mileage=1.0,
+        ),
+    )
+    t8 = Train(
+        id="t8",
+        type=TrainType.Local,
+        min_input=180,
+        max_input=230,
+        max_speed=40.0,
+        length=40.0,
+        delta_per_motor_rotation=0.4241,
+        head_position=DirectedPosition(
+            section=control.sections["S30"],
+            target_junction=control.sections["S30"].connected_junctions[SectionConnection.B],
+            mileage=1.0,
+        ),
+    )
+    t9 = Train(
+        id="t9",
+        type=TrainType.Local,
+        min_input=180,
+        max_input=230,
+        max_speed=40.0,
+        length=40.0,
+        delta_per_motor_rotation=0.4241,
+        head_position=DirectedPosition(
+            section=control.sections["S49"],
+            target_junction=control.sections["S49"].connected_junctions[SectionConnection.B],
             mileage=1.0,
         ),
     )
@@ -104,6 +174,11 @@ def configure(control: FixedBlockControl) -> None:
     control.add_train(t2)
     control.add_train(t3)
     control.add_train(t4)
+    control.add_train(t5)
+    control.add_train(t6)
+    control.add_train(t7)
+    control.add_train(t8)
+    control.add_train(t9)
 
     for sensor_position_id, uid, junction_id in [
         ("P01", "0433ca30af6180", "c35"),

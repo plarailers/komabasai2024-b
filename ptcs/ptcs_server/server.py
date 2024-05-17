@@ -16,7 +16,7 @@ from ptcs_bridge.wire_pole_client import WirePoleClient
 from ptcs_control.gogatsusai2024 import create_control
 
 from .api import api_router
-from .mft2023 import create_bridge
+from .gogatsusai2024 import create_bridge
 
 DEFAULT_PORT = 5000
 
