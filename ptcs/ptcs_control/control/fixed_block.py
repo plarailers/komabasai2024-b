@@ -75,8 +75,7 @@ class FixedBlockControl(BaseControl):
                             junction.manual_direction = PointDirection.CURVE  # 極力急行線に移動
 
         # 列車のセクション変更イベントを拾って通勤準急の行き先を判断する。
-        while len(self.event_queue) > 0:
-            event = self.event_queue.popleft()
+        for event in self.event_queue:
             match event:
                 case TrainSectionChanged(t0, previous_section, current_section):  # 列車のセクションが変わったとき
                     self.logger.info(f"{t0} {previous_section} -> {current_section}")
@@ -106,6 +105,94 @@ class FixedBlockControl(BaseControl):
                 if not junction.is_toggle_prohibited():
                     junction.set_direction(junction.manual_direction)
                     junction.manual_direction = None
+
+    def _calc_stop(self) -> None:
+        """
+        列車の現在あるべき停止目標を割り出し、列車の状態として格納する。
+        この情報は列車の速度を計算するのに使われる。
+        """
+
+        STOPPAGE_TIME: int = 100  # 列車の停止時間[フレーム] NOTE: 将来的にはパラメータとして定義
+        STOPPAGE_MERGIN: float = STRAIGHT_RAIL / 2  # 停止区間距離[cm]
+
+        # 列車のセクション変更イベントを拾って停止駅を判断する
+        for event in self.event_queue:
+            match event:
+                case TrainSectionChanged(t0, _, current_section):  # 列車のセクションが変わったとき
+                    stops: list[str]
+                    match t0.type:
+                        case TrainType.LimitedExpress:
+                            stops = []
+                        case TrainType.Local:
+                            stops = ["S00", "S08", "S12", "S21", "S23", "S30", "S39", "S41", "S49", "S51", "S53"]
+                        case TrainType.CommuterSemiExpress:
+                            stops = [
+                                "S00",
+                                "S01",
+                                "S12",
+                                "S13",
+                                "S23",
+                                "S24",
+                                "S25",
+                                "S26",
+                                "S30",
+                                "S31",
+                                "S39",
+                                "S40",
+                                "S49",
+                                "S50",
+                                "S53",
+                                "S54",
+                            ]
+                        case _:
+                            stops = []
+
+                    if current_section.id in stops:
+                        t0.stop_distance = 20.0
+                        t0.departure_time = self.current_time + STOPPAGE_TIME
+
+        for train in self.trains.values():
+            # 列車より手前にある停止目標を取得する
+            forward_stop, forward_stop_distance = train.find_forward_stop() or (None, 1e9)
+
+            if train.departure_time is None:
+                # 「停止目標が変わらず、停止距離が区間外から区間内に変わる」のを検知することで駅の停止開始を判定する。
+                # これにより、以下の場合は停止する。
+                # - IPS により停止区間に踏み進んだ場合
+                #   - 停止目標は変わらず、停止距離が区間外から区間内に変わるのを検知する
+                #   - その後、同区間内の APS を踏んでも以下のどちらかになる
+                #     - 区間内で APS を踏む。このとき停止距離が区間内のままであるため無視
+                #     - APS により停止区間に踏み戻る。このとき無視
+                # - APS により停止区間に踏み進んだ場合
+                #   - 停止目標は変わらず、停止距離が区間外から区間内に変わるのを検知する
+                # 逆に、以下の場合は停止しない。
+                # - APS により停止区間に踏み戻った場合
+                #   - 停止目標が変わるので無視
+                #   - ただし、停止目標が次も同じになる (例: ループの中で駅がひとつしかない) ような路線ではないとする
+                # - ポイントが切り替わって停止目標が再計算された場合
+                #   - 停止目標が変わるような箇所はすべて区間外であるため無視
+                if train.stop == forward_stop and forward_stop_distance <= STOPPAGE_MERGIN < train.stop_distance:
+                    train.stop_distance = forward_stop_distance
+                    train.departure_time = self.current_time + STOPPAGE_TIME
+                else:
+                    train.stop = forward_stop
+                    train.stop_distance = forward_stop_distance
+            else:
+                # すでに停止が開始されているとき、
+                # - まだ停止していてほしい場合
+                #   - 停止点を超えていない場合、距離を詰めていく
+                #   - 停止点を超えてしまった場合、強制停止
+                # - もう発車してほしい場合
+                #   - 停止点は超えていると仮定し、次の停止目標へ向かう
+                if self.current_time < train.departure_time:
+                    if train.stop == forward_stop:
+                        train.stop_distance = forward_stop_distance
+                    else:
+                        train.stop_distance = 0
+                else:
+                    train.stop = forward_stop
+                    train.stop_distance = forward_stop_distance
+                    train.departure_time = None
 
     def _calc_speed(self) -> None:
         BREAK_ACCLT: float = 10  # ブレーキ減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
@@ -244,55 +331,3 @@ class FixedBlockControl(BaseControl):
             #     ", speed: ",
             #     speed_command,
             # )
-
-    def _calc_stop(self) -> None:
-        """
-        列車の現在あるべき停止目標を割り出し、列車の状態として格納する。
-        この情報は列車の速度を計算するのに使われる。
-        """
-
-        STOPPAGE_TIME: int = 50  # 列車の停止時間[フレーム] NOTE: 将来的にはパラメータとして定義
-        STOPPAGE_MERGIN: float = STRAIGHT_RAIL / 2  # 停止区間距離[cm]
-
-        for train in self.trains.values():
-            # 列車より手前にある停止目標を取得する
-            forward_stop, forward_stop_distance = train.find_forward_stop() or (None, 1e9)
-
-            if train.departure_time is None:
-                # 「停止目標が変わらず、停止距離が区間外から区間内に変わる」のを検知することで駅の停止開始を判定する。
-                # これにより、以下の場合は停止する。
-                # - IPS により停止区間に踏み進んだ場合
-                #   - 停止目標は変わらず、停止距離が区間外から区間内に変わるのを検知する
-                #   - その後、同区間内の APS を踏んでも以下のどちらかになる
-                #     - 区間内で APS を踏む。このとき停止距離が区間内のままであるため無視
-                #     - APS により停止区間に踏み戻る。このとき無視
-                # - APS により停止区間に踏み進んだ場合
-                #   - 停止目標は変わらず、停止距離が区間外から区間内に変わるのを検知する
-                # 逆に、以下の場合は停止しない。
-                # - APS により停止区間に踏み戻った場合
-                #   - 停止目標が変わるので無視
-                #   - ただし、停止目標が次も同じになる (例: ループの中で駅がひとつしかない) ような路線ではないとする
-                # - ポイントが切り替わって停止目標が再計算された場合
-                #   - 停止目標が変わるような箇所はすべて区間外であるため無視
-                if train.stop == forward_stop and forward_stop_distance <= STOPPAGE_MERGIN < train.stop_distance:
-                    train.stop_distance = forward_stop_distance
-                    train.departure_time = self.current_time + STOPPAGE_TIME
-                else:
-                    train.stop = forward_stop
-                    train.stop_distance = forward_stop_distance
-            else:
-                # すでに停止が開始されているとき、
-                # - まだ停止していてほしい場合
-                #   - 停止点を超えていない場合、距離を詰めていく
-                #   - 停止点を超えてしまった場合、強制停止
-                # - もう発車してほしい場合
-                #   - 停止点は超えていると仮定し、次の停止目標へ向かう
-                if self.current_time < train.departure_time:
-                    if train.stop == forward_stop:
-                        train.stop_distance = forward_stop_distance
-                    else:
-                        train.stop_distance = 0
-                else:
-                    train.stop = forward_stop
-                    train.stop_distance = forward_stop_distance
-                    train.departure_time = None
