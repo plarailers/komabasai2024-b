@@ -46,7 +46,7 @@ class Section(BaseComponent):
 
     @is_blocked.setter
     def is_blocked(self, value: bool):
-        self.control.logger.info(f"{self.id}.is_blocked = {value}")
+        # self.control.logger.info(f"{self.id}.is_blocked = {value}")
         self._is_blocked = value
 
     def block(self) -> None:

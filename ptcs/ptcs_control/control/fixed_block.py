@@ -20,10 +20,19 @@ class FixedBlockControl(BaseControl):
         状態に変化が起こった後、すべてを再計算する。
         """
 
+        self._calc_block()
         self._calc_direction()
         self._calc_stop()
         self._calc_speed()
         self.event_queue.clear()
+
+    def _calc_block(self) -> None:
+        for section_id, section in self.sections.items():
+            section.is_blocked = False
+
+        for train_id, train in self.trains.items():
+            train.head_position.section.is_blocked = True
+            train.compute_tail_position().section.is_blocked = True
 
     def _calc_direction(self) -> None:
         """
