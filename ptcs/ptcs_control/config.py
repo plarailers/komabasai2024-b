@@ -1,6 +1,6 @@
 import logging
 
-from . import gogatsusai2024
+from . import gogatsusai2024_generated
 from .components.junction import JunctionConnection
 from .components.position import DirectedPosition
 from .components.section import SectionConnection
@@ -17,7 +17,7 @@ def create_control(logger: logging.Logger | None = None) -> FixedBlockControl:
     control = FixedBlockControl(logger=logger)
 
     # 自動生成による設定
-    gogatsusai2024.configure(control)
+    gogatsusai2024_generated.configure(control)
 
     # 手動による設定
     configure(control)

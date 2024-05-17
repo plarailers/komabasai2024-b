@@ -8,7 +8,7 @@
 #
 # 使い方 v3:
 #   poetry run python scripts/parse_drawio.py extract-v2 docs/gogatsusai2024_v3.drawio v3 data/gogatsusai2024/railway_ui_v3.json
-#   poetry run python scripts/parse_drawio.py generate-python data/gogatsusai2024/railway_ui_v3.json ptcs_control/gogatsusai2024.py
+#   poetry run python scripts/parse_drawio.py generate-python data/gogatsusai2024/railway_ui_v3.json ptcs_control/gogatsusai2024_generated.py
 #
 # 注意:
 #   - PowerShell のリダイレクトを使うと BOM が付いてしまうので Python 側でファイルの書き込みを行うこと。
