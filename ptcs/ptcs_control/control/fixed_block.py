@@ -81,7 +81,6 @@ class FixedBlockControl(BaseControl):
                     self.logger.info(f"{t0} {previous_section} -> {current_section}")
 
                     if t0.type == TrainType.Local:  # 各駅停車のとき
-
                         # ダブルクロスの手前の閉塞区間に着いたなら、
                         # プラットホームの反対側に迫っている列車を取得
                         t1: Train | None = None
