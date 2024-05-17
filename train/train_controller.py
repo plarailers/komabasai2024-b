@@ -5,25 +5,35 @@ import platform
 from bleak import BleakClient, BleakScanner
 
 if platform.system() == "Windows":
-    ADDRESS_T0 = 'e0:5a:1b:e2:7a:f2'
-    ADDRESS_T1 = '94:b5:55:84:15:42'
-    ADDRESS_T2 = 'e0:5a:1b:e2:7b:1e'
-    ADDRESS_T3 = '1c:9d:c2:66:84:32'
-    ADDRESS_T4 = '24:4c:ab:f5:c6:3e'
+    ADDRESS_T0 = '26:dc:c3:c0:4e:a6'
+    ADDRESS_T1 = '48:E7:29:93:F4:B6'
+    ADDRESS_T2 = '24:DC:C3:C0:3A:4E'
+    ADDRESS_T3 = '48:E7:29:A0:FF:66'
+    ADDRESS_T4 = '24:DC:C3:C0:51:7A'
+    ADDRESS_T5 = 'A0:B7:65:5C:1A:96'
+    ADDRESS_T6 = 'A0:B7:65:52:EF:5A'
+    ADDRESS_T7 = '24:dc:c3:c0:51:72'
+    ADDRESS_T8 = '48:e7:29:a1:07:ee'
+    ADDRESS_T9 = '24:dc:c3:c0:49:92'
 
 
 elif platform.system() == "Darwin":
-    ADDRESS_T0 = "00B55AE6-34AA-23C2-8C7B-8C11E6998E12"
-    ADDRESS_T1 = "F2158243-18BB-D34C-88BC-F8F193CAD15E"
-    ADDRESS_T2 = 'EB57E065-90A0-B6D0-98BA-81096FA5765E'
-    ADDRESS_T3 = '4AA3AAE5-A039-8484-013C-32AD94F50BE0'
-    ADDRESS_T4 = 'FC44FB3F-CF7D-084C-EA29-7AFD10C47A57'
+    ADDRESS_T0 = "F8EE254B-DBB8-5C62-367B-C045E11DE9C4"
+    ADDRESS_T1 = "8EE8710E-C17B-7B8F-2EE3-1E0FDE0243C5"
+    ADDRESS_T2 = '9F1478BB-8FB4-BF30-6DC2-F4861F9719E7'
+    ADDRESS_T3 = '10556715-D1EE-98BD-BE81-7C783BBC1405'
+    ADDRESS_T4 = 'B287A4B7-3567-1CE8-2E94-0428003D353C'
+    ADDRESS_T5 = "1276ADDC-6E7C-011D-2584-5D0F51459A8A"
+    ADDRESS_T6 = "9D5FCACE-1EFE-F9D1-4643-9B15ED0881D3"
+    ADDRESS_T7 = 'E7D2BF5C-331F-9FDE-B2EF-47CB507A69CB'
+    ADDRESS_T8 = '2B59D30D-F1E0-E4F7-9056-67E74D182F76'
+    ADDRESS_T9 = 'E61E694E-7D52-1BD1-5B7A-02402813E73E'
 
 else:
     raise Exception(f"{platform.system()} not supported")
 
 ####### TODO: 車両のアドレスを指定してください #######
-address = ADDRESS_T0
+address = ADDRESS_T8
 #################################################
 
 SERVICE_UUID = "63cb613b-6562-4aa5-b602-030f103834a4"
@@ -65,20 +75,30 @@ async def main():
                 await client.start_notify(characteristicVoltage, voltageNotification_callback)
 
                 if address == ADDRESS_T0:
-                    i = 230
+                    i = 210
                 elif address == ADDRESS_T1:
                     i = 200
                 elif address == ADDRESS_T2:
                     i = 210
                 elif address == ADDRESS_T3:
-                    i = 220
+                    i = 100
                 elif address == ADDRESS_T4:
-                    i = 230
+                    i = 150
+                elif address == ADDRESS_T5:
+                    i = 200
+                elif address == ADDRESS_T6:
+                    i = 205
+                elif address == ADDRESS_T7:
+                    i = 210
+                elif address == ADDRESS_T8:
+                    i = 210
+                elif address == ADDRESS_T9:
+                    i = 210
 
                 while True:
                     await client.write_gatt_char(characteristicSpeed, f"{i}".encode())
                     print("motorInput:", i)
-                    await asyncio.sleep(0.3)
+                    await asyncio.sleep(0.0001)
         except:
             print("disconnected")
         
@@ -103,7 +123,7 @@ async def rotationNotification_callback(sender, data):
 async def voltageNotification_callback(sender, data):
     # voltage Notifyを受け取ったとき，voltageを表示．
     voltage = int.from_bytes(data, byteorder='little')
-    # print(f"Vin: {voltage} mV")
+    print(f"Vin: {voltage} mV")
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())

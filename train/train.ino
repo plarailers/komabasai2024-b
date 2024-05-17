@@ -82,16 +82,26 @@ std::string getTrainName() {
   //////// TODO: ここのchipIdを正しく設定してください ////////
   uint64_t chipId = ESP.getEfuseMac();
   switch (chipId) {
-    case 0xf07ae21b5ae0:
+    case 0xA44EC0C3DC24:
       return "T0";
-    case 0x40158455B594:
+    case 0xB4F49329E748:
       return "T1";
-    case 0x1C7BE21B5AE0:
+    case 0x4C3AC0C3DC24:
       return "T2";
-    case 0x308466C29D1C:
+    case 0x64FFA029E748:
       return "T3";
-    case 0x3CC6F5AB4C24:
+    case 0x7851C0C3DC24:
       return "T4";
+    case 0x941A5C65B7A0:
+      return "T5";
+    case 0x58EF5265B7A0:
+      return "T6";
+    case 0x7051C0C3DC24:
+      return "T7";
+    case 0xEC07A129E748:
+      return "T8";
+    case 0x9049C0C3DC24:
+      return "T9";
     default:
       return "unknown";
   }
@@ -336,7 +346,7 @@ void setup() {
   rfidSetup();
 
   /* ロータリエンコーダ セットアップ*/
-  rotaryEncoderSetup();
+  // rotaryEncoderSetup();
 
 }
     
@@ -356,7 +366,7 @@ void loop(){
   /* 電源電圧計 */
   checkVoltage();
 
-  /* エンコーダ */
+  // /* エンコーダ */
   int enc1A = digitalRead(ENCODER_1A_PIN);
   int enc1B = digitalRead(ENCODER_1B_PIN);
   int enc2A = digitalRead(ENCODER_2A_PIN);
@@ -367,5 +377,5 @@ void loop(){
   getPositionId();
 
   /* ロータリエンコーダがパルス検出していればnotify */
-  rotaryEncoderLoop();
+  // rotaryEncoderLoop();
 }
