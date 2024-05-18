@@ -54,7 +54,7 @@ class FixedBlockControl(BaseControl):
             match junction.id:
                 case "j01" | "j03" | "j05" | "j07" | "j09" | "j11" | "j13" | "j15":  # 合流点
                     section_t = junction.connected_sections[JunctionConnection.THROUGH]
-                    section_d = junction.connected_sections[JunctionConnection.DIVERGING]
+                    section_d = junction.connected_sections.get(JunctionConnection.DIVERGING)
                     if (
                         section_t == nearest_train.head_position.section
                         or section_t == nearest_train.head_position.get_advanced_position(1.0).section
