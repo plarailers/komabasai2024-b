@@ -61,7 +61,7 @@ def create_bridge() -> Bridge2:
     # bridge.add_train(TrainSimulator("t2"))
     bridge.add_train(TrainClient("t2", ADDRESS_T2))
     # bridge.add_train(TrainSimulator("t3"))
-    #bridge.add_train(TrainClient("t3", ADDRESS_T3))
+    # bridge.add_train(TrainClient("t3", ADDRESS_T3))
     # bridge.add_train(TrainSimulator("t4"))
     # bridge.add_train(TrainClient("t4", ADDRESS_T4))
     # bridge.add_train(TrainSimulator("t5"))
