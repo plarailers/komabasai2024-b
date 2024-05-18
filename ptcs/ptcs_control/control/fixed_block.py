@@ -162,7 +162,7 @@ class FixedBlockControl(BaseControl):
                             stops = []
 
                     if current_section.id in stops:
-                        t0.stop_distance = 20.0
+                        t0.stop_distance = 0.0
                         t0.departure_time = self.current_time + STOPPAGE_TIME
 
         for train in self.trains.values():
