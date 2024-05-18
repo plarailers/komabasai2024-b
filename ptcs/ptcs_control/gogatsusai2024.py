@@ -59,8 +59,8 @@ def configure(control: FixedBlockControl) -> None:
     t2 = Train(
         id="t2",
         type=TrainType.LimitedExpress,
-        min_input=190,
-        max_input=220,
+        min_input=170,
+        max_input=210,
         max_speed=40.0,
         length=40.0,
         delta_per_motor_rotation=0.5048,
@@ -73,8 +73,8 @@ def configure(control: FixedBlockControl) -> None:
     t3 = Train(
         id="t3",
         type=TrainType.CommuterSemiExpress,
-        min_input=100,
-        max_input=150,
+        min_input=80,
+        max_input=120,
         max_speed=40.0,
         length=40.0,
         delta_per_motor_rotation=0.4508,
@@ -101,7 +101,7 @@ def configure(control: FixedBlockControl) -> None:
     t5 = Train(
         id="t5",
         type=TrainType.CommuterSemiExpress,
-        min_input=190,
+        min_input=180,
         max_input=220,
         max_speed=40.0,
         length=40.0,
@@ -115,8 +115,8 @@ def configure(control: FixedBlockControl) -> None:
     t6 = Train(
         id="t6",
         type=TrainType.Local,
-        min_input=190,
-        max_input=220,
+        min_input=100,
+        max_input=150,
         max_speed=40.0,
         length=40.0,
         delta_per_motor_rotation=0.4241,
@@ -143,8 +143,8 @@ def configure(control: FixedBlockControl) -> None:
     t8 = Train(
         id="t8",
         type=TrainType.Local,
-        min_input=190,
-        max_input=220,
+        min_input=180,
+        max_input=210,
         max_speed=40.0,
         length=40.0,
         delta_per_motor_rotation=0.4241,
@@ -169,37 +169,37 @@ def configure(control: FixedBlockControl) -> None:
         ),
     )
 
-    control.add_train(t0)
+    # control.add_train(t0)
     # control.add_train(t1)
-    # control.add_train(t2)
-    control.add_train(t3)
+    control.add_train(t2)
+    #control.add_train(t3)
     # control.add_train(t4)
-    # control.add_train(t5)
-    control.add_train(t6)
+    control.add_train(t5)
+    # control.add_train(t6)
     # control.add_train(t7)
-    # control.add_train(t8)
+    control.add_train(t8)
     # control.add_train(t9)
 
     for sensor_position_id, uid, junction_id in [
-        ("P01", "0433ca30af6180", "c35"),
-        ("P02", "047c6731af6180", "c34"),
-        ("P03", "04117931af6180", "j08"),
-        ("P04", "0497d230af6180", "c36"),
-        # ("P05", "04d7932baf6180", "c38"),
-        ("P06", "040e6f2daf6180", "c37"),
-        ("P07", "04059229af6180", "c40"),
-        ("P08", "04f1ac2baf6180", "c39"),
-        ("P09", "0451002baf6180", "c41"),
-        ("P10", "040a992aaf6181", "j12"),
-        ("P11", "0494a12baf6180", "c42"),
-        ("P12", "04299928af6180", "j15"),
-        ("P13", "047d8129af6180", "c44"),
-        ("P14", "042d962baf6180", "c43"),
-        ("P15", "0455b128af6180", "c46"),
-        ("P16", "04369a28af6180", "c45"),
-        ("P17", "04a96f28af6180", "c49"),
-        ("P18", "044be628af6180", "c48"),
-        ("P19", "0489e22caf6180", "c50"),
+        # ("P01", "0433ca30af6180", "c35"),
+        # ("P02", "047c6731af6180", "c34"),
+        # ("P03", "04117931af6180", "j08"),
+        # ("P04", "0497d230af6180", "c36"),
+        # # ("P05", "04d7932baf6180", "c38"),
+        # ("P06", "040e6f2daf6180", "c37"),
+        # ("P07", "04059229af6180", "c40"),
+        # ("P08", "04f1ac2baf6180", "c39"),
+        # ("P09", "0451002baf6180", "c41"),
+        # ("P10", "040a992aaf6181", "j12"),
+        # ("P11", "0494a12baf6180", "c42"),
+        # ("P12", "04299928af6180", "j15"),
+        # ("P13", "047d8129af6180", "c44"),
+        # ("P14", "042d962baf6180", "c43"),
+        # ("P15", "0455b128af6180", "c46"),
+        # ("P16", "04369a28af6180", "c45"),
+        # ("P17", "04a96f28af6180", "c49"),
+        # ("P18", "044be628af6180", "c48"),
+        # ("P19", "0489e22caf6180", "c50"),
         ("P20", "044f62e1", "c17"),
         ("P21", "4402d7e2", "c16"),
         ("P22", "14ea36e1", "c18"),
@@ -222,15 +222,34 @@ def configure(control: FixedBlockControl) -> None:
         ("P39", "44086de1", "c31"),
         ("P40", "b49a5ee1", "c33"),
         ("P41", "446dd7e2", "c38"),
-        # ("P42", "74765ce1", ""),
-        # ("P43", "84576be1", ""),
-        # ("P44", "24f992e2", ""),
-        # ("P45", "54c383e1", ""),
-        # ("P46", "d413dee2", ""),
-        # ("P47", "6467d7e2", ""),
-        # ("P48", "445dd9e2", ""),
-        # ("P49", "745935e1", ""),
-        # ("P50", "740876e1", ""),
+        ("P42", "74765ce1", "j08"),
+        ("P43", "84576be1", "c36"),
+        ("P44", "24f992e2", "j00"),
+        ("P45", "54c383e1", "c19"),
+        ("P46", "d413dee2", "c18"),
+        ("P47", "6467d7e2", "j00"),
+        ("P48", "445dd9e2", "c25"),
+        ("P49", "745935e1", "c24"),
+        ("P50", "740876e1", "c23"),
+        ("P51", "74f562e1", "c35"),
+        ("P52", "448f81e2", "c34"),
+        ("P53", "c42566e1", "j08"),
+        ("P54", "f4ed6ae1", "c36"),
+        # ("P65", "44e76ae1", "c38"),
+        ("P56", "145667e1", "c37"),
+        ("P57", "a4cac8e2", "c40"),
+        ("P58", "f49b68e1", "c39"),
+        ("P59", "048468e1", "c41"),
+        ("P60", "145f63e1", "j12"),
+        ("P61", "447f5de1", "c42"),
+        ("P62", "64da62e1", "j15"),
+        ("P63", "f493dde2", "c44"),
+        ("P64", "947968e1", "c43"),
+        ("P65", "0477cee2", "c46"),
+        ("P66", "b46e63e1", "c45"),
+        ("P67", "84d07ae1", "c49"),
+        ("P68", "241157e1", "c48"),
+        ("P69", "e4c0e3e2", "c50"),
     ]:
         junction = control.junctions[junction_id]
 

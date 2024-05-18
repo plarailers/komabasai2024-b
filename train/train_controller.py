@@ -50,7 +50,7 @@ else:
     raise Exception(f"{platform.system()} not supported")
 
 ####### TODO: 車両のアドレスを指定してください #######
-address = ADDRESS_T3
+address = ADDRESS_T2
 #################################################
 
 SERVICE_UUID = "63cb613b-6562-4aa5-b602-030f103834a4"
@@ -98,7 +98,7 @@ async def main():
                 elif address == ADDRESS_T2:
                     i = 210
                 elif address == ADDRESS_T3:
-                    i = 180
+                    i = 130
                 elif address == ADDRESS_T4:
                     i = 210
                 elif address == ADDRESS_T5:
