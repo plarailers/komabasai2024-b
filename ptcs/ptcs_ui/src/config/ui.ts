@@ -1,6 +1,6 @@
 import { DEFAULT_THEME } from "@mantine/core";
 import { RailwayUI } from "../types";
-import generated from "../../../data/gogatsusai2024/railway_ui_v4.json";
+import generated from "../../../data/gogatsusai2024/railway_ui_v5.json";
 
 // 色の一覧: https://v5.mantine.dev/theming/colors/#default-colors
 

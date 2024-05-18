@@ -101,13 +101,13 @@ class FixedBlockControl(BaseControl):
                         t1: Train | None = None
                         match current_section.block_id:
                             case "b00":  # 代々木上原 → 下北沢
-                                t1 = self.junctions["c18"].find_nearest_train()
+                                t1 = self.junctions["c141"].find_nearest_train()
                             case "b12":  # 豪徳寺 → 経堂
-                                t1 = self.junctions["c24"].find_nearest_train()
+                                t1 = self.junctions["c148"].find_nearest_train()
                             case "b30":  # 千歳船橋 ← 成城学園前
-                                t1 = self.junctions["j08"].find_nearest_train()
+                                t1 = self.junctions["c123"].find_nearest_train()
                             case "b41":  # 豪徳寺 ← 経堂
-                                t1 = self.junctions["c41"].find_nearest_train()
+                                t1 = self.junctions["j13"].find_nearest_train()
 
                         if t1 and t1.type == TrainType.CommuterSemiExpress:
                             # TODO
@@ -138,7 +138,7 @@ class FixedBlockControl(BaseControl):
                         case TrainType.LimitedExpress:
                             stops = []
                         case TrainType.Local:
-                            stops = ["S00", "S08", "S12", "S21", "S23", "S30", "S39", "S41", "S49", "S51", "S53"]
+                            stops = ["S00", "S08", "S12", "S21", "S23", "S25", "S30", "S39", "S41", "S49", "S51", "S64"]
                         case TrainType.CommuterSemiExpress:
                             stops = [
                                 "S00",
@@ -155,8 +155,8 @@ class FixedBlockControl(BaseControl):
                                 "S40",
                                 "S49",
                                 "S50",
-                                "S53",
-                                "S54",
+                                "S64",
+                                "S65",
                             ]
                         case _:
                             stops = []
