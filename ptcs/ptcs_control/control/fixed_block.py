@@ -266,9 +266,9 @@ class FixedBlockControl(BaseControl):
                     # 次のセクションが閉鎖 -> 目指すジャンクションの手前で停止
                     elif next_section.is_blocked is True:
                         if target_junction == current_section.connected_junctions[SectionConnection.A]:
-                            distance += train.mileage - MERGIN
+                            distance += train.head_position.mileage - MERGIN
                         elif target_junction == current_section.connected_junctions[SectionConnection.B]:
-                            distance += current_section.length - train.mileage - MERGIN
+                            distance += current_section.length - train.head_position.mileage - MERGIN
                         else:
                             raise
                         break
