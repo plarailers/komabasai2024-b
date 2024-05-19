@@ -45,8 +45,8 @@ def configure(control: FixedBlockControl) -> None:
     t1 = Train(
         id="t1",
         type=TrainType.LimitedExpress,
-        min_input=170,
-        max_input=210,
+        min_input=180,
+        max_input=200,
         max_speed=40.0,
         length=40.0,
         delta_per_motor_rotation=0.4321,
@@ -59,8 +59,8 @@ def configure(control: FixedBlockControl) -> None:
     t2 = Train(
         id="t2",
         type=TrainType.LimitedExpress,
-        min_input=170,
-        max_input=210,
+        min_input=210,
+        max_input=230,
         max_speed=40.0,
         length=40.0,
         delta_per_motor_rotation=0.5048,
@@ -73,8 +73,8 @@ def configure(control: FixedBlockControl) -> None:
     t3 = Train(
         id="t3",
         type=TrainType.CommuterSemiExpress,
-        min_input=180,
-        max_input=220,
+        min_input=110,
+        max_input=150,
         max_speed=40.0,
         length=40.0,
         delta_per_motor_rotation=0.4508,
@@ -101,8 +101,8 @@ def configure(control: FixedBlockControl) -> None:
     t5 = Train(
         id="t5",
         type=TrainType.CommuterSemiExpress,
-        min_input=100,
-        max_input=150,
+        min_input=185,
+        max_input=225,
         max_speed=40.0,
         length=40.0,
         delta_per_motor_rotation=0.4241,
@@ -129,7 +129,7 @@ def configure(control: FixedBlockControl) -> None:
     t7 = Train(
         id="t7",
         type=TrainType.Local,
-        min_input=190,
+        min_input=220,
         max_input=220,
         max_speed=40.0,
         length=40.0,
@@ -157,8 +157,8 @@ def configure(control: FixedBlockControl) -> None:
     t9 = Train(
         id="t9",
         type=TrainType.Local,
-        min_input=200,
-        max_input=240,
+        min_input=180,
+        max_input=210,
         max_speed=40.0,
         length=40.0,
         delta_per_motor_rotation=0.4241,
@@ -170,13 +170,13 @@ def configure(control: FixedBlockControl) -> None:
     )
 
     # control.add_train(t0)
-    # control.add_train(t1)
+    control.add_train(t1)
     control.add_train(t2)
-    control.add_train(t3)
+    # control.add_train(t3)
     # control.add_train(t4)
-    # control.add_train(t5)
+    control.add_train(t5)
     # control.add_train(t6)
-    # control.add_train(t7)
+    control.add_train(t7)
     # control.add_train(t8)
     control.add_train(t9)
 
@@ -200,7 +200,7 @@ def configure(control: FixedBlockControl) -> None:
         # ("P17", "04a96f28af6180", ""),
         # ("P18", "044be628af6180", ""),
         # ("P19", "0489e22caf6180", ""),
-        # ("P20", "044f62e1", ""),
+        ("P20", "044f62e1", "j04"),
         ("P21", "4402d7e2", "c121"),
         ("P22", "14ea36e1", "c122"),
         ("P23", "b4aa5ee1", "c123"),
@@ -209,7 +209,7 @@ def configure(control: FixedBlockControl) -> None:
         ("P26", "34d041e1", "c126"),
         ("P27", "b4345fe1", "c127"),
         ("P28", "04b966e1", "c128"),
-        ("P29", "840b83e2", "c129"),
+        ("P29", "840b83e2", "j13"),
         ("P30", "f47992e2", "j15"),
         ("P31", "44c495e2", "c131"),
         ("P32", "84e8e3e2", "c132"),
@@ -219,14 +219,14 @@ def configure(control: FixedBlockControl) -> None:
         ("P36", "94e4e3e2", "c136"),
         ("P37", "44086de1", "c137"),
         ("P38", "c4225be1", "c138"),
-        ("P39", "44086de1", "c141"),
+        ("P39", "44086de1", "c139"),
         ("P40", "b49a5ee1", "c140"),
         ("P41", "446dd7e2", "c141"),
         ("P42", "74765ce1", "c142"),
         # ("P43", "84576be1", ""),
         ("P44", "24f992e2", "c144"),
-        ("P45", "54c383e1", "c145"),
-        ("P46", "d413dee2", "c146"),
+        ("P45", "54c383e1", "c152"),
+        ("P46", "d413dee2", "c151"),
         ("P47", "6467d7e2", "c147"),
         ("P48", "445dd9e2", "c148"),
         ("P49", "745935e1", "c149"),
@@ -243,8 +243,8 @@ def configure(control: FixedBlockControl) -> None:
         ("P60", "145f63e1", "c160"),
         ("P61", "447f5de1", "c161"),
         ("P62", "64da62e1", "c162"),
-        # ("P63", "f493dde2", ""),
-        # ("P64", "947968e1", ""),
+        ("P63", "f493dde2", "c129"),
+        ("P64", "947968e1", "c146"),
         # ("P65", "0477cee2", ""),
         # ("P66", "b46e63e1", ""),
         # ("P67", "84d07ae1", ""),

@@ -50,7 +50,7 @@ else:
     raise Exception(f"{platform.system()} not supported")
 
 ####### TODO: 車両のアドレスを指定してください #######
-address = ADDRESS_T2
+address = ADDRESS_T0
 #################################################
 
 SERVICE_UUID = "63cb613b-6562-4aa5-b602-030f103834a4"
@@ -92,17 +92,17 @@ async def main():
                 await client.start_notify(characteristicVoltage, voltageNotification_callback)
 
                 if address == ADDRESS_T0:
-                    i = 210
+                    i = 230
                 elif address == ADDRESS_T1:
-                    i = 210
+                    i = 200
                 elif address == ADDRESS_T2:
-                    i = 210
+                    i = 220
                 elif address == ADDRESS_T3:
-                    i = 130
+                    i = 140
                 elif address == ADDRESS_T4:
                     i = 210
                 elif address == ADDRESS_T5:
-                    i = 210
+                    i = 195
                 elif address == ADDRESS_T6:
                     i = 230
                 elif address == ADDRESS_T7:
@@ -110,7 +110,7 @@ async def main():
                 elif address == ADDRESS_T8:
                     i = 150
                 elif address == ADDRESS_T9:
-                    i = 210
+                    i = 195
 
                 while True:
                     await client.write_gatt_char(characteristicSpeed, f"{i}".encode())

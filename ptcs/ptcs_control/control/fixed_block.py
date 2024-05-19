@@ -73,7 +73,7 @@ class FixedBlockControl(BaseControl):
                         case TrainType.LimitedExpress:
                             junction.manual_direction = PointDirection.STRAIGHT  # 急行線に保つ
                         case TrainType.Local:
-                            pass  # 考えなくて良い
+                            junction.manual_direction = PointDirection.CURVE  # 緩行線に保つ
                         case TrainType.CommuterSemiExpress:
                             if junction.id == "j04":
                                 junction.manual_direction = PointDirection.CURVE  # 駅に寄るため専用区間に移動
@@ -83,7 +83,7 @@ class FixedBlockControl(BaseControl):
                 case "j00" | "j06" | "j10" | "j12":  # 緩行線上の分岐点
                     match nearest_train.type:
                         case TrainType.LimitedExpress:
-                            pass  # 考えなくて良い
+                            junction.manual_direction = PointDirection.CURVE  # 急行線に保つ
                         case TrainType.Local:
                             junction.manual_direction = PointDirection.STRAIGHT  # 緩行線に保つ
                         case TrainType.CommuterSemiExpress:
@@ -126,7 +126,7 @@ class FixedBlockControl(BaseControl):
         この情報は列車の速度を計算するのに使われる。
         """
 
-        STOPPAGE_TIME: int = 100  # 列車の停止時間[フレーム] NOTE: 将来的にはパラメータとして定義
+        STOPPAGE_TIME: int = 30  # 列車の停止時間[フレーム] NOTE: 将来的にはパラメータとして定義
         STOPPAGE_MERGIN: float = STRAIGHT_RAIL / 2  # 停止区間距離[cm]
 
         # 列車のセクション変更イベントを拾って停止駅を判断する
@@ -138,33 +138,26 @@ class FixedBlockControl(BaseControl):
                         case TrainType.LimitedExpress:
                             stops = []
                         case TrainType.Local:
-                            stops = ["S00", "S08", "S12", "S21", "S23", "S25", "S30", "S39", "S41", "S49", "S51", "S64"]
+                            stops = ["S08", "S12", "S23", "S39", "S49", "S51"]
                         case TrainType.CommuterSemiExpress:
                             stops = [
-                                "S00",
-                                "S01",
                                 "S12",
                                 "S13",
                                 "S23",
                                 "S24",
-                                "S25",
-                                "S26",
-                                "S30",
-                                "S31",
                                 "S39",
                                 "S40",
                                 "S49",
                                 "S50",
-                                "S64",
-                                "S65",
                             ]
                         case _:
                             stops = []
 
                     if current_section.id in stops:
-                        # t0.stop_distance = 0.0
-                        # t0.departure_time = self.current_time + STOPPAGE_TIME
-                        pass
+                        t0.stop_distance = 0.0
+                        t0.departure_time = self.current_time + STOPPAGE_TIME
+
+        return
 
         for train in self.trains.values():
             # 列車より手前にある停止目標を取得する
@@ -214,6 +207,23 @@ class FixedBlockControl(BaseControl):
         NORMAL_ACCLT: float = 5  # 常用加減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
         MAX_SPEED: float = 40  # 最高速度[cm/s]  NOTE:将来的には車両のパラメータとしてとして定義
         MERGIN: float = 25  # 停止余裕距離[cm]
+
+        for train in self.trains.values():
+            current_section = train.head_position.section
+            target_junction = train.head_position.target_junction
+            next_section, next_junction = current_section.get_next_section_and_target_junction(target_junction)
+
+            if train.departure_time is not None and self.current_time < train.departure_time:
+                train.speed_command = 0.0
+            elif next_section.is_blocked:
+                train.speed_command = 0.0
+            else:
+                train.speed_command = MAX_SPEED
+
+            if train.departure_time is not None and self.current_time >= train.departure_time:
+                train.departure_time = None
+
+        return
 
         objects: list[tuple[Train, DirectedPosition] | tuple[Obstacle, UndirectedPosition]] = [
             *((train, train.head_position) for train in self.trains.values()),
