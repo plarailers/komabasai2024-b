@@ -108,7 +108,7 @@ async def main():
                 elif address == ADDRESS_T7:
                     i = 210
                 elif address == ADDRESS_T8:
-                    i = 210
+                    i = 150
                 elif address == ADDRESS_T9:
                     i = 210
 
@@ -140,7 +140,7 @@ async def rotationNotification_callback(sender, data):
 async def voltageNotification_callback(sender, data):
     # voltage Notifyを受け取ったとき，voltageを表示．
     voltage = int.from_bytes(data, byteorder='little')
-    # print(f"Vin: {voltage} mV")
+    print(f"Vin: {voltage} mV")
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())

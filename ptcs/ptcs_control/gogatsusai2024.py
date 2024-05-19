@@ -32,7 +32,7 @@ def configure(control: FixedBlockControl) -> None:
         id="t0",
         type=TrainType.LimitedExpress,
         min_input=190,
-        max_input=220,
+        max_input=230,
         max_speed=40.0,
         length=40.0,
         delta_per_motor_rotation=0.4553,
@@ -45,8 +45,8 @@ def configure(control: FixedBlockControl) -> None:
     t1 = Train(
         id="t1",
         type=TrainType.LimitedExpress,
-        min_input=190,
-        max_input=220,
+        min_input=170,
+        max_input=210,
         max_speed=40.0,
         length=40.0,
         delta_per_motor_rotation=0.4321,
@@ -73,8 +73,8 @@ def configure(control: FixedBlockControl) -> None:
     t3 = Train(
         id="t3",
         type=TrainType.CommuterSemiExpress,
-        min_input=80,
-        max_input=120,
+        min_input=180,
+        max_input=220,
         max_speed=40.0,
         length=40.0,
         delta_per_motor_rotation=0.4508,
@@ -101,8 +101,8 @@ def configure(control: FixedBlockControl) -> None:
     t5 = Train(
         id="t5",
         type=TrainType.CommuterSemiExpress,
-        min_input=180,
-        max_input=220,
+        min_input=100,
+        max_input=150,
         max_speed=40.0,
         length=40.0,
         delta_per_motor_rotation=0.4241,
@@ -157,8 +157,8 @@ def configure(control: FixedBlockControl) -> None:
     t9 = Train(
         id="t9",
         type=TrainType.Local,
-        min_input=190,
-        max_input=220,
+        min_input=200,
+        max_input=240,
         max_speed=40.0,
         length=40.0,
         delta_per_motor_rotation=0.4241,
@@ -172,13 +172,13 @@ def configure(control: FixedBlockControl) -> None:
     # control.add_train(t0)
     # control.add_train(t1)
     control.add_train(t2)
-    # control.add_train(t3)
+    control.add_train(t3)
     # control.add_train(t4)
-    control.add_train(t5)
+    # control.add_train(t5)
     # control.add_train(t6)
     # control.add_train(t7)
-    control.add_train(t8)
-    # control.add_train(t9)
+    # control.add_train(t8)
+    control.add_train(t9)
 
     for sensor_position_id, uid, junction_id in [
         # ("P01", "0433ca30af6180", ""),
@@ -219,7 +219,7 @@ def configure(control: FixedBlockControl) -> None:
         ("P36", "94e4e3e2", "c136"),
         ("P37", "44086de1", "c137"),
         ("P38", "c4225be1", "c138"),
-        ("P39", "44086de1", "c139"),
+        ("P39", "44086de1", "c141"),
         ("P40", "b49a5ee1", "c140"),
         ("P41", "446dd7e2", "c141"),
         ("P42", "74765ce1", "c142"),

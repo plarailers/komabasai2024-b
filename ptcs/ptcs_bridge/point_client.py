@@ -50,5 +50,5 @@ class PointClient:
         assert characteristic is not None
 
         command = point_direction_to_command(direction)
-        await self._client.write_gatt_char(characteristic, command, response=False)
+        await self._client.write_gatt_char(characteristic, command, response=True)
         logger.info("%s send direction %s", self, command)
