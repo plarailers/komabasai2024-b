@@ -27,6 +27,7 @@ class Section(BaseComponent):
     # config
     length: float
     connected_junctions: dict[SectionConnection, Junction] = field(default_factory=dict)
+    block_id: str | None = field(default=None)
 
     # state
     _is_blocked: bool = field(default=False)  # 区間上に障害物が発生していて使えない状態になっているかどうか
@@ -45,7 +46,7 @@ class Section(BaseComponent):
 
     @is_blocked.setter
     def is_blocked(self, value: bool):
-        self.control.logger.info(f"{self.id}.is_blocked = {value}")
+        # self.control.logger.info(f"{self.id}.is_blocked = {value}")
         self._is_blocked = value
 
     def block(self) -> None:
@@ -75,7 +76,7 @@ class Section(BaseComponent):
 
         if target_junction.connected_sections[JunctionConnection.THROUGH] == self:
             next_section = target_junction.connected_sections[JunctionConnection.CONVERGING]
-        elif target_junction.connected_sections[JunctionConnection.DIVERGING] == self:
+        elif target_junction.connected_sections.get(JunctionConnection.DIVERGING) == self:  # DIVERGING が無い場合がある
             next_section = target_junction.connected_sections[JunctionConnection.CONVERGING]
         elif target_junction.connected_sections[JunctionConnection.CONVERGING] == self:
             if target_junction.current_direction == PointDirection.STRAIGHT:
@@ -103,7 +104,7 @@ class Section(BaseComponent):
                 return None
             else:
                 raise
-        elif target_junction.connected_sections[JunctionConnection.DIVERGING] == self:
+        elif target_junction.connected_sections.get(JunctionConnection.DIVERGING) == self:  # DIVERGING が無い場合がある
             if target_junction.current_direction == PointDirection.STRAIGHT:
                 return None
             elif target_junction.current_direction == PointDirection.CURVE:

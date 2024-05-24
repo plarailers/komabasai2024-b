@@ -20,7 +20,7 @@ class TrainBase:
     async def send_motor_input(self, motor_input: int) -> None:
         raise NotImplementedError()
 
-    async def start_notify_position_id(self, callback: NotifyPositionIdCallback) -> None:
+    async def start_notify_position_uid(self, callback: NotifyPositionIdCallback) -> None:
         raise NotImplementedError()
 
     async def start_notify_rotation(self, callback: NotifyRotationCallback) -> None:

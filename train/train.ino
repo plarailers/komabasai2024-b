@@ -82,7 +82,7 @@ std::string getTrainName() {
   //////// TODO: ここのchipIdを正しく設定してください ////////
   uint64_t chipId = ESP.getEfuseMac();
   switch (chipId) {
-    case 0xf07ae21b5ae0:
+    case 0xA44EC0C3DC24:
       return "T0";
     case 0x40158455B594:
       return "T1";
@@ -335,8 +335,8 @@ void setup() {
   /* RFID(MFRC522) セットアップ */
   rfidSetup();
 
-  /* ロータリエンコーダ セットアップ*/
-  rotaryEncoderSetup();
+  // /* ロータリエンコーダ セットアップ*/
+  // rotaryEncoderSetup();
 
 }
     
@@ -366,6 +366,6 @@ void loop(){
   /* RFIDの読み取り */
   getPositionId();
 
-  /* ロータリエンコーダがパルス検出していればnotify */
-  rotaryEncoderLoop();
+  // /* ロータリエンコーダがパルス検出していればnotify */
+  // rotaryEncoderLoop();
 }

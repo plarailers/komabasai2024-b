@@ -1,11 +1,9 @@
 import platform
 
 from ptcs_bridge.bridge2 import Bridge2
-from ptcs_bridge.master_controller_client import MasterControllerClient
 from ptcs_bridge.point_client import PointClient
 from ptcs_bridge.train_client import TrainClient
 from ptcs_bridge.train_simulator import TrainSimulator
-from ptcs_bridge.wire_pole_client import WirePoleClient
 
 if platform.system() == "Windows":
     ADDRESS_T0 = "26:dc:c3:c0:4e:a6"
@@ -18,10 +16,6 @@ if platform.system() == "Windows":
     ADDRESS_T7 = "24:dc:c3:c0:51:72"
     ADDRESS_T8 = "48:e7:29:a1:07:ee"
     ADDRESS_T9 = "24:dc:c3:c0:49:92"
-
-    ADDRESS_WIRE_POLE = "24:62:AB:E3:67:9A"
-    ADDRESS_MASTER_CONTROLLER = "9c:9c:1f:cf:ea:de"
-
     ADDRESS_POINT0 = "3c:71:bf:99:36:86"
     ADDRESS_POINT1 = "9c:9c:1f:cb:d9:f2"
     ADDRESS_POINT2 = "08:3a:8d:14:7a:0e"
@@ -30,6 +24,7 @@ if platform.system() == "Windows":
     ADDRESS_POINT5 = "7c:9e:bd:93:2e:72"
     ADDRESS_POINT6 = "24:62:ab:e3:67:9a"
     ADDRESS_POINT7 = "9c:9c:1f:d1:68:26"
+    ADDRESS_POINT8 = "fc:f5:c4:1a:3b:3a"
 
 elif platform.system() == "Darwin":
     ADDRESS_T0 = "F8EE254B-DBB8-5C62-367B-C045E11DE9C4"
@@ -42,11 +37,6 @@ elif platform.system() == "Darwin":
     ADDRESS_T7 = "E7D2BF5C-331F-9FDE-B2EF-47CB507A69CB"
     ADDRESS_T8 = "2B59D30D-F1E0-E4F7-9056-67E74D182F76"
     ADDRESS_T9 = "E61E694E-7D52-1BD1-5B7A-02402813E73E"
-
-    ADDRESS_WIRE_POLE = "C6ED8F77-16C1-F870-C731-15AA663F0E29"
-    ADDRESS_MASTER_CONTROLLER = "E538DF32-E46A-3177-8196-3B9A8D4861A9"
-    ADDRESS_POINT0 = "9FA4916E-AD02-6C9C-686A-1B97D9E3427A"
-    ADDRESS_POINT1 = "90386433-4331-50CF-1637-EFFA587DD6DB"
     ADDRESS_POINT0 = "9FA4916E-AD02-6C9C-686A-1B97D9E3427A"
     ADDRESS_POINT1 = "90386433-4331-50CF-1637-EFFA587DD6DB"
     ADDRESS_POINT2 = "2E4CD350-F39B-03B1-295C-F98C728C15E4"
@@ -55,40 +45,39 @@ elif platform.system() == "Darwin":
     ADDRESS_POINT5 = "28652C68-A2CE-F0EF-93F1-857DCA3C7A4D"
     ADDRESS_POINT6 = "4BE5DF57-4E86-18DB-E792-C5D2F118610E"
     ADDRESS_POINT7 = "3D6ABB53-D496-8379-3274-4134F840D7D8"
+    ADDRESS_POINT8 = "A6343D14-C836-2D3C-738F-BAC596B918CF"
+
 else:
     raise Exception(f"{platform.system()} not supported")
 
 
 def create_bridge() -> Bridge2:
     bridge = Bridge2()
+
     # bridge.add_train(TrainSimulator("t0"))
-    bridge.add_train(TrainClient("t0", ADDRESS_T0))
+    # bridge.add_train(TrainClient("t0", ADDRESS_T0))
     # bridge.add_train(TrainSimulator("t1"))
     bridge.add_train(TrainClient("t1", ADDRESS_T1))
     # bridge.add_train(TrainSimulator("t2"))
     bridge.add_train(TrainClient("t2", ADDRESS_T2))
     # bridge.add_train(TrainSimulator("t3"))
-    bridge.add_train(TrainClient("t3", ADDRESS_T3))
+    # bridge.add_train(TrainClient("t3", ADDRESS_T3))
     # bridge.add_train(TrainSimulator("t4"))
-    bridge.add_train(TrainClient("t4", ADDRESS_T4))
+    # bridge.add_train(TrainClient("t4", ADDRESS_T4))
     # bridge.add_train(TrainSimulator("t5"))
     bridge.add_train(TrainClient("t5", ADDRESS_T5))
     # bridge.add_train(TrainSimulator("t6"))
-    bridge.add_train(TrainClient("t6", ADDRESS_T6))
+    # bridge.add_train(TrainClient("t6", ADDRESS_T6))
     # bridge.add_train(TrainSimulator("t7"))
     bridge.add_train(TrainClient("t7", ADDRESS_T7))
     # bridge.add_train(TrainSimulator("t8"))
-    bridge.add_train(TrainClient("t8", ADDRESS_T8))
+    # bridge.add_train(TrainClient("t8", ADDRESS_T8))
     # bridge.add_train(TrainSimulator("t9"))
     bridge.add_train(TrainClient("t9", ADDRESS_T9))
-    # bridge.add_obstacle(WirePoleClient("obstacle_0", ADDRESS_WIRE_POLE))
-    # bridge.add_controller(MasterControllerClient("t4", ADDRESS_MASTER_CONTROLLER))
-    bridge.add_point(PointClient("j0", ADDRESS_POINT0))
-    bridge.add_point(PointClient("j2", ADDRESS_POINT1))
-    bridge.add_point(PointClient("j4", ADDRESS_POINT2))
-    bridge.add_point(PointClient("j6", ADDRESS_POINT3))
-    bridge.add_point(PointClient("j8", ADDRESS_POINT4))
-    bridge.add_point(PointClient("j10", ADDRESS_POINT5))
-    bridge.add_point(PointClient("j12", ADDRESS_POINT6))
-    bridge.add_point(PointClient("j14", ADDRESS_POINT7))
+
+    bridge.add_point(PointClient("j04", ADDRESS_POINT2))
+    bridge.add_point(PointClient("j06", ADDRESS_POINT3))
+    bridge.add_point(PointClient("j12", ADDRESS_POINT7))
+    bridge.add_point(PointClient("j14", ADDRESS_POINT4))
+
     return bridge

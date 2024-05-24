@@ -13,10 +13,10 @@ from ptcs_bridge.train_base import TrainBase
 from ptcs_bridge.train_client import TrainClient
 from ptcs_bridge.train_simulator import TrainSimulator
 from ptcs_bridge.wire_pole_client import WirePoleClient
-from ptcs_control.mft2023 import create_control
+from ptcs_control.gogatsusai2024 import create_control
 
 from .api import api_router
-from .mft2023 import create_bridge
+from .gogatsusai2024 import create_bridge
 
 DEFAULT_PORT = 5000
 
@@ -76,9 +76,9 @@ def create_app() -> FastAPI:
     async def train_loop(train_client: TrainBase):
         await train_client.connect()
 
-        def handle_notify_position_id(train_client: TrainBase, position_id: str):
+        def handle_notify_position_uid(train_client: TrainBase, position_uid: str):
             train_control = control.trains.get(train_client.id)
-            position = control.sensor_positions.get(f"position_{position_id}")
+            position = next(filter(lambda sp: sp.uid == position_uid, control.sensor_positions.values()), None)
             if train_control is None or position is None:
                 return
             train_control.fix_position(position)
@@ -98,11 +98,12 @@ def create_app() -> FastAPI:
         await train_client.start_notify_rotation(handle_notify_rotation)
         match train_client:
             case TrainClient():
-                await train_client.start_notify_position_id(handle_notify_position_id)
+                await train_client.start_notify_position_uid(handle_notify_position_uid)
                 await train_client.start_notify_voltage(handle_notify_voltage)
 
         train_control = control.trains.get(train_client.id)
         if train_control is None:
+            logger.warn(f"{train_client} has no corresponding train")
             return
 
         while True:
@@ -124,6 +125,7 @@ def create_app() -> FastAPI:
 
         junction_control = control.junctions.get(point_client.id)
         if junction_control is None:
+            logger.warn(f"{point_client} has no corresponding junction")
             return
 
         while True:
@@ -140,6 +142,7 @@ def create_app() -> FastAPI:
         def handle_notify_collapse(obstacle_client: WirePoleClient, is_collapsed: bool):
             obstacle_control = control.obstacles.get(obstacle_client.id)
             if obstacle_control is None:
+                logger.warn(f"{obstacle_client} has no corresponding obstacle")
                 return
             obstacle_control.is_detected = is_collapsed
 
@@ -155,6 +158,7 @@ def create_app() -> FastAPI:
         def handle_notify_speed(controller_client: MasterControllerClient, speed: int):
             train_control = control.trains.get(controller_client.id)
             if train_control is None:
+                logger.warn(f"{controller_client} has no corresponding train")
                 return
             train_control.manual_speed = speed / 255 * train_control.max_speed
 

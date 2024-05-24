@@ -3,8 +3,10 @@ from __future__ import annotations
 import math
 from collections.abc import Iterable
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import TYPE_CHECKING, TypeVar
 
+from ..control.events import TrainSectionChanged
 from .base import BaseComponent
 from .position import DirectedPosition, UndirectedPosition
 from .section import SectionConnection
@@ -17,6 +19,14 @@ if TYPE_CHECKING:
 
 
 T = TypeVar("T")
+
+
+class TrainType(str, Enum):
+    """列車の種別"""
+
+    LimitedExpress = "LimitedExpress"  # 特急
+    Local = "Local"  # 各駅停車
+    CommuterSemiExpress = "CommuterSemiExpress"  # 通勤準急
 
 
 @dataclass
@@ -34,6 +44,11 @@ class Train(BaseComponent):
 
     # state
     head_position: DirectedPosition  # 列車先頭の位置と方向
+
+    # config with default
+    type: TrainType | None = None  # 列車の種別
+
+    # state with default
     stop: Stop | None = field(default=None)  # 列車の停止目標
     stop_distance: float = field(default=0.0)  # 停止目標までの距離[cm]
     departure_time: int | None = field(default=None)  # 発車予定時刻
@@ -75,7 +90,15 @@ class Train(BaseComponent):
         列車を距離 delta 分だけ進める。
         """
 
+        previous_section = self.head_position.section
         self.head_position = self.head_position.get_advanced_position(delta)
+        if self.head_position.section != previous_section:
+            event = TrainSectionChanged(
+                train=self,
+                previous_section=previous_section,
+                current_section=self.head_position.section,
+            )
+            self.control.event_queue.append(event)
 
     def fix_position(self, sensor: SensorPosition) -> None:
         """
@@ -83,7 +106,15 @@ class Train(BaseComponent):
         TODO: 向きを割り出すためにどうするか
         """
 
+        previous_section = self.head_position.section
         self.head_position = DirectedPosition(sensor.section, sensor.target_junction, sensor.mileage)
+        if self.head_position.section != previous_section:
+            event = TrainSectionChanged(
+                train=self,
+                previous_section=previous_section,
+                current_section=self.head_position.section,
+            )
+            self.control.event_queue.append(event)
 
     def send_speed_command(self, speed_command: float) -> None:
         """
