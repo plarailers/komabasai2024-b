@@ -1,6 +1,6 @@
-# 第97回五月祭
+# 第75回駒場祭（プランB）
 
-開催日：2024年5月18日（土）～19日（日）
+開催日：2024年11月22日（金）～24日（日）
 
 ## 内容
 
@@ -27,5 +27,5 @@
 ## インストール
 
 ```sh
-git clone https://github.com/plarailers/gogatsusai2024.git
+git clone https://github.com/plarailers/komabasai2024-b.git
 ```
