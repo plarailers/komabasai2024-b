@@ -27,12 +27,14 @@ class FixedBlockControl(BaseControl):
         self.event_queue.clear()
 
     def _calc_block(self) -> None:
-        for section_id, section in self.sections.items():
-            section.is_blocked = False
+        is_blocked = set()
 
         for train_id, train in self.trains.items():
-            train.head_position.section.is_blocked = True
-            train.compute_tail_position().section.is_blocked = True
+            is_blocked.add(train.head_position.section.block_id)
+            is_blocked.add(train.compute_tail_position().section.block_id)
+
+        for section_id, section in self.sections.items():
+            section.is_blocked = (section.block_id in is_blocked)
 
     def _calc_direction(self) -> None:
         """
@@ -205,7 +207,12 @@ class FixedBlockControl(BaseControl):
         for train in self.trains.values():
             current_section = train.head_position.section
             target_junction = train.head_position.target_junction
-            next_section, next_junction = current_section.get_next_section_and_target_junction(target_junction)
+            while True:
+                next_section, next_junction = current_section.get_next_section_and_target_junction(target_junction)
+                if next_section.block_id != current_section.block_id:
+                    break
+                current_section = next_section
+                target_junction = next_junction
 
             if train.departure_time is not None and self.current_time < train.departure_time:
                 train.speed_command = 0.0

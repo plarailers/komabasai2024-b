@@ -103,7 +103,7 @@ def configure(control: FixedBlockControl) -> None:
     )
     t5 = Train(
         id="t5",
-        type=TrainType.CommuterSemiExpress,
+        type=TrainType.LimitedExpress,
         min_input=185,
         max_input=225,
         max_speed=40.0,
@@ -177,8 +177,8 @@ def configure(control: FixedBlockControl) -> None:
     # control.add_train(t2)
     # control.add_train(t3)
     # control.add_train(t4)
-    # control.add_train(t5)
-    # control.add_train(t6)
+    control.add_train(t5)
+    control.add_train(t6)
     # control.add_train(t7)
     control.add_train(t8)
     control.add_train(t9)
