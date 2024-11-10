@@ -46,8 +46,8 @@ export const ui: RailwayUI = {
       stroke: DEFAULT_THEME.colors.blue[9],
     },
     t9: {
-      fill: DEFAULT_THEME.colors.blue[4],
-      stroke: DEFAULT_THEME.colors.blue[9],
+      fill: DEFAULT_THEME.colors.green[4],
+      stroke: DEFAULT_THEME.colors.green[9],
     },
   },
   stops: {},

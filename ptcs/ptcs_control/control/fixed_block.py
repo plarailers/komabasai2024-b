@@ -52,7 +52,7 @@ class FixedBlockControl(BaseControl):
                 continue
 
             match junction.id:
-                case "j01" | "j03" | "j05" | "j07" | "j09" | "j11" | "j13" | "j15":  # 合流点
+                case "j100" | "j102" | "j103" | "j105" | "j106":  # 合流点
                     section_t = junction.connected_sections[JunctionConnection.THROUGH]
                     section_d = junction.connected_sections.get(JunctionConnection.DIVERGING)
                     if (
@@ -68,19 +68,22 @@ class FixedBlockControl(BaseControl):
                     else:
                         pass  # まだ遠くにいる
 
-                case "j02" | "j04" | "j08" | "j14":  # 急行線上の分岐点
+                case "J30" | "j104":  # 固定
+                    junction.manual_direction = PointDirection.CURVE
+
+                case "J50":  # 急行線上の分岐点
                     match nearest_train.type:
                         case TrainType.LimitedExpress:
                             junction.manual_direction = PointDirection.STRAIGHT  # 急行線に保つ
                         case TrainType.Local:
                             junction.manual_direction = PointDirection.CURVE  # 緩行線に保つ
                         case TrainType.CommuterSemiExpress:
-                            if junction.id == "j04":
+                            if junction.id == "J50":
                                 junction.manual_direction = PointDirection.CURVE  # 駅に寄るため専用区間に移動
                             else:
                                 junction.manual_direction = PointDirection.STRAIGHT  # 極力急行線に移動
 
-                case "j00" | "j06" | "j10" | "j12":  # 緩行線上の分岐点
+                case "J26":  # 緩行線上の分岐点
                     match nearest_train.type:
                         case TrainType.LimitedExpress:
                             junction.manual_direction = PointDirection.CURVE  # 急行線に保つ

@@ -159,7 +159,7 @@ def configure(control: FixedBlockControl) -> None:
     )
     t9 = Train(
         id="t9",
-        type=TrainType.Local,
+        type=TrainType.CommuterSemiExpress,
         min_input=180,
         max_input=210,
         max_speed=40.0,
@@ -172,15 +172,15 @@ def configure(control: FixedBlockControl) -> None:
         ),
     )
 
-    # control.add_train(t0)
-    control.add_train(t1)
-    control.add_train(t2)
+    control.add_train(t0)
+    # control.add_train(t1)
+    # control.add_train(t2)
     # control.add_train(t3)
     # control.add_train(t4)
-    control.add_train(t5)
+    # control.add_train(t5)
     # control.add_train(t6)
-    control.add_train(t7)
-    # control.add_train(t8)
+    # control.add_train(t7)
+    control.add_train(t8)
     control.add_train(t9)
 
     for sensor_position_id, uid, junction_id in [
