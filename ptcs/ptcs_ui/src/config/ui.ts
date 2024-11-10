@@ -1,12 +1,12 @@
 import { DEFAULT_THEME } from "@mantine/core";
 import { RailwayUI } from "../types";
-import generated from "../../../data/gogatsusai2024/railway_ui_v5.json";
+import generated from "../../../data/komabasai2024/railway_ui_test_v1.json";
 
 // 色の一覧: https://v5.mantine.dev/theming/colors/#default-colors
 
 export const ui: RailwayUI = {
-  width: 2000,
-  height: 720,
+  width: 1080,
+  height: 600,
   ...generated,
   trains: {
     t0: {

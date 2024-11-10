@@ -13,10 +13,10 @@ from ptcs_bridge.train_base import TrainBase
 from ptcs_bridge.train_client import TrainClient
 from ptcs_bridge.train_simulator import TrainSimulator
 from ptcs_bridge.wire_pole_client import WirePoleClient
-from ptcs_control.gogatsusai2024 import create_control
+from ptcs_control.komabasai2024 import create_control
 
 from .api import api_router
-from .gogatsusai2024 import create_bridge
+from .komabasai2024 import create_bridge
 
 DEFAULT_PORT = 5000
 
