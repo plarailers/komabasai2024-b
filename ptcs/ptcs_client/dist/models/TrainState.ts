@@ -3,9 +3,11 @@
 /* eslint-disable */
 
 import type { DirectedPosition } from './DirectedPosition';
+import type { TrainType } from './TrainType';
 
 export type TrainState = {
     id: string;
+    type: (TrainType | null);
     min_input: number;
     max_input: number;
     max_speed: number;
@@ -19,4 +21,5 @@ export type TrainState = {
     departure_time: (number | null);
     speed_command: number;
     voltage_mV: number;
+    manual_speed: (number | null);
 };

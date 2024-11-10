@@ -16,6 +16,7 @@ export const Information: React.FC = () => {
         <tr>
           <th></th>
           <th>train</th>
+          <th>type</th>
           <th>speed</th>
           <th>voltage</th>
         </tr>
@@ -30,6 +31,7 @@ export const Information: React.FC = () => {
                   <ColorSwatch color={railwayUI.trains[id].fill} />
                 </td>
                 <td>{id}</td>
+                <td>{train.type}</td>
                 <td>{train.speed_command.toFixed(2)}</td>
                 <td>{train.voltage_mV}</td>
               </tr>

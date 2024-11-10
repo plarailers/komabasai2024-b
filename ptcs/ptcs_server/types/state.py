@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from ptcs_control.components.junction import JunctionConnection, PointDirection
 from ptcs_control.components.section import SectionConnection
-from ptcs_control.components.train import Train
+from ptcs_control.components.train import Train, TrainType
 from ptcs_control.control.base import BaseControl
 
 
@@ -41,6 +41,7 @@ class SectionState(BaseModel):
 
 class TrainState(BaseModel):
     id: str
+    type: TrainType | None
     min_input: int
     max_input: int
     max_speed: float
@@ -61,6 +62,7 @@ class TrainState(BaseModel):
         tail_position, covered_sections = train.head_position.get_retracted_position_with_path(train.length)
         return TrainState(
             id=train.id,
+            type=train.type,
             min_input=train.min_input,
             max_input=train.max_input,
             max_speed=train.max_speed,
