@@ -50,7 +50,7 @@ else:
     raise Exception(f"{platform.system()} not supported")
 
 ####### TODO: 車両のアドレスを指定してください #######
-address = ADDRESS_T0
+address = ADDRESS_T9
 #################################################
 
 SERVICE_UUID = "63cb613b-6562-4aa5-b602-030f103834a4"
@@ -108,9 +108,9 @@ async def main():
                 elif address == ADDRESS_T7:
                     i = 210
                 elif address == ADDRESS_T8:
-                    i = 150
+                    i = 230
                 elif address == ADDRESS_T9:
-                    i = 195
+                    i = 230
 
                 while True:
                     await client.write_gatt_char(characteristicSpeed, f"{i}".encode())

@@ -141,18 +141,9 @@ class FixedBlockControl(BaseControl):
                         case TrainType.LimitedExpress:
                             stops = []
                         case TrainType.Local:
-                            stops = ["S08", "S12", "S23", "S39", "S49", "S51"]
+                            stops = ["S60", "S25"]
                         case TrainType.CommuterSemiExpress:
-                            stops = [
-                                "S12",
-                                "S13",
-                                "S23",
-                                "S24",
-                                "S39",
-                                "S40",
-                                "S49",
-                                "S50",
-                            ]
+                            stops = ["S37", "S25"]
                         case _:
                             stops = []
 

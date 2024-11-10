@@ -10,9 +10,9 @@ Servo servo;
 // サーボを回転させる速さ。1~255。
 const int SERVO_SPEED = 100;
 // サーボを直進にする際の角度。適宜いじってください。
-const int SERVO_ANGLE_STRAIGHT = 69; //POINT0:50, POINT1:69
+const int SERVO_ANGLE_STRAIGHT = 80; //POINT0:50, POINT1:80, POINT3:
 // サーボを曲げる際の角度。適宜いじってください。
-const int SERVO_ANGLE_CURVE = 50; //POINT0:69, POINT1:50
+const int SERVO_ANGLE_CURVE = 20; //POINT0:69, POINT1:20, POINT3:
 // サーボをアタッチするピンの指定。適宜いじってください。
 const int SERVO_ATTACH_PIN = 26;
 String STRAIGHT = "STRAIGHT";
@@ -45,6 +45,8 @@ std::string getPointName() {
       return "POINT0";
     case 0xF0D9CB1F9C9C:
       return "POINT1";
+    case 0x64FFA029E748:
+      return "POINT3";
     default:
       return "unknown";
   }
