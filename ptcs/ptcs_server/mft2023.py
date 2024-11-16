@@ -8,7 +8,7 @@ from ptcs_bridge.train_simulator import TrainSimulator
 from ptcs_bridge.wire_pole_client import WirePoleClient
 
 if platform.system() == "Windows":
-    ADDRESS_T0 = "26:dc:c3:c0:4e:a6"
+    ADDRESS_T0 = "24:dc:c3:c0:4e:a6"
     ADDRESS_T1 = "48:E7:29:93:F4:B6"
     ADDRESS_T2 = "24:DC:C3:C0:3A:4E"
     ADDRESS_T3 = "48:E7:29:A0:FF:66"
