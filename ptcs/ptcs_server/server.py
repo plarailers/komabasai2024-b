@@ -170,6 +170,8 @@ def create_app() -> FastAPI:
 
     @app.on_event("shutdown")
     async def on_shutdown():
+        for task in app.state.train_loop_tasks.values():
+            task.cancel()
         for train in bridge.trains.values():
             match train:
                 case TrainSimulator():
