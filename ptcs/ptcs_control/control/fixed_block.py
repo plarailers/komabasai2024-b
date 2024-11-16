@@ -34,7 +34,7 @@ class FixedBlockControl(BaseControl):
             is_blocked.add(train.compute_tail_position().section.block_id)
 
         for section_id, section in self.sections.items():
-            section.is_blocked = (section.block_id in is_blocked)
+            section.is_blocked = section.block_id in is_blocked
 
     def _calc_direction(self) -> None:
         """
