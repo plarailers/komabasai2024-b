@@ -62,7 +62,18 @@ class FixedBlockControl(BaseControl):
                     ):
                         junction.manual_direction = PointDirection.CURVE
                     else:
-                        pass  # まだ遠くにいる
+                        # 一応次の区間も見る
+                        next_section_and_target_junction = (
+                            nearest_train.head_position.section.get_next_section_and_target_junction_strict(
+                                nearest_train.head_position.target_junction
+                            )
+                        )
+                        if next_section_and_target_junction:
+                            next_section, _ = next_section_and_target_junction
+                            if section_t == next_section:
+                                junction.manual_direction = PointDirection.STRAIGHT
+                            elif section_d == next_section:
+                                junction.manual_direction = PointDirection.CURVE
 
                 case "J30" | "j104":  # 固定
                     junction.manual_direction = PointDirection.CURVE
@@ -237,16 +248,22 @@ class FixedBlockControl(BaseControl):
         for train in self.trains.values():
             current_section = train.head_position.section
             target_junction = train.head_position.target_junction
+            next_section, next_junction = current_section.get_next_section_and_target_junction(target_junction)
             while True:
-                next_section, next_junction = current_section.get_next_section_and_target_junction(target_junction)
-                if next_section.block_id != current_section.block_id:
+                next_block_section, next_block_junction = current_section.get_next_section_and_target_junction(
+                    target_junction
+                )
+                if next_block_section.block_id != current_section.block_id:
                     break
-                current_section = next_section
-                target_junction = next_junction
+                current_section = next_block_section
+                target_junction = next_block_junction
 
             if train.departure_time is not None and self.current_time < train.departure_time:
                 train.speed_command = 0.0
-            elif next_section.is_blocked:
+            elif next_block_section.is_blocked:
+                train.speed_command = 0.0
+            elif next_section.get_next_section_and_target_junction_strict(next_junction) is None:
+                # 次のセクションがブロックされていなくても、ポイントが自分の方に向いていなければブロックとみなす
                 train.speed_command = 0.0
             else:
                 train.speed_command = MAX_SPEED
