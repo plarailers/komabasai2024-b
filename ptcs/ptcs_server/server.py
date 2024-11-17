@@ -109,7 +109,7 @@ async def lifespan(app: FastAPI):
 
         train_control = control.trains.get(train_client.id)
         if train_control is None:
-            logger.warn(f"{train_client} has no corresponding train")
+            logger.warning(f"{train_client} has no corresponding train")
             return
 
         while True:
@@ -131,7 +131,7 @@ async def lifespan(app: FastAPI):
 
         junction_control = control.junctions.get(point_client.id)
         if junction_control is None:
-            logger.warn(f"{point_client} has no corresponding junction")
+            logger.warning(f"{point_client} has no corresponding junction")
             return
 
         while True:
@@ -148,7 +148,7 @@ async def lifespan(app: FastAPI):
         def handle_notify_collapse(obstacle_client: WirePoleClient, is_collapsed: bool):
             obstacle_control = control.obstacles.get(obstacle_client.id)
             if obstacle_control is None:
-                logger.warn(f"{obstacle_client} has no corresponding obstacle")
+                logger.warning(f"{obstacle_client} has no corresponding obstacle")
                 return
             obstacle_control.is_detected = is_collapsed
 
@@ -164,7 +164,7 @@ async def lifespan(app: FastAPI):
         def handle_notify_speed(controller_client: MasterControllerClient, speed: int):
             train_control = control.trains.get(controller_client.id)
             if train_control is None:
-                logger.warn(f"{controller_client} has no corresponding train")
+                logger.warning(f"{controller_client} has no corresponding train")
                 return
             train_control.manual_speed = speed / 255 * train_control.max_speed
 
