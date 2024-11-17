@@ -62,18 +62,26 @@ class FixedBlockControl(BaseControl):
                     ):
                         junction.manual_direction = PointDirection.CURVE
                     else:
-                        # 一応次の区間も見る
-                        next_section_and_target_junction = (
-                            nearest_train.head_position.section.get_next_section_and_target_junction_strict(
-                                nearest_train.head_position.target_junction
+                        # 一応同じ閉塞区間の次の区間まで見る
+                        current_section = nearest_train.head_position.section
+                        current_target_junction = nearest_train.head_position.target_junction
+                        while True:
+                            if current_section.block_id != nearest_train.head_position.section.block_id:
+                                break
+                            next_section_and_target_junction = (
+                                current_section.get_next_section_and_target_junction_strict(current_target_junction)
                             )
-                        )
-                        if next_section_and_target_junction:
-                            next_section, _ = next_section_and_target_junction
+                            if next_section_and_target_junction is None:
+                                break
+                            next_section, next_target_junction = next_section_and_target_junction
                             if section_t == next_section:
                                 junction.manual_direction = PointDirection.STRAIGHT
+                                break
                             elif section_d == next_section:
                                 junction.manual_direction = PointDirection.CURVE
+                                break
+                            current_section = next_section
+                            current_target_junction = next_target_junction
 
                 case "J30" | "j104":  # 固定
                     junction.manual_direction = PointDirection.CURVE
@@ -248,7 +256,6 @@ class FixedBlockControl(BaseControl):
         for train in self.trains.values():
             current_section = train.head_position.section
             target_junction = train.head_position.target_junction
-            next_section, next_junction = current_section.get_next_section_and_target_junction(target_junction)
             while True:
                 next_block_section, next_block_junction = current_section.get_next_section_and_target_junction(
                     target_junction
@@ -262,7 +269,7 @@ class FixedBlockControl(BaseControl):
                 train.speed_command = 0.0
             elif next_block_section.is_blocked:
                 train.speed_command = 0.0
-            elif next_section.get_next_section_and_target_junction_strict(next_junction) is None:
+            elif next_block_section.get_next_section_and_target_junction_strict(next_block_junction) is None:
                 # 次のセクションがブロックされていなくても、ポイントが自分の方に向いていなければブロックとみなす
                 train.speed_command = 0.0
             else:

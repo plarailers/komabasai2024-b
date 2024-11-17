@@ -111,49 +111,44 @@ class Junction(BaseComponent):
         nearest_distance = math.inf
 
         for train in self.control.trains.values():
-            if train.head_position.target_junction == self:
-                if (
-                    train.head_position.target_junction
-                    == train.head_position.section.connected_junctions[SectionConnection.A]
-                ):
-                    distance = train.head_position.mileage
-                elif (
-                    train.head_position.target_junction
-                    == train.head_position.section.connected_junctions[SectionConnection.B]
-                ):
-                    distance = train.head_position.section.length - train.head_position.mileage
-                else:
-                    raise
+            if (
+                train.head_position.target_junction
+                == train.head_position.section.connected_junctions[SectionConnection.A]
+            ):
+                distance = train.head_position.mileage
+            elif (
+                train.head_position.target_junction
+                == train.head_position.section.connected_junctions[SectionConnection.B]
+            ):
+                distance = train.head_position.section.length - train.head_position.mileage
+            else:
+                raise
 
+            if train.head_position.target_junction == self:
                 if distance < nearest_distance:
                     nearest_train = train
                     nearest_distance = distance
+                continue
 
-            # 一応次の区間も見る。
-            # TODO: 会場で書いたコードなので後でちゃんと書く。
-            next_section_and_target_junction = train.head_position.section.get_next_section_and_target_junction_strict(
-                train.head_position.target_junction
-            )
-            if next_section_and_target_junction:
+            # 一応同じ閉塞区間の次の区間まで見る
+            current_section = train.head_position.section
+            current_target_junction = train.head_position.target_junction
+            while True:
+                if current_section.block_id != train.head_position.section.block_id:
+                    break
+                next_section_and_target_junction = current_section.get_next_section_and_target_junction_strict(
+                    current_target_junction
+                )
+                if next_section_and_target_junction is None:
+                    break
                 next_section, next_target_junction = next_section_and_target_junction
+                distance += next_section.length
                 if next_target_junction == self:
-                    if (
-                        train.head_position.target_junction
-                        == train.head_position.section.connected_junctions[SectionConnection.A]
-                    ):
-                        distance = train.head_position.mileage + next_section.length
-                    elif (
-                        train.head_position.target_junction
-                        == train.head_position.section.connected_junctions[SectionConnection.B]
-                    ):
-                        distance = (
-                            train.head_position.section.length - train.head_position.mileage
-                        ) + next_section.length
-                    else:
-                        raise
-
                     if distance < nearest_distance:
                         nearest_train = train
                         nearest_distance = distance
+                    break
+                current_section = next_section
+                current_target_junction = next_target_junction
 
         return nearest_train
