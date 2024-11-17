@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING
@@ -123,3 +124,43 @@ class Section(BaseComponent):
 
         next_target_junction = next_section.get_opposite_junction(target_junction)
         return next_section, next_target_junction
+
+
+def compute_connected_components(sections: list["Section"]) -> list[set[str]]:
+    """
+    与えられたセクションの集合に対して連結成分分解を行う。
+    すなわち、ポイントの向きに応じて、セクションからセクションにたどり着ける場合に同じグループとみなし、
+    そうでない場合は別のグループとみなす。
+    """
+
+    def bfs(s0: "Section") -> set[str]:
+        que: deque["Section"] = deque()
+        visited: set[str] = set()
+        que.append(s0)
+        visited.add(s0.id)
+
+        while que:
+            s = que.popleft()
+            for j in s.connected_junctions.values():
+                t, _ = s.get_next_section_and_target_junction_strict(j) or (None, None)
+                if t is None:
+                    continue
+                if t.id in visited:
+                    continue
+                if t not in sections:
+                    continue
+                que.append(t)
+                visited.add(t.id)
+
+        return visited
+
+    components: list[set[str]] = []
+    visited: set[str] = set()
+    for s in sections:
+        if s.id in visited:
+            continue
+        component = bfs(s)
+        components.append(component)
+        visited |= component
+
+    return components

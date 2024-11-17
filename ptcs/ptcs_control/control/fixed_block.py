@@ -3,7 +3,11 @@ import math
 from ..components.junction import JunctionConnection, PointDirection
 from ..components.obstacle import Obstacle
 from ..components.position import DirectedPosition, UndirectedPosition
-from ..components.section import SectionConnection
+from ..components.section import (
+    Section,
+    SectionConnection,
+    compute_connected_components,
+)
 from ..components.train import Train, TrainType
 from ..constants import STRAIGHT_RAIL
 from .base import BaseControl
@@ -20,21 +24,11 @@ class FixedBlockControl(BaseControl):
         状態に変化が起こった後、すべてを再計算する。
         """
 
-        self._calc_block()
         self._calc_direction()
+        self._calc_block()
         self._calc_stop()
         self._calc_speed()
         self.event_queue.clear()
-
-    def _calc_block(self) -> None:
-        is_blocked = set()
-
-        for train_id, train in self.trains.items():
-            is_blocked.add(train.head_position.section.block_id)
-            is_blocked.add(train.compute_tail_position().section.block_id)
-
-        for section_id, section in self.sections.items():
-            section.is_blocked = section.block_id in is_blocked
 
     def _calc_direction(self) -> None:
         """
@@ -124,6 +118,42 @@ class FixedBlockControl(BaseControl):
                 if not junction.is_toggle_prohibited():
                     junction.set_direction(junction.manual_direction)
                     junction.manual_direction = None
+
+    def _calc_block(self) -> None:
+        r"""
+        閉塞を計算する。
+        基本的にセクションに割り振られている閉塞 ID を元にするが、
+        並列する線路を同じ閉塞にするかどうかがポイントの開通状況によって変わるため、
+        ポイントの向きの計算後に呼び出す。
+        """
+
+        blocks: dict[str, list["Section"]] = {}
+
+        for section in self.sections.values():
+            section.is_blocked = False
+            if section.block_id is None:
+                continue
+            if section.block_id not in blocks:
+                blocks[section.block_id] = []
+            blocks[section.block_id].append(section)
+
+        for train in self.trains.values():
+            train.head_position.section.is_blocked = True
+            train.compute_tail_position().section.is_blocked = True
+
+        for block in blocks.values():
+            connected_components = compute_connected_components(block)
+            is_connected: dict[str, set[str]] = {}
+            for component in connected_components:
+                for section_id in component:
+                    is_connected[section_id] = component
+
+            for s in block:
+                for t in block:
+                    if t.id in is_connected[s.id]:
+                        is_blocked = s.is_blocked | t.is_blocked
+                        s.is_blocked |= is_blocked
+                        t.is_blocked |= is_blocked
 
     def _calc_stop(self) -> None:
         """
