@@ -18,7 +18,8 @@ from ptcs_control.komabasai2024 import create_control
 from .api import api_router
 from .komabasai2024 import create_bridge
 
-DEFAULT_PORT = 5000
+# NOTE: macOS では 5000 番ポートの使用を避ける
+DEFAULT_PORT = 8000
 
 
 class ServerArgs(BaseModel):

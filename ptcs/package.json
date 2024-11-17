@@ -3,7 +3,7 @@
   "scripts": {
     "ui:dev": "npm run --workspace=ptcs_ui dev",
     "ui:build": "npm run --workspace=ptcs_ui build",
-    "generate-client": "openapi --input http://127.0.0.1:5000/openapi.json --output ./ptcs_client/dist"
+    "generate-client": "openapi --input http://127.0.0.1:8000/openapi.json --output ./ptcs_client/dist"
   },
   "workspaces": [
     "ptcs_client",
