@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI
@@ -45,12 +46,16 @@ def get_server_args() -> ServerArgs:
 
 
 def create_app() -> FastAPI:
+    app = FastAPI(lifespan=lifespan, generate_unique_id_function=lambda route: route.name)
+    return app
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     logger = logging.getLogger("uvicorn")
 
     args = get_server_args()
     logger.info("server args: %s", args)
-
-    app = FastAPI(generate_unique_id_function=lambda route: route.name)
 
     control = create_control(logger=logger)
     app.state.control = control
@@ -169,21 +174,29 @@ def create_app() -> FastAPI:
     for controller_id, controller_client in bridge.controllers.items():
         app.state.controller_loop_tasks[controller_id] = asyncio.create_task(controller_loop(controller_client))
 
-    @app.on_event("shutdown")
-    async def on_shutdown():
-        for task in app.state.train_loop_tasks.values():
-            task.cancel()
-        for train in bridge.trains.values():
-            match train:
-                case TrainSimulator():
-                    await train.send_speed(0.0)
-                case TrainClient():
-                    if train.is_connected:
-                        await train.send_motor_input(0)
+    # ここでサーバーのループが走る
+    yield
 
-        await bridge.disconnect_all()
+    logger.info("Exiting...")
 
-    return app
+    app.state.control_loop_task.cancel()
+    for task in (
+        *app.state.train_loop_tasks.values(),
+        *app.state.point_loop_tasks.values(),
+        *app.state.obstacle_loop_tasks.values(),
+        *app.state.controller_loop_tasks.values(),
+    ):
+        task.cancel()
+
+    for train in bridge.trains.values():
+        match train:
+            case TrainSimulator():
+                await train.send_speed(0.0)
+            case TrainClient():
+                if train.is_connected:
+                    await train.send_motor_input(0)
+
+    await bridge.disconnect_all()
 
 
 def serve(*, port: int = DEFAULT_PORT, bridge: bool = False, debug: bool = False) -> None:
