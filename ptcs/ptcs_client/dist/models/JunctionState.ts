@@ -10,4 +10,5 @@ export type JunctionState = {
     manual_direction: (PointDirection | null);
     current_direction: PointDirection;
     direction_command: PointDirection;
+    request_queue: Array<any[]>;
 };

@@ -30,6 +30,7 @@ class JunctionState(BaseModel):
     manual_direction: PointDirection | None
     current_direction: PointDirection
     direction_command: PointDirection
+    request_queue: list[tuple[PointDirection, str]]
 
 
 class SectionState(BaseModel):
@@ -137,6 +138,7 @@ def get_state_from_control(control: BaseControl) -> RailwayState:
                 manual_direction=junction.manual_direction,
                 current_direction=junction.current_direction,
                 direction_command=junction.direction_command,
+                request_queue=[(direction, train.id) for direction, train in junction.request_queue],
             )
             for junction in control.junctions.values()
         },

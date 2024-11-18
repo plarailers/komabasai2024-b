@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING
@@ -61,6 +62,8 @@ class Junction(BaseComponent):
 
     # state
     current_direction: PointDirection = field(default=PointDirection.STRAIGHT)
+
+    request_queue: deque[tuple["PointDirection", "Train"]] = field(default_factory=deque)  # ポイントの向きの要求
 
     # commands
     direction_command: PointDirection = field(default=PointDirection.STRAIGHT)
@@ -152,3 +155,51 @@ class Junction(BaseComponent):
                 current_target_junction = next_target_junction
 
         return nearest_train
+
+    def find_incoming_trains(self) -> list[Train]:
+        """
+        `find_nearest_train` で見つかりうるすべての列車を返す。
+        """
+
+        from .section import SectionConnection
+
+        trains: list[Train] = []
+
+        for train in self.control.trains.values():
+            if (
+                train.head_position.target_junction
+                == train.head_position.section.connected_junctions[SectionConnection.A]
+            ):
+                distance = train.head_position.mileage
+            elif (
+                train.head_position.target_junction
+                == train.head_position.section.connected_junctions[SectionConnection.B]
+            ):
+                distance = train.head_position.section.length - train.head_position.mileage
+            else:
+                raise
+
+            if train.head_position.target_junction == self:
+                trains.append(train)
+                continue
+
+            # 一応同じ閉塞区間の次の区間まで見る
+            current_section = train.head_position.section
+            current_target_junction = train.head_position.target_junction
+            while True:
+                if current_section.block_id != train.head_position.section.block_id:
+                    break
+                next_section_and_target_junction = current_section.get_next_section_and_target_junction_strict(
+                    current_target_junction
+                )
+                if next_section_and_target_junction is None:
+                    break
+                next_section, next_target_junction = next_section_and_target_junction
+                distance += next_section.length
+                if next_target_junction == self:
+                    trains.append(train)
+                    break
+                current_section = next_section
+                current_target_junction = next_target_junction
+
+        return trains

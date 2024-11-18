@@ -97,6 +97,15 @@ export const Junction: React.FC<JunctionProps> = ({ id, position }) => {
         stroke={theme.colors.blue[7]}
         strokeWidth={8}
       />
+      {junctionState.request_queue && (
+        <g transform={`translate(${0}, ${-10})`}>
+          <text textAnchor="middle" fill={theme.colors.gray[5]}>
+            {junctionState.request_queue
+              .map(([d, t]) => `${d.charAt(0).toUpperCase()}${t}`)
+              .join(" ")}
+          </text>
+        </g>
+      )}
     </g>
   );
 };
