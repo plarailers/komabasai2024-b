@@ -29,16 +29,16 @@ jobs:
         with:
           reviewdog_version: latest
 
-      - name: Setup Python 3.11
+      - name: Setup Python 3.12
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install Poetry
         run: |
           export POETRY_HOME=/opt/poetry
           python -m venv $POETRY_HOME
-          $POETRY_HOME/bin/pip install poetry==1.6.1
+          $POETRY_HOME/bin/pip install poetry==1.8.4
           $POETRY_HOME/bin/poetry --version
           echo "$POETRY_HOME/bin" >> $GITHUB_PATH
 

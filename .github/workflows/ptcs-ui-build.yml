@@ -5,6 +5,7 @@ on:
     branches-ignore:
       - main
     paths:
+      - '.github/workflows/ptcs-ui-build.yml'
       - 'ptcs/ptcs_ui/**'
       - 'ptcs/package-lock.json'
       - 'ptcs/package.json'
@@ -22,7 +23,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 22
           cache: npm
           cache-dependency-path: 'ptcs/package-lock.json'
 
