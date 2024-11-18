@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import { RailwayStateContext, RailwayUIContext } from "../contexts";
 import { ColorSwatch, Table } from "@mantine/core";
+import { getTrainUI } from "../config/ui";
 
 export const Information: React.FC = () => {
   const railwayState = useContext(RailwayStateContext);
@@ -23,19 +24,17 @@ export const Information: React.FC = () => {
       </thead>
       <tbody>
         {railwayState &&
-          Object.entries(railwayState.trains)
-            .filter(([id, train]) => railwayUI.trains[id])
-            .map(([id, train]) => (
-              <tr key={id}>
-                <td>
-                  <ColorSwatch color={railwayUI.trains[id].fill} />
-                </td>
-                <td>{id}</td>
-                <td>{train.type}</td>
-                <td>{train.speed_command.toFixed(2)}</td>
-                <td>{train.voltage_mV}</td>
-              </tr>
-            ))}
+          Object.entries(railwayState.trains).map(([id, train]) => (
+            <tr key={id}>
+              <td>
+                <ColorSwatch color={getTrainUI(train.type).fill} />
+              </td>
+              <td>{id}</td>
+              <td>{train.type}</td>
+              <td>{train.speed_command.toFixed(2)}</td>
+              <td>{train.voltage_mV}</td>
+            </tr>
+          ))}
       </tbody>
     </Table>
   );

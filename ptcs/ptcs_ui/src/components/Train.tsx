@@ -9,6 +9,7 @@ import {
   TrainState,
 } from "ptcs_client";
 import { RailwayUI } from "../types";
+import { getTrainUI } from "../config/ui";
 
 interface TrainProps {
   id: string;
@@ -41,7 +42,7 @@ export const Train: React.FC<TrainProps> = ({ id }) => {
 
   const path = calculatePath(trainState, railwayState, railwayUI);
 
-  const trainUI = railwayUI.trains[id];
+  const trainUI = getTrainUI(trainState.type);
 
   return (
     <>
