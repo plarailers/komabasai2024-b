@@ -62,6 +62,11 @@ export const Train: React.FC<TrainProps> = ({ id }) => {
             stroke={trainUI.stroke}
           />
         </g>
+        <g transform={`translate(${0}, ${0})`}>
+          <text textAnchor="middle" fill={theme.colors.gray[5]}>
+            {trainState.id}
+          </text>
+        </g>
         {trainState.departure_time != null && (
           <g transform={`translate(${0}, ${-10})`}>
             <text textAnchor="middle" fill={theme.colors.gray[5]}>
