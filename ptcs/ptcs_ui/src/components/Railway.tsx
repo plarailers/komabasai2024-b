@@ -45,11 +45,9 @@ export const Railway: React.FC<React.PropsWithChildren> = ({ children }) => {
         .map(([id, obstacle]) => (
           <Obstacle key={id} id={id} />
         ))}
-      {Object.entries(railwayUI.trains)
-        .filter(([id, train]) => railwayState.trains[id])
-        .map(([id, train]) => (
-          <Train key={id} id={id} />
-        ))}
+      {Object.entries(railwayState.trains).map(([id, train]) => (
+        <Train key={id} id={id} />
+      ))}
       {children}
     </svg>
   );

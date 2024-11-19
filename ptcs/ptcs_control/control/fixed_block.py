@@ -1,4 +1,5 @@
 import math
+from collections import deque
 
 from ..components.junction import JunctionConnection, PointDirection
 from ..components.obstacle import Obstacle
@@ -107,6 +108,17 @@ class FixedBlockControl(BaseControl):
                         case TrainType.CommuterSemiExpress:
                             junction.manual_direction = PointDirection.CURVE  # 極力急行線に移動
 
+            # 要求キューに入れる
+            if junction.manual_direction is not None:
+                if (junction.manual_direction, nearest_train) not in junction.request_queue:
+                    junction.request_queue.append((junction.manual_direction, nearest_train))
+                junction.manual_direction = None
+
+        for junction in self.junctions.values():
+            # 過ぎ去った列車を取り除く
+            incoming_trains = junction.find_incoming_trains()
+            junction.request_queue = deque((d, t) for (d, t) in junction.request_queue if t in incoming_trains)
+
         # 列車のセクション変更イベントを拾って通勤準急の行き先を判断する。
         for event in self.event_queue:
             match event:
@@ -133,10 +145,10 @@ class FixedBlockControl(BaseControl):
 
         # ポイントの向きを適用する。
         for junction in self.junctions.values():
-            if junction.manual_direction:
+            if junction.request_queue:
+                direction, _train = junction.request_queue[0]
                 if not junction.is_toggle_prohibited():
-                    junction.set_direction(junction.manual_direction)
-                    junction.manual_direction = None
+                    junction.set_direction(direction)
 
     def _calc_block(self) -> None:
         r"""
