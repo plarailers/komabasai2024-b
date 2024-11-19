@@ -50,6 +50,17 @@ def create_app() -> FastAPI:
     return app
 
 
+def handle_task_error(task: asyncio.Task):
+    logger = logging.getLogger("uvicorn")
+    try:
+        task.result()
+    except asyncio.CancelledError:
+        pass
+    except Exception as e:
+        logger.error(f"Task failed with error: {e}")
+        raise e
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger = logging.getLogger("uvicorn")
@@ -77,6 +88,7 @@ async def lifespan(app: FastAPI):
             control.update()
 
     control_loop_task = asyncio.create_task(control_loop())
+    control_loop_task.add_done_callback(handle_task_error)
     app.state.control_loop_task = control_loop_task
 
     async def train_loop(train_client: TrainBase):
@@ -124,6 +136,7 @@ async def lifespan(app: FastAPI):
     app.state.train_loop_tasks = {}
     for train_id, train_client in bridge.trains.items():
         train_loop_task = asyncio.create_task(train_loop(train_client))
+        train_loop_task.add_done_callback(handle_task_error)
         app.state.train_loop_tasks[train_id] = train_loop_task
 
     async def point_loop(point_client: PointClient):
@@ -140,7 +153,9 @@ async def lifespan(app: FastAPI):
 
     app.state.point_loop_tasks = {}
     for point_id, point_client in bridge.points.items():
-        app.state.point_loop_tasks[point_id] = asyncio.create_task(point_loop(point_client))
+        point_loop_task = asyncio.create_task(point_loop(point_client))
+        point_loop_task.add_done_callback(handle_task_error)
+        app.state.point_loop_tasks[point_id] = point_loop_task
 
     async def obstacle_loop(obstacle_client: WirePoleClient):
         await obstacle_client.connect()
@@ -156,7 +171,9 @@ async def lifespan(app: FastAPI):
 
     app.state.obstacle_loop_tasks = {}
     for obstacle_id, obstacle_client in bridge.obstacles.items():
-        app.state.obstacle_loop_tasks[obstacle_id] = asyncio.create_task(obstacle_loop(obstacle_client))
+        obstacle_loop_task = asyncio.create_task(obstacle_loop(obstacle_client))
+        obstacle_loop_task.add_done_callback(handle_task_error)
+        app.state.obstacle_loop_tasks[obstacle_id] = obstacle_loop_task
 
     async def controller_loop(controller_client: MasterControllerClient):
         await controller_client.connect()
@@ -172,7 +189,9 @@ async def lifespan(app: FastAPI):
 
     app.state.controller_loop_tasks = {}
     for controller_id, controller_client in bridge.controllers.items():
-        app.state.controller_loop_tasks[controller_id] = asyncio.create_task(controller_loop(controller_client))
+        controller_loop_task = asyncio.create_task(controller_loop(controller_client))
+        controller_loop_task.add_done_callback(handle_task_error)
+        app.state.controller_loop_tasks[controller_id] = controller_loop_task
 
     # ここでサーバーのループが走る
     yield
