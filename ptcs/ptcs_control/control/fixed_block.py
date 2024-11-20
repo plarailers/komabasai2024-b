@@ -25,9 +25,9 @@ class FixedBlockControl(BaseControl):
         状態に変化が起こった後、すべてを再計算する。
         """
 
+        self._calc_stop()
         self._calc_direction()
         self._calc_block()
-        self._calc_stop()
         self._calc_speed()
         self.event_queue.clear()
 
@@ -110,8 +110,10 @@ class FixedBlockControl(BaseControl):
 
             # 要求キューに入れる
             if junction.manual_direction is not None:
-                if (junction.manual_direction, nearest_train) not in junction.request_queue:
-                    junction.request_queue.append((junction.manual_direction, nearest_train))
+                # 駅停車中は入れない
+                if not (nearest_train.departure_time is not None and self.current_time < nearest_train.departure_time):
+                    if (junction.manual_direction, nearest_train) not in junction.request_queue:
+                        junction.request_queue.append((junction.manual_direction, nearest_train))
                 junction.manual_direction = None
 
         for junction in self.junctions.values():
