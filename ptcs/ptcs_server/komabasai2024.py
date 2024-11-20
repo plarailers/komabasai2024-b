@@ -77,6 +77,6 @@ def create_bridge() -> Bridge2:
 
     # bridge.add_point(PointClient("", ADDRESS_POINT1))
     bridge.add_point(PointClient("J50", ADDRESS_POINT2))
-    bridge.add_point(PointClient("J26", ADDRESS_POINT3))
+    bridge.add_point(PointClient("J24", ADDRESS_POINT3))
 
     return bridge
