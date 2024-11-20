@@ -25,9 +25,9 @@ class FixedBlockControl(BaseControl):
         状態に変化が起こった後、すべてを再計算する。
         """
 
+        self._calc_stop()
         self._calc_direction()
         self._calc_block()
-        self._calc_stop()
         self._calc_speed()
         self.event_queue.clear()
 
@@ -99,7 +99,7 @@ class FixedBlockControl(BaseControl):
                             else:
                                 junction.manual_direction = PointDirection.STRAIGHT  # 極力急行線に移動
 
-                case "J26":  # 緩行線上の分岐点
+                case "J24":  # 緩行線上の分岐点
                     match nearest_train.type:
                         case TrainType.LimitedExpress:
                             junction.manual_direction = PointDirection.CURVE  # 急行線に保つ
@@ -110,8 +110,10 @@ class FixedBlockControl(BaseControl):
 
             # 要求キューに入れる
             if junction.manual_direction is not None:
-                if (junction.manual_direction, nearest_train) not in junction.request_queue:
-                    junction.request_queue.append((junction.manual_direction, nearest_train))
+                # 駅停車中は入れない
+                if not (nearest_train.departure_time is not None and self.current_time < nearest_train.departure_time):
+                    if (junction.manual_direction, nearest_train) not in junction.request_queue:
+                        junction.request_queue.append((junction.manual_direction, nearest_train))
                 junction.manual_direction = None
 
         for junction in self.junctions.values():
@@ -266,22 +268,30 @@ class FixedBlockControl(BaseControl):
         MERGIN: float = 25  # 停止余裕距離[cm]
 
         for train in self.trains.values():
+            stop = False
             current_section = train.head_position.section
             target_junction = train.head_position.target_junction
             while True:
-                next_block_section, next_block_junction = current_section.get_next_section_and_target_junction(
+                next_block_section_and_target_junction = current_section.get_next_section_and_target_junction_strict(
                     target_junction
                 )
+
+                if next_block_section_and_target_junction is None:
+                    stop = True
+                    break
+                next_block_section, next_block_target_junction = next_block_section_and_target_junction
                 if next_block_section.block_id != current_section.block_id:
                     break
                 current_section = next_block_section
-                target_junction = next_block_junction
+                target_junction = next_block_target_junction
 
             if train.departure_time is not None and self.current_time < train.departure_time:
                 train.speed_command = 0.0
+            elif stop:
+                train.speed_command = 0.0
             elif next_block_section.is_blocked:
                 train.speed_command = 0.0
-            elif next_block_section.get_next_section_and_target_junction_strict(next_block_junction) is None:
+            elif next_block_section.get_next_section_and_target_junction_strict(next_block_target_junction) is None:
                 # 次のセクションがブロックされていなくても、ポイントが自分の方に向いていなければブロックとみなす
                 train.speed_command = 0.0
             else:

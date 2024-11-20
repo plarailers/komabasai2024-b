@@ -1,7 +1,7 @@
 import { DEFAULT_THEME } from "@mantine/core";
 import { TrainType } from "ptcs_client";
 import type { RailwayUI, TrainUI } from "../types";
-import generated from "../../../data/komabasai2024/railway_ui_test_v1.json";
+import generated from "../../../data/komabasai2024/railway_ui_test_v2.json";
 
 // 色の一覧: https://v5.mantine.dev/theming/colors/#default-colors
 
