@@ -99,7 +99,7 @@ class FixedBlockControl(BaseControl):
                             else:
                                 junction.manual_direction = PointDirection.STRAIGHT  # 極力急行線に移動
 
-                case "J26":  # 緩行線上の分岐点
+                case "J24":  # 緩行線上の分岐点
                     match nearest_train.type:
                         case TrainType.LimitedExpress:
                             junction.manual_direction = PointDirection.CURVE  # 急行線に保つ
