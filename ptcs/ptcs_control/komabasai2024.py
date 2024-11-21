@@ -1,7 +1,7 @@
 import logging
 import random
 
-from . import komabasai2024_test_generated
+from . import komabasai2024_generated
 from .components.junction import JunctionConnection
 from .components.position import DirectedPosition
 from .components.section import SectionConnection
@@ -18,7 +18,7 @@ def create_control(logger: logging.Logger | None = None) -> FixedBlockControl:
     control = FixedBlockControl(logger=logger)
 
     # 自動生成による設定
-    komabasai2024_test_generated.configure(control)
+    komabasai2024_generated.configure(control)
 
     # 手動による設定
     configure(control)
@@ -207,13 +207,13 @@ def configure(control: FixedBlockControl) -> None:
         ("P21", "4402d7e2", "C21"),
         ("P22", "14ea36e1", "C22"),
         ("P23", "b4aa5ee1", "C23"),
-        ("P24", "64175ae1", "J24"),
+        ("P24", "64175ae1", "C24"),
         ("P25", "943a69e1", "C25"),
         ("P26", "34d041e1", "C26"),
         ("P27", "b4345fe1", "C27"),
         ("P28", "04b966e1", "C28"),
         ("P29", "840b83e2", "C29"),
-        ("P30", "f47992e2", "J30"),
+        ("P30", "f47992e2", "C30"),
         # ("P31", "44c495e2", ""),
         # ("P32", "84e8e3e2", ""),
         # ("P33", "6448cee2", ""),
@@ -221,8 +221,8 @@ def configure(control: FixedBlockControl) -> None:
         # ("P35", "14df82e2", ""),
         # ("P36", "94e4e3e2", ""),
         # ("P37", "44086de1", ""),
-        ("P38", "c4225be1", "C37"),
-        # ("P39", "44086de1", ""),
+        # ("P38", "c4225be1", ""),
+        ("P39", "44086de1", "C39"),
         ("P40", "b49a5ee1", "C40"),
         ("P41", "446dd7e2", "C41"),
         ("P42", "74765ce1", "C42"),
@@ -233,26 +233,26 @@ def configure(control: FixedBlockControl) -> None:
         ("P47", "6467d7e2", "C47"),
         ("P48", "445dd9e2", "C48"),
         ("P49", "745935e1", "C49"),
-        ("P50", "740876e1", "J50"),
+        ("P50", "740876e1", "C50"),
         ("P51", "74f562e1", "C51"),
-        # ("P52", "448f81e2", ""),
-        # ("P53", "c42566e1", ""),
-        # ("P54", "f4ed6ae1", ""),
-        # ("P55", "44e76ae1", ""),
-        # ("P56", "145667e1", ""),
+        ("P52", "448f81e2", "C52"),
+        ("P53", "c42566e1", "C53"),
+        ("P54", "f4ed6ae1", "C54"),
+        ("P55", "44e76ae1", "C55"),
+        ("P56", "145667e1", "C56"),
         # ("P57", "a4cac8e2", ""),
-        # ("P58", "f49b68e1", ""),
-        # ("P59", "048468e1", ""),
+        ("P58", "f49b68e1", "C58"),
+        ("P59", "048468e1", "C59"),
         ("P60", "145f63e1", "C60"),
-        # ("P61", "447f5de1", ""),
-        # ("P62", "64da62e1", ""),
-        # ("P63", "f493dde2", ""),
-        # ("P64", "947968e1", ""),
-        # ("P65", "0477cee2", ""),
-        # ("P66", "b46e63e1", ""),
-        # ("P67", "84d07ae1", ""),
-        # ("P68", "241157e1", ""),
-        # ("P69", "e4c0e3e2", ""),
+        ("P61", "447f5de1", "C61"),
+        ("P62", "64da62e1", "C62"),
+        ("P63", "f493dde2", "C63"),
+        ("P64", "947968e1", "C64"),
+        ("P65", "0477cee2", "C65"),
+        ("P66", "b46e63e1", "C66"),
+        ("P67", "84d07ae1", "C67"),
+        ("P68", "241157e1", "C68"),
+        ("P69", "e4c0e3e2", "C69"),
     ]:
         junction = control.junctions[junction_id]
 

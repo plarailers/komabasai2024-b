@@ -75,8 +75,8 @@ def create_bridge() -> Bridge2:
     # bridge.add_train(TrainSimulator("t9"))
     bridge.add_train(TrainClient("t9", ADDRESS_T9))
 
-    # bridge.add_point(PointClient("", ADDRESS_POINT1))
-    bridge.add_point(PointClient("J50", ADDRESS_POINT2))
-    bridge.add_point(PointClient("J24", ADDRESS_POINT3))
+    bridge.add_point(PointClient("j142", ADDRESS_POINT1))
+    bridge.add_point(PointClient("j168", ADDRESS_POINT2))
+    bridge.add_point(PointClient("j146", ADDRESS_POINT3))
 
     return bridge
