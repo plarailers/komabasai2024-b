@@ -34,8 +34,8 @@ def configure(control: FixedBlockControl) -> None:
     t0 = Train(
         id="t0",
         type=TrainType.LimitedExpress,
-        min_input=190,
-        max_input=210,
+        min_input=180,
+        max_input=220,
         max_speed=40.0,
         length=40.0,
         delta_per_motor_rotation=0.4553,
@@ -75,9 +75,9 @@ def configure(control: FixedBlockControl) -> None:
     )
     t3 = Train(
         id="t3",
-        type=TrainType.CommuterSemiExpress,
-        min_input=110,
-        max_input=150,
+        type=TrainType.LimitedExpress,
+        min_input=140,
+        max_input=170,
         max_speed=40.0,
         length=40.0,
         delta_per_motor_rotation=0.4508,
@@ -104,8 +104,8 @@ def configure(control: FixedBlockControl) -> None:
     t5 = Train(
         id="t5",
         type=TrainType.LimitedExpress,
-        min_input=185,
-        max_input=225,
+        min_input=130,
+        max_input=160,
         max_speed=40.0,
         length=40.0,
         delta_per_motor_rotation=0.4241,
@@ -118,8 +118,8 @@ def configure(control: FixedBlockControl) -> None:
     t6 = Train(
         id="t6",
         type=TrainType.Local,
-        min_input=100,
-        max_input=150,
+        min_input=192,
+        max_input=222,
         max_speed=40.0,
         length=40.0,
         delta_per_motor_rotation=0.4241,
@@ -132,7 +132,7 @@ def configure(control: FixedBlockControl) -> None:
     t7 = Train(
         id="t7",
         type=TrainType.Local,
-        min_input=220,
+        min_input=190,
         max_input=220,
         max_speed=40.0,
         length=40.0,
@@ -146,8 +146,8 @@ def configure(control: FixedBlockControl) -> None:
     t8 = Train(
         id="t8",
         type=TrainType.Local,
-        min_input=180,
-        max_input=210,
+        min_input=195,
+        max_input=225,
         max_speed=40.0,
         length=40.0,
         delta_per_motor_rotation=0.4241,
@@ -160,8 +160,8 @@ def configure(control: FixedBlockControl) -> None:
     t9 = Train(
         id="t9",
         type=TrainType.CommuterSemiExpress,
-        min_input=180,
-        max_input=210,
+        min_input=192,
+        max_input=222,
         max_speed=40.0,
         length=40.0,
         delta_per_motor_rotation=0.4241,
@@ -175,11 +175,11 @@ def configure(control: FixedBlockControl) -> None:
     control.add_train(t0)
     # control.add_train(t1)
     # control.add_train(t2)
-    # control.add_train(t3)
+    control.add_train(t3)
     # control.add_train(t4)
     control.add_train(t5)
     control.add_train(t6)
-    # control.add_train(t7)
+    control.add_train(t7)
     control.add_train(t8)
     control.add_train(t9)
 
