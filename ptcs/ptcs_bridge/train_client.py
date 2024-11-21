@@ -11,6 +11,7 @@ from .train_base import (
     NotifyVoltageCallback,
     TrainBase,
 )
+from .util import retry_connect
 
 SERVICE_TRAIN_UUID = UUID("63cb613b-6562-4aa5-b602-030f103834a4")
 CHARACTERISTIC_MOTOR_INPUT_UUID = UUID("88c9d9ae-bd53-4ab3-9f42-b3547575a743")
@@ -34,7 +35,7 @@ class TrainClient(TrainBase):
         return f"TrainClient({self.id}, {self._client.address})"
 
     async def connect(self) -> None:
-        await self._client.connect()
+        await retry_connect(self._client, self)
         logger.info("%s connected", self)
 
     async def disconnect(self) -> None:

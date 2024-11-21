@@ -91,6 +91,9 @@ async def lifespan(app: FastAPI):
     control_loop_task.add_done_callback(handle_task_error)
     app.state.control_loop_task = control_loop_task
 
+    ready_queue: asyncio.Queue[None] = asyncio.Queue()  # 各タスクが ready になったら put
+    ready_event = asyncio.Event()  # 全タスクが ready になったら notify
+
     async def train_loop(train_client: TrainBase):
         await train_client.connect()
 
@@ -123,6 +126,11 @@ async def lifespan(app: FastAPI):
         if train_control is None:
             logger.warning(f"{train_client} has no corresponding train")
             return
+
+        logger.info(f"{train_client} is ready")
+        await ready_queue.put(None)
+        # 最後のスレッドについてはこの時点にすでに set されている可能性があるが、それでよい
+        await ready_event.wait()
 
         while True:
             await asyncio.sleep(0.2)
@@ -192,6 +200,11 @@ async def lifespan(app: FastAPI):
         controller_loop_task = asyncio.create_task(controller_loop(controller_client))
         controller_loop_task.add_done_callback(handle_task_error)
         app.state.controller_loop_tasks[controller_id] = controller_loop_task
+
+    for _ in range(len(bridge.trains)):
+        await ready_queue.get()
+    logger.info("All trains are ready")
+    ready_event.set()
 
     # ここでサーバーのループが走る
     yield

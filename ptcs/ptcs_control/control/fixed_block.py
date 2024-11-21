@@ -49,7 +49,34 @@ class FixedBlockControl(BaseControl):
                 continue
 
             match junction.id:
-                case "j100" | "j102" | "j103" | "j105" | "j106":  # 合流点
+                case "j139" | "j160":  # 固定
+                    junction.manual_direction = PointDirection.STRAIGHT
+
+                case "j140" | "j142" | "j148":  # 固定
+                    junction.manual_direction = PointDirection.CURVE
+
+                case "j168":  # 急行線上の分岐点
+                    match nearest_train.type:
+                        case TrainType.LimitedExpress | TrainType.RapidExpress:
+                            junction.manual_direction = PointDirection.STRAIGHT  # 急行線に保つ
+                        case TrainType.Local:
+                            junction.manual_direction = PointDirection.CURVE  # 緩行線に保つ
+                        case TrainType.CommuterSemiExpress:
+                            if junction.id == "j168":
+                                junction.manual_direction = PointDirection.CURVE  # 駅に寄るため専用区間に移動
+                            else:
+                                junction.manual_direction = PointDirection.STRAIGHT  # 極力急行線に移動
+
+                case "j146":  # 緩行線上の分岐点
+                    match nearest_train.type:
+                        case TrainType.LimitedExpress | TrainType.RapidExpress:
+                            junction.manual_direction = PointDirection.CURVE  # 急行線に保つ
+                        case TrainType.Local:
+                            junction.manual_direction = PointDirection.STRAIGHT  # 緩行線に保つ
+                        case TrainType.CommuterSemiExpress:
+                            junction.manual_direction = PointDirection.CURVE  # 極力急行線に移動
+
+                case _:  # 合流点
                     section_t = junction.connected_sections[JunctionConnection.THROUGH]
                     section_d = junction.connected_sections.get(JunctionConnection.DIVERGING)
                     if (
@@ -83,30 +110,6 @@ class FixedBlockControl(BaseControl):
                                 break
                             current_section = next_section
                             current_target_junction = next_target_junction
-
-                case "J30" | "j104":  # 固定
-                    junction.manual_direction = PointDirection.CURVE
-
-                case "J50":  # 急行線上の分岐点
-                    match nearest_train.type:
-                        case TrainType.LimitedExpress:
-                            junction.manual_direction = PointDirection.STRAIGHT  # 急行線に保つ
-                        case TrainType.Local:
-                            junction.manual_direction = PointDirection.CURVE  # 緩行線に保つ
-                        case TrainType.CommuterSemiExpress:
-                            if junction.id == "J50":
-                                junction.manual_direction = PointDirection.CURVE  # 駅に寄るため専用区間に移動
-                            else:
-                                junction.manual_direction = PointDirection.STRAIGHT  # 極力急行線に移動
-
-                case "J24":  # 緩行線上の分岐点
-                    match nearest_train.type:
-                        case TrainType.LimitedExpress:
-                            junction.manual_direction = PointDirection.CURVE  # 急行線に保つ
-                        case TrainType.Local:
-                            junction.manual_direction = PointDirection.STRAIGHT  # 緩行線に保つ
-                        case TrainType.CommuterSemiExpress:
-                            junction.manual_direction = PointDirection.CURVE  # 極力急行線に移動
 
             # 要求キューに入れる
             if junction.manual_direction is not None:
@@ -201,16 +204,7 @@ class FixedBlockControl(BaseControl):
         for event in self.event_queue:
             match event:
                 case TrainSectionChanged(t0, _, current_section):  # 列車のセクションが変わったとき
-                    stops: list[str]
-                    match t0.type:
-                        case TrainType.LimitedExpress:
-                            stops = []
-                        case TrainType.Local:
-                            stops = ["S60", "S25"]
-                        case TrainType.CommuterSemiExpress:
-                            stops = ["S37", "S25"]
-                        case _:
-                            stops = []
+                    stops = self._get_stops(t0.type)
 
                     if current_section.id in stops:
                         t0.stop_distance = 0.0
@@ -261,6 +255,19 @@ class FixedBlockControl(BaseControl):
                     train.stop_distance = forward_stop_distance
                     train.departure_time = None
 
+    def _get_stops(self, train_type: TrainType | None) -> list[str]:
+        match train_type:
+            case TrainType.LimitedExpress:
+                return []
+            case TrainType.RapidExpress:
+                return ["S58", "S52"]
+            case TrainType.CommuterSemiExpress:
+                return ["S58", "S28", "S40", "S42", "S67", "S39", "S52", "S22"]
+            case TrainType.Local:
+                return ["S58", "S28", "S40", "S42", "S67", "S47", "S39", "S49", "S52", "S22"]
+            case _:
+                return []
+
     def _calc_speed(self) -> None:
         BREAK_ACCLT: float = 10  # ブレーキ減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
         NORMAL_ACCLT: float = 5  # 常用加減速度[cm/s/s]  NOTE:将来的には車両のパラメータとして定義
@@ -295,10 +302,19 @@ class FixedBlockControl(BaseControl):
                 # 次のセクションがブロックされていなくても、ポイントが自分の方に向いていなければブロックとみなす
                 train.speed_command = 0.0
             else:
-                train.speed_command = MAX_SPEED
+                stops = self._get_stops(train.type)
+                if next_block_section.id in stops:
+                    # 次の区間で駅停車するなら減速する
+                    train.speed_command = MAX_SPEED / 2
+                else:
+                    train.speed_command = MAX_SPEED
 
             if train.departure_time is not None and self.current_time >= train.departure_time:
                 train.departure_time = None
+
+            # マスコン
+            if train.manual_speed is not None:
+                train.speed_command = min(train.speed_command, train.manual_speed)
 
         return
 

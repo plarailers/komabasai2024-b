@@ -60,9 +60,15 @@ CHARACTERISTIC_ROTATION_UUID = "aab17457-2755-8b50-caa1-432ff553d533"
 CHARACTERISTIC_VOLTAGE_UUID = "7ecc0ed2-5ef9-c9e6-5d16-582f86035ecf"
 
 mileage_cm_ = 0.0
-
+newtime = 0.0
+oldtime = 0.0
 WHEEL_DIAMETER_cm_ = 2.4
 PI = 3.14159265358979
+
+# テストコース(直線2本と曲線8本)
+STRAIGHT_RAIL_cm_ = 21.50
+CURVE_RAIL_cm_ = 16.90
+COURSE_LENGTH_cm_ = STRAIGHT_RAIL_cm_ * 2 + CURVE_RAIL_cm_ * 8
 
 async def main():
     print("Devices:")
@@ -92,25 +98,25 @@ async def main():
                 await client.start_notify(characteristicVoltage, voltageNotification_callback)
 
                 if address == ADDRESS_T0:
-                    i = 230
+                    i = 220
                 elif address == ADDRESS_T1:
                     i = 200
                 elif address == ADDRESS_T2:
                     i = 220
                 elif address == ADDRESS_T3:
-                    i = 140
+                    i = 170
                 elif address == ADDRESS_T4:
                     i = 210
                 elif address == ADDRESS_T5:
-                    i = 195
+                    i = 160
                 elif address == ADDRESS_T6:
-                    i = 230
+                    i = 222
                 elif address == ADDRESS_T7:
-                    i = 210
+                    i = 220
                 elif address == ADDRESS_T8:
-                    i = 230
+                    i = 225
                 elif address == ADDRESS_T9:
-                    i = 230
+                    i = 222
 
                 while True:
                     await client.write_gatt_char(characteristicSpeed, f"{i}".encode())
@@ -123,8 +129,15 @@ async def main():
 async def positionIdNotification_callback(sender, data):
     # positionId Notifyを受け取ったとき，positionIDを表示．mileageはリセット
     global mileage_cm_
+    global newtime
+    global oldtime
     positionID = hex(int.from_bytes(data, byteorder='big'))
     print(f"positionID: {positionID}")
+
+    # テストコースにRFIDカード1枚配置してスピードを計測。30 cm/sくらいがRFIDを読み取る上でちょうどいい
+    oldtime = newtime
+    newtime = time.time()
+    print(f"speed (cm/s): {COURSE_LENGTH_cm_ / (newtime - oldtime)}")
     mileage_cm_ = 0
 
 async def rotationNotification_callback(sender, data):

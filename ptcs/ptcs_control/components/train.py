@@ -25,6 +25,7 @@ class TrainType(str, Enum):
     """列車の種別"""
 
     LimitedExpress = "LimitedExpress"  # 特急
+    RapidExpress = "RapidExpress"  # 快速急行
     Local = "Local"  # 各駅停車
     CommuterSemiExpress = "CommuterSemiExpress"  # 通勤準急
 

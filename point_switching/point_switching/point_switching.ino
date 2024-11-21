@@ -12,7 +12,7 @@ const int SERVO_SPEED = 100;
 // サーボを直進にする際の角度。適宜いじってください。
 const int SERVO_ANGLE_STRAIGHT = 80; //POINT0:50, POINT1:80, POINT3:
 // サーボを曲げる際の角度。適宜いじってください。
-const int SERVO_ANGLE_CURVE = 20; //POINT0:69, POINT1:20, POINT3:
+const int SERVO_ANGLE_CURVE = 60; //POINT0:69, POINT1:20, POINT3:
 // サーボをアタッチするピンの指定。適宜いじってください。
 const int SERVO_ATTACH_PIN = 26;
 String STRAIGHT = "STRAIGHT";

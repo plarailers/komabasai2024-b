@@ -1,12 +1,12 @@
 import { DEFAULT_THEME } from "@mantine/core";
 import { TrainType } from "ptcs_client";
 import type { RailwayUI, TrainUI } from "../types";
-import generated from "../../../data/komabasai2024/railway_ui_test_v2.json";
+import generated from "../../../data/komabasai2024/railway_ui_v1.json";
 
 // 色の一覧: https://v5.mantine.dev/theming/colors/#default-colors
 
 export const ui: RailwayUI = {
-  width: 1080,
+  width: 1960,
   height: 600,
   ...generated,
   trains: {},
@@ -20,6 +20,11 @@ export const getTrainUI = (trainType: TrainType | null): TrainUI => {
       return {
         fill: DEFAULT_THEME.colors.red[5],
         stroke: DEFAULT_THEME.colors.red[9],
+      };
+    case TrainType.RAPID_EXPRESS:
+      return {
+        fill: DEFAULT_THEME.colors.yellow[4],
+        stroke: DEFAULT_THEME.colors.yellow[9],
       };
     case TrainType.LOCAL:
       return {

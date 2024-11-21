@@ -28,7 +28,7 @@ else:
     raise Exception(f"{platform.system()} not supported")
 
 ####### TODO: 車両のアドレスを指定してください #######
-address = ADDRESS_POINT3
+address = ADDRESS_POINT2
 #################################################
 
 SERVICE_UUID = "2a4023a6-6079-efea-b79f-7c882319b83b"
