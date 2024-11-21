@@ -1,6 +1,7 @@
 import platform
 
 from ptcs_bridge.bridge2 import Bridge2
+from ptcs_bridge.master_controller_client import MasterControllerClient
 from ptcs_bridge.point_client import PointClient
 from ptcs_bridge.train_client import TrainClient
 from ptcs_bridge.train_simulator import TrainSimulator
@@ -16,6 +17,7 @@ if platform.system() == "Windows":
     ADDRESS_T7 = "24:dc:c3:c0:51:72"
     ADDRESS_T8 = "48:e7:29:a1:07:ee"
     ADDRESS_T9 = "24:dc:c3:c0:49:92"
+    ADDRESS_MASTER_CONTROLLER = "9c:9c:1f:cf:ea:de"
     ADDRESS_POINT0 = "3c:71:bf:99:36:86"
     ADDRESS_POINT1 = "9c:9c:1f:cb:d9:f2"
     ADDRESS_POINT2 = "08:3a:8d:14:7a:0e"
@@ -37,6 +39,7 @@ elif platform.system() == "Darwin":
     ADDRESS_T7 = "E7D2BF5C-331F-9FDE-B2EF-47CB507A69CB"
     ADDRESS_T8 = "2B59D30D-F1E0-E4F7-9056-67E74D182F76"
     ADDRESS_T9 = "E61E694E-7D52-1BD1-5B7A-02402813E73E"
+    ADDRESS_MASTER_CONTROLLER = "E538DF32-E46A-3177-8196-3B9A8D4861A9"
     ADDRESS_POINT0 = "9FA4916E-AD02-6C9C-686A-1B97D9E3427A"
     ADDRESS_POINT1 = "90386433-4331-50CF-1637-EFFA587DD6DB"
     ADDRESS_POINT2 = "2E4CD350-F39B-03B1-295C-F98C728C15E4"
@@ -74,7 +77,7 @@ def create_bridge() -> Bridge2:
     bridge.add_train(TrainClient("t8", ADDRESS_T8))
     # bridge.add_train(TrainSimulator("t9"))
     bridge.add_train(TrainClient("t9", ADDRESS_T9))
-
+    bridge.add_controller(MasterControllerClient("t8", ADDRESS_MASTER_CONTROLLER))
     # bridge.add_point(PointClient("j142", ADDRESS_POINT1))
     bridge.add_point(PointClient("j168", ADDRESS_POINT2))
     bridge.add_point(PointClient("j146", ADDRESS_POINT3))

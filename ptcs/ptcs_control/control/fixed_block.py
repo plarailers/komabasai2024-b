@@ -312,6 +312,10 @@ class FixedBlockControl(BaseControl):
             if train.departure_time is not None and self.current_time >= train.departure_time:
                 train.departure_time = None
 
+            # マスコン
+            if train.manual_speed is not None:
+                train.speed_command = min(train.speed_command, train.manual_speed)
+
         return
 
         objects: list[tuple[Train, DirectedPosition] | tuple[Obstacle, UndirectedPosition]] = [
