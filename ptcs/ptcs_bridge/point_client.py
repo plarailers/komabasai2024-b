@@ -5,6 +5,8 @@ from bleak import BleakClient
 
 from ptcs_control.components.junction import PointDirection
 
+from .util import retry_connect
+
 SERVICE_POINT_SWITCHING_UUID = UUID("2a4023a6-6079-efea-b79f-7c882319b83b")
 CHARACTERISTIC_DIRECTION_UUID = UUID("737237f4-300e-ca58-1e2f-40ff59fc71f7")
 
@@ -32,7 +34,7 @@ class PointClient:
         return f"{self.__class__.__name__}({self.id}, {self._client.address})"
 
     async def connect(self) -> None:
-        await self._client.connect()
+        await retry_connect(self._client, self)
         logger.info("%s connected", self)
 
     async def disconnect(self) -> None:

@@ -5,6 +5,8 @@ from uuid import UUID
 from bleak import BleakClient
 from bleak.backends.characteristic import BleakGATTCharacteristic
 
+from .util import retry_connect
+
 NotifyCollapseCallback = Callable[["WirePoleClient", bool], None]
 
 
@@ -27,7 +29,7 @@ class WirePoleClient:
         return f"WirePoleClient({self.id}, {self._client.address})"
 
     async def connect(self) -> None:
-        await self._client.connect()
+        await retry_connect(self._client, self)
         logger.info("%s connected", self)
 
     async def disconnect(self) -> None:
