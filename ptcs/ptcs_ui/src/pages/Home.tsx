@@ -54,10 +54,11 @@ export const Home: React.FC = () => {
                 </Grid.Col>
               </Grid>
               <Grid>
-                <Grid.Col span={8}></Grid.Col>
-                <Grid.Col span={4}>
+                <Grid.Col span={2}></Grid.Col>
+                <Grid.Col span={8}>
                   <Information />
                 </Grid.Col>
+                <Grid.Col span={2}></Grid.Col>
               </Grid>
               {/* <Debugger /> */}
               {/* <Code block>{JSON.stringify(railwayState, null, 4)}</Code> */}
