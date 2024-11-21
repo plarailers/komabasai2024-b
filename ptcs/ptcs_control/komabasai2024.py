@@ -75,7 +75,7 @@ def configure(control: FixedBlockControl) -> None:
     )
     t3 = Train(
         id="t3",
-        type=TrainType.LimitedExpress,
+        type=TrainType.RapidExpress,
         min_input=140,
         max_input=170,
         max_speed=40.0,
@@ -103,7 +103,7 @@ def configure(control: FixedBlockControl) -> None:
     )
     t5 = Train(
         id="t5",
-        type=TrainType.LimitedExpress,
+        type=TrainType.RapidExpress,
         min_input=130,
         max_input=160,
         max_speed=40.0,

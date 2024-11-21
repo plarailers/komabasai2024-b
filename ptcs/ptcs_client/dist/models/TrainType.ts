@@ -7,6 +7,7 @@
  */
 export enum TrainType {
     LIMITED_EXPRESS = 'LimitedExpress',
+    RAPID_EXPRESS = 'RapidExpress',
     LOCAL = 'Local',
     COMMUTER_SEMI_EXPRESS = 'CommuterSemiExpress',
 }

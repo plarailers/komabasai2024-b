@@ -21,6 +21,11 @@ export const getTrainUI = (trainType: TrainType | null): TrainUI => {
         fill: DEFAULT_THEME.colors.red[5],
         stroke: DEFAULT_THEME.colors.red[9],
       };
+    case TrainType.RAPID_EXPRESS:
+      return {
+        fill: DEFAULT_THEME.colors.yellow[4],
+        stroke: DEFAULT_THEME.colors.yellow[9],
+      };
     case TrainType.LOCAL:
       return {
         fill: DEFAULT_THEME.colors.blue[4],

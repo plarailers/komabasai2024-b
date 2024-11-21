@@ -57,7 +57,7 @@ class FixedBlockControl(BaseControl):
 
                 case "j168":  # 急行線上の分岐点
                     match nearest_train.type:
-                        case TrainType.LimitedExpress:
+                        case TrainType.LimitedExpress | TrainType.RapidExpress:
                             junction.manual_direction = PointDirection.STRAIGHT  # 急行線に保つ
                         case TrainType.Local:
                             junction.manual_direction = PointDirection.CURVE  # 緩行線に保つ
@@ -69,7 +69,7 @@ class FixedBlockControl(BaseControl):
 
                 case "j146":  # 緩行線上の分岐点
                     match nearest_train.type:
-                        case TrainType.LimitedExpress:
+                        case TrainType.LimitedExpress | TrainType.RapidExpress:
                             junction.manual_direction = PointDirection.CURVE  # 急行線に保つ
                         case TrainType.Local:
                             junction.manual_direction = PointDirection.STRAIGHT  # 緩行線に保つ
@@ -208,6 +208,8 @@ class FixedBlockControl(BaseControl):
                     match t0.type:
                         case TrainType.LimitedExpress:
                             stops = []
+                        case TrainType.RapidExpress:
+                            stops = ["S58", "S52"]
                         case TrainType.CommuterSemiExpress:
                             stops = ["S58", "S28", "S40", "S42", "S67", "S39", "S52", "S22"]
                         case TrainType.Local:
