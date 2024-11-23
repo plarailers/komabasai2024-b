@@ -80,7 +80,15 @@ async def lifespan(app: FastAPI):
     bridge = create_bridge()
     app.state.bridge = bridge
 
+    ready_queue: asyncio.Queue[None] = asyncio.Queue()  # 各タスクが ready になったら put
+    ready_event = asyncio.Event()  # 全タスクが ready になったら notify
+
     async def control_loop():
+        for _ in range(len(bridge.trains)):
+            await ready_queue.get()
+        logger.info("All trains are ready")
+        ready_event.set()
+
         while True:
             # control 内部の時計を現実世界の時間において進める
             await asyncio.sleep(0.1)
@@ -90,9 +98,6 @@ async def lifespan(app: FastAPI):
     control_loop_task = asyncio.create_task(control_loop())
     control_loop_task.add_done_callback(handle_task_error)
     app.state.control_loop_task = control_loop_task
-
-    ready_queue: asyncio.Queue[None] = asyncio.Queue()  # 各タスクが ready になったら put
-    ready_event = asyncio.Event()  # 全タスクが ready になったら notify
 
     async def train_loop(train_client: TrainBase):
         await train_client.connect()
@@ -200,11 +205,6 @@ async def lifespan(app: FastAPI):
         controller_loop_task = asyncio.create_task(controller_loop(controller_client))
         controller_loop_task.add_done_callback(handle_task_error)
         app.state.controller_loop_tasks[controller_id] = controller_loop_task
-
-    for _ in range(len(bridge.trains)):
-        await ready_queue.get()
-    logger.info("All trains are ready")
-    ready_event.set()
 
     # ここでサーバーのループが走る
     yield
