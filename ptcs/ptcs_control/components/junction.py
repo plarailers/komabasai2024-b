@@ -133,18 +133,20 @@ class Junction(BaseComponent):
                     nearest_distance = distance
                 continue
 
-            # 一応同じ閉塞区間の次の区間まで見る
+            # 次の閉塞区間まで見る
             current_section = train.head_position.section
             current_target_junction = train.head_position.target_junction
+            block_ids: set[str | None] = set([])
             while True:
-                if current_section.block_id != train.head_position.section.block_id:
-                    break
+                block_ids.add(current_section.block_id)
                 next_section_and_target_junction = current_section.get_next_section_and_target_junction_strict(
                     current_target_junction
                 )
                 if next_section_and_target_junction is None:
                     break
                 next_section, next_target_junction = next_section_and_target_junction
+                if len(block_ids | set([next_section.block_id])) > 2:
+                    break
                 distance += next_section.length
                 if next_target_junction == self:
                     if distance < nearest_distance:
@@ -183,18 +185,20 @@ class Junction(BaseComponent):
                 trains.append(train)
                 continue
 
-            # 一応同じ閉塞区間の次の区間まで見る
+            # 次の閉塞区間まで見る
             current_section = train.head_position.section
             current_target_junction = train.head_position.target_junction
+            block_ids: set[str | None] = set()
             while True:
-                if current_section.block_id != train.head_position.section.block_id:
-                    break
+                block_ids.add(current_section.block_id)
                 next_section_and_target_junction = current_section.get_next_section_and_target_junction_strict(
                     current_target_junction
                 )
                 if next_section_and_target_junction is None:
                     break
                 next_section, next_target_junction = next_section_and_target_junction
+                if len(block_ids | set([next_section.block_id])) > 2:
+                    break
                 distance += next_section.length
                 if next_target_junction == self:
                     trains.append(train)
