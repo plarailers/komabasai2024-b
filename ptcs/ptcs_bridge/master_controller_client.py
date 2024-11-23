@@ -33,8 +33,11 @@ class MasterControllerClient:
         logger.info("%s connected", self)
 
     async def disconnect(self) -> None:
-        await self._client.disconnect()
-        logger.info("%s disconnected", self)
+        if self._client.is_connected:
+            await self._client.disconnect()
+            logger.info("%s disconnected", self)
+        else:
+            logger.info("%s tried to disconnect, but not connected", self)
 
     @property
     def is_connected(self) -> bool:
