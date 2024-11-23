@@ -84,9 +84,9 @@ async def lifespan(app: FastAPI):
     ready_event = asyncio.Event()  # 全タスクが ready になったら notify
 
     async def control_loop():
-        for _ in range(len(bridge.trains)):
+        for _ in range(len(bridge.trains) + len(bridge.points)):
             await ready_queue.get()
-        logger.info("All trains are ready")
+        logger.info("All trains and points are ready")
         ready_event.set()
 
         while True:
@@ -134,7 +134,6 @@ async def lifespan(app: FastAPI):
 
         logger.info(f"{train_client} is ready")
         await ready_queue.put(None)
-        # 最後のスレッドについてはこの時点にすでに set されている可能性があるが、それでよい
         await ready_event.wait()
 
         while True:
@@ -159,6 +158,10 @@ async def lifespan(app: FastAPI):
         if junction_control is None:
             logger.warning(f"{point_client} has no corresponding junction")
             return
+
+        logger.info(f"{point_client} is ready")
+        await ready_queue.put(None)
+        await ready_event.wait()
 
         while True:
             await asyncio.sleep(0.2)
