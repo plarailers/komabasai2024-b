@@ -174,7 +174,7 @@ def configure(control: FixedBlockControl) -> None:
 
     control.add_train(t0)
     # control.add_train(t1)
-    # control.add_train(t2)
+    control.add_train(t2)
     control.add_train(t3)
     # control.add_train(t4)
     control.add_train(t5)
