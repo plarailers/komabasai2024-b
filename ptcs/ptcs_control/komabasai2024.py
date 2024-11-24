@@ -61,7 +61,7 @@ def configure(control: FixedBlockControl) -> None:
     )
     t2 = Train(
         id="t2",
-        type=TrainType.LimitedExpress,
+        type=TrainType.LocalManual,
         min_input=210,
         max_input=230,
         max_speed=40.0,
@@ -131,7 +131,7 @@ def configure(control: FixedBlockControl) -> None:
     )
     t7 = Train(
         id="t7",
-        type=TrainType.LocalManual,
+        type=TrainType.Local,
         min_input=190,
         max_input=220,
         max_speed=40.0,
