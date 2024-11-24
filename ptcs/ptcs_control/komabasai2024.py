@@ -174,7 +174,7 @@ def configure(control: FixedBlockControl) -> None:
 
     control.add_train(t0)
     # control.add_train(t1)
-    # control.add_train(t2)
+    control.add_train(t2)
     control.add_train(t3)
     # control.add_train(t4)
     control.add_train(t5)
@@ -221,7 +221,7 @@ def configure(control: FixedBlockControl) -> None:
         # ("P35", "14df82e2", ""),
         # ("P36", "94e4e3e2", ""),
         # ("P37", "44086de1", ""),
-        # ("P38", "c4225be1", ""),
+        ("P38", "c4225be1", "C38"),
         ("P39", "44086de1", "C39"),
         ("P40", "b49a5ee1", "C40"),
         ("P41", "446dd7e2", "C41"),
@@ -240,7 +240,7 @@ def configure(control: FixedBlockControl) -> None:
         ("P54", "f4ed6ae1", "C54"),
         ("P55", "44e76ae1", "C55"),
         ("P56", "145667e1", "C56"),
-        # ("P57", "a4cac8e2", ""),
+        ("P57", "a4cac8e2", "C57"),
         ("P58", "f49b68e1", "C58"),
         ("P59", "048468e1", "C59"),
         ("P60", "145f63e1", "C60"),

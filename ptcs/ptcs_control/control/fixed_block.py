@@ -52,8 +52,16 @@ class FixedBlockControl(BaseControl):
                 case "j139" | "j160":  # 固定
                     junction.manual_direction = PointDirection.STRAIGHT
 
-                case "j140" | "j142" | "j148":  # 固定
+                case "j140" | "j148":  # 固定
                     junction.manual_direction = PointDirection.CURVE
+
+                case "j142":
+                    if nearest_train.manual_speed is None:
+                        # 自動操縦
+                        junction.manual_direction = PointDirection.CURVE  # 固定
+                    else:
+                        # 手動操縦
+                        junction.manual_direction = PointDirection.STRAIGHT  # 車庫に入れる
 
                 case "j168":  # 急行線上の分岐点
                     match nearest_train.type:
