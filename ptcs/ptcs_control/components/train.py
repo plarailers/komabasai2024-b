@@ -27,6 +27,7 @@ class TrainType(str, Enum):
     LimitedExpress = "LimitedExpress"  # 特急
     RapidExpress = "RapidExpress"  # 快速急行
     Local = "Local"  # 各駅停車
+    LocalManual = "LocalManual"  # 手動運転用各駅停車
     CommuterSemiExpress = "CommuterSemiExpress"  # 通勤準急
 
 
