@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - '.github/workflows/ptcs-ui-build.yml'
+      - 'ptcs/data/**'
       - 'ptcs/ptcs_ui/**'
       - 'ptcs/package-lock.json'
       - 'ptcs/package.json'
